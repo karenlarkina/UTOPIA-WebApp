@@ -4,7 +4,7 @@ The UTOPIA WebApp
 
 ## Instalation guidelines
 
-### Create and activate a virtual environment
+### Create, activate, and download dependencies with a virtual environment using venv
 
 ```bash
 # Create a virtual environment named 'venv'
@@ -20,4 +20,7 @@ source utopia-venv/bin/activate
 pip install -r requirements.txt
 ```
 
-#
+# Run server 
+```bash
+python app.py
+```

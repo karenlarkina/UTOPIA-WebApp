@@ -1,0 +1,20 @@
+.table-responsive {
+    display: none; /* Hide all tables by default */
+}
+
+.arrow-container {
+    position: relative;
+}
+.arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+}
+.arrow-right {
+    border-width: 10px 0 10px 20px;
+    border-color: transparent transparent transparent #007bff; /* Change this color to match your design */
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%);
+}

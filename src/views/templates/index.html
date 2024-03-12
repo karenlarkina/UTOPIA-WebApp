@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTOPIA WebApp</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/libs/bootstrap.min.css') }}">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            {% for file, table_data in tables %}
+            <div class="col-md-3">
+                <div class="card mb-3">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">{{ file }}</h5>
+                        <button class="btn btn-primary toggle-btn" data-target="{{ file }}">View</button>
+                        <div class="table-container table-responsive mt-3" id="table-{{ file }}">
+                            <table class="table table-bordered table-stripped">
+                                {% for row in table_data %}
+                                <tr>
+                                    {% for cell in row %}
+                                    <td contenteditable="true">{{ cell }}</td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+                </div>                
+            </div>
+            {% endfor %}
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-3">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Model</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/libs/bootstrap.min.js') }}"></script>    
+</body>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var toggleButtons = document.querySelectorAll('.toggle-btn');
+        toggleButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                var target = this.getAttribute('data-target');
+                var targetTable = document.getElementById('table-' + target);
+                var otherTables = document.querySelectorAll('.table-responsive');
+                otherTables.forEach(function(table) {
+                    if (table !== targetTable) {
+                        table.style.display = 'none';
+                    }
+                });
+                targetTable.style.display = targetTable.style.display === 'none' ? 'block' : 'none';
+            });
+        });
+    });
+</script>
+</html>
