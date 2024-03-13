@@ -9,57 +9,71 @@
 </head>
 <body>
     <div class="container mt-5">
-        <div class="row">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
             {% for file, table_data in tables %}
-            <div class="col-md-3">
-                <div class="card mb-3">
+            <div class="col mb-4">
+                <div class="card">
+                    <div class="card-header bg-{{ loop.cycle('primary', 'secondary', 'success', 'danger', 'warning', 'info', 'dark') }} text-white">
+                        {{ file }}
+                    </div>
                     <div class="card-body text-center">
-                        <h5 class="card-title">{{ file }}</h5>
+                        <h6 class="card-title">Some explanation of the file.</h6>
                         <button class="btn btn-primary toggle-btn" data-target="{{ file }}">View</button>
                         <div class="table-container table-responsive mt-3" id="table-{{ file }}">
-                            <table class="table table-bordered table-stripped">
-                                {% for row in table_data %}
-                                <tr>
-                                    {% for cell in row %}
-                                    <td contenteditable="true">{{ cell }}</td>
+                            <table class="table table-bordered">
+                                <thead class="bg-secondary text-white">
+                                    <tr>
+                                        {% for header in table_data[0] %}
+                                        <th>{{ header }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in table_data[1:] %}
+                                    <tr class="bg-white text-black">
+                                        {% for cell in row %}
+                                        <td contenteditable="true">{{ cell }}</td>
+                                        {% endfor %}
+                                    </tr>
                                     {% endfor %}
-                                </tr>
-                                {% endfor %}
+                                </tbody>
                             </table>
-                        </div>
+                        </div>                        
                     </div>
                 </div>                
             </div>
+            {% if loop.index == 4 %}
+            <div class="w-100 border border-dark d-none d-md-block"></div>
+            {% endif %}
             {% endfor %}
         </div>
-        <div class="row justify-content-center">
+        <div></div>
+        <div class="row row-cols-1 justify-content-center">
             <div class="col-md-3">
                 <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title text-center">Model</h5>
+                    <div class="card-header bg-dark text-white">
+                        Model
+                    </div>
+                    <div class="card-body  text-center">
+                        <h6 class="card-title">Some explanation about the model</h5>
+                        <button id="run-model" class="btn btn-primary">Run</button>
                     </div>
                 </div>
             </div>
         </div>
+        <div class="w-100 border border-dark d-none d-md-block"></div>
+        <div class="container mt-5">
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div id="heatmap-container" class="text-center"></div> <!-- Centered heatmap container -->
+                </div>
+            </div>
+        </div>         
     </div>
     <script src="{{ url_for('static', filename='js/libs/bootstrap.min.js') }}"></script>    
+    <script src="{{ url_for('static', filename='js/libs/d3.v7.js') }}"></script>    
+    <script src="{{ url_for('static', filename='js/main-elements.js') }}"></script>    
+    <script src="{{ url_for('static', filename='js/d3-heatmap.js') }}"></script>    
 </body>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var toggleButtons = document.querySelectorAll('.toggle-btn');
-        toggleButtons.forEach(function(button) {
-            button.addEventListener('click', function() {
-                var target = this.getAttribute('data-target');
-                var targetTable = document.getElementById('table-' + target);
-                var otherTables = document.querySelectorAll('.table-responsive');
-                otherTables.forEach(function(table) {
-                    if (table !== targetTable) {
-                        table.style.display = 'none';
-                    }
-                });
-                targetTable.style.display = targetTable.style.display === 'none' ? 'block' : 'none';
-            });
-        });
-    });
-</script>
+
 </html>
