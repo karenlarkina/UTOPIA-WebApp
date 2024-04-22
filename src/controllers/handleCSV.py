@@ -23,3 +23,16 @@ def assemble_html_table(folder_path, csv_files):
                 table_data.append(row)
             tables.append((file, table_data))
     return tables
+
+
+#Amilcar, use this method to convert the format from the Prado's code to the required format of D3 heatmap
+def convert_format_python_to_d3(df):
+    # Concatenate 'MP_Form' and 'Size_Fraction_um' to create 'group' column
+    df['group'] = df['MP_Form'] + ' - ' + df['Size_Fraction_um'].astype(str)
+
+    # Drop 'MP_Form' and 'Size_Fraction_um' columns
+    df.drop(columns=['MP_Form', 'Size_Fraction_um'], inplace=True)
+
+    # Reshape the DataFrame
+    df_transformed = df.melt(id_vars=['group'], var_name='variable', value_name='value')
+    return df_transformed
