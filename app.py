@@ -2,6 +2,7 @@ import os
 from flask import Flask
 from flask import render_template
 from flask import send_from_directory
+from flask_cors import CORS
 
 from src.controllers.handleCSV import assemble_html_table, read_csv_files
 
@@ -12,6 +13,8 @@ app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 
 #Set csv path
 csv_path = static_dir +'/csv'
+
+
 #Set HTTP paths for HTML pages
 @app.route('/')
 def index():
