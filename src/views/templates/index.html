@@ -10,7 +10,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Utopia WebApp</a>
+            <a class="navbar-brand">Utopia WebApp</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -29,15 +29,16 @@
                         <a class="nav-link" id="es_btn" href="#" onclick="toggleOptions('es_container')">Emission Scenario</a>
                     </li>
                     <li class="nav-item">
-                        <button id="run-model" class="btn btn-primary">Run</button>
+                        <button id="run-model" class="btn btn-success">Run Model</button>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>        
         <!-- The div for the content to be toggled -->
-            <div id="input_variables_container">
+            <div class="container" id="input_variables_container">
                 <div id="mpp_container" class="toggle_container">
+                    <h3>Microplastics Physical Properties</h3>
                     <div class="row">
                         <label for="mpp_composition" class="col-md-4">Microplastics Physical Property Composition:</label>
                         <select id="mpp_composition" class="col-md-3" onchange="generateMaterialProperties()">
@@ -107,7 +108,7 @@
         <!--Visualizations container-->
             <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
                 <div class="container-fluid">
-                    <a class="navbar-brand" href="#">Visualizations</a>
+                    <a class="navbar-brand">Visualizations</a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
