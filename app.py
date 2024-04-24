@@ -1,10 +1,13 @@
 import os
-from flask import Flask
+from flask import Flask, request, jsonify
 from flask import render_template
 from flask import send_from_directory
 from flask_cors import CORS
+import warnings
 
-from src.controllers.handleCSV import assemble_html_table, read_csv_files
+from src.controllers.utopia_controller import assemble_html_table, read_csv_files, run_utopia
+
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # Set the views folders' paths
 template_dir = os.path.abspath('./src/views/templates')
@@ -21,6 +24,13 @@ def index():
     csv_files = read_csv_files(csv_path)
     tables = assemble_html_table(csv_path, csv_files)
     return render_template('index.html', tables=tables)    
+
+@app.route('/run_model', methods=['POST'])
+def post_model_run():
+    # Retrieve the data sent in the POST request
+    data = request.json    
+    utopia_data = run_utopia(data)
+    return jsonify({'data': utopia_data})
 
 @app.route('/csv/<path:filename>')
 def csv_file(filename):    

@@ -8,69 +8,128 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/libs/bootstrap.min.css') }}">
 </head>
 <body>
-    <div class="container mt-5">
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
-            {% for file, table_data in tables %}
-            <div class="col mb-4">
-                <div class="card">
-                    <div class="card-header bg-{{ loop.cycle('primary', 'secondary', 'success', 'danger', 'warning', 'info', 'dark') }} text-white">
-                        {{ file }}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Utopia WebApp</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav w-100">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="mpp_btn" href="#" onclick="toggleOptions('mpp_container')">Microplastics Physical Properties</a>                    
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="ec_btn" href="#" onclick="toggleOptions('ec_container')">Environmental Characteristics</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="mwp_btn" href="#" onclick="toggleOptions('mwp_container')">Microplastics Weathering Properties</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="es_btn" href="#" onclick="toggleOptions('es_container')">Emission Scenario</a>
+                    </li>
+                    <li class="nav-item">
+                        <button id="run-model" class="btn btn-primary">Run</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>        
+        <!-- The div for the content to be toggled -->
+            <div id="input_variables_container">
+                <div id="mpp_container" class="toggle_container">
+                    <div class="row">
+                        <label for="mpp_composition" class="col-md-4">Microplastics Physical Property Composition:</label>
+                        <select id="mpp_composition" class="col-md-3" onchange="generateMaterialProperties()">
+                            <option value="PVC">PVC</option>
+                            <option value="PE">PE</option>
+                            <option value="PA">PA</option>
+                        </select>
+                    </div>                
+                    <div id="materialProperties">
+                    <!-- will be dynamically generated -->
                     </div>
-                    <div class="card-body text-center">
-                        <h6 class="card-title">Some explanation of the file.</h6>
-                        <button class="btn btn-primary toggle-btn" data-target="{{ file }}">View</button>
-                        <div class="table-container table-responsive mt-3" id="table-{{ file }}">
-                            <table class="table table-bordered">
-                                <thead class="bg-secondary text-white">
-                                    <tr>
-                                        {% for header in table_data[0] %}
-                                        <th>{{ header }}</th>
-                                        {% endfor %}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for row in table_data[1:] %}
-                                    <tr class="bg-white text-black">
-                                        {% for cell in row %}
-                                        <td contenteditable="true">{{ cell }}</td>
-                                        {% endfor %}
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                </div>
+                <div id="ec_container" class="toggle_container">
+                    <h3>Suspended Particulates Properties</h3>
+                        <div class="row">
+                            <label class="col-md-4" for="spmDiameter">SPM Diameter (µm):</label>
+                            <input class="col-md-3" type="number" id="spmDiameter" value="0.5">
                         </div>
+                        <div class="row">    
+                            <label class="col-md-4" for="spmDensity">SPM Density (kg/m³):</label>
+                            <input class="col-md-3" type="number" id="spmDensity" value="2000">
+                        </div>
+                        <div class="row">
+                            <label class="col-md-4">Compartments Properties:</label>
+                            <button class="col-md-3">Edit File</button>
+                        </div>
+                </div>
+                <div id="mwp_container" class="toggle_container">
+                    <h3>Fragmentation Style</h3>
+                    <div class="row">
+                        <label class="col-md-4" for="fragmentation_style">Options:</label>
+                        <select class="col-md-3" id="fragmentation_style" onchange="changeFragmentationStyle()">
+                            <option value="sequential_fragmentation">Sequential</option>
+                            <option value="erosive_fragmentation">Erosive</option>
+                            <option value="mixed_fragmentation">Mixed</option>
+                            <option value="no_fragmentation">No Fragmentation</option>                        
+                        </select>
+                    </div>
+                    <div class="row">
+                        <label class="col-md-4">Process Input Parameters</label>
+                        <label class="col-md-3">TBD</label>
+                    </div>
+                </div>
+                <div id="es_container" class="toggle_container">
+                    <h3>MP form</h3>
+                    <div class="row">
+                        <label class="col-md-4" for="mp_form">Options:</label>
+                        <select class="col-md-3" id="mp_form" onchange="changeMPForm()">
+                            <option value="freeMP">Free</option>
+                            <option value="heterMP">Heter</option>
+                            <option value="biofMP">Biof</option>
+                            <option value="heterBiofMP">HeterBiof</option>                        
+                        </select>
+                    </div>
+                    <div class="row">
+                        <label class="col-md-4" for="es_bin_size">Bin Size Options:</label>
+                        <select class="col-md-3" id="es_bin_size">
+                            <option value="a">0.5 µm</option>
+                            <option value="b">5 µm</option>
+                            <option value="c">50 µm</option>
+                            <option value="d">500 µm</option>                        
+                            <option value="e">5000 µm</option>                           
+                        </select>
                     </div>
                 </div>
             </div>
-            {% if loop.index == 4 %}
-            <div class="w-100 border border-dark d-none d-md-block"></div>
-            {% endif %}
-            {% endfor %}
-        </div>
-        <div></div>
-        <div class="row row-cols-1 justify-content-center">
-            <div class="col-md-3">
-                <div class="card mb-3">
-                    <div class="card-header bg-dark text-white">
-                        Model
+        <!--Visualizations container-->
+            <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="#">Visualizations</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav w-100">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="mpp_btn" href="#" onclick="">Fraction Distribution Heatmap</a>                    
+                            </li>
+                        </ul>
                     </div>
-                    <div class="card-body  text-center">
-                        <h6 class="card-title">
-                            Some explanation about the model</h5>
-                            <button id="run-model" class="btn btn-primary">Run</button>
+                </div>
+            </nav>
+        
+        <!-- Heatmap container -->
+            <div class="container mt-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div id="heatmap-container" class="text-center"></div> <!-- Centered heatmap container -->
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="w-100 border border-dark d-none d-md-block"></div>
-        <div class="container mt-5">
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <div id="heatmap-container" class="text-center"></div> <!-- Centered heatmap container -->
-                </div>
-            </div>
-        </div>
-    </div>
+        
     <script src="{{ url_for('static', filename='js/libs/bootstrap.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/libs/d3.v7.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main-elements.js') }}"></script>
