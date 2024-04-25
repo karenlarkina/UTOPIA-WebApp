@@ -46,5 +46,5 @@ def convert_format_python_to_d3(df):
     return melted_df.to_csv(index=False)
 
 def run_utopia(input_obj):
-    heatmap_df = execute_utopia_model(input_obj)
-    return convert_format_python_to_d3(heatmap_df)
+    heatmap_mass_fraction_df, heatmap_number_fraction_df = execute_utopia_model(input_obj)
+    return convert_format_python_to_d3(heatmap_mass_fraction_df), convert_format_python_to_d3(heatmap_number_fraction_df)

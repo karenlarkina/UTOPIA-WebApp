@@ -467,8 +467,8 @@ def execute_utopia_model(input_obj):
     #############################################
     ## Here is the entry point for the heatmap ##
     #############################################
-    # heatmap_mass_fraction_df = plot_fractionDistribution_heatmap(Results_extended, fraction="mass_fraction")
-    heatmap_mass_fraction_df = plot_fractionDistribution_heatmap(Results_extended, fraction="number_fraction")
+    heatmap_mass_fraction_df = plot_fractionDistribution_heatmap(Results_extended, fraction="mass_fraction")
+    heatmap_number_fraction_df = plot_fractionDistribution_heatmap(Results_extended, fraction="number_fraction")
 
     """ Estimate exposure indicators """
 
@@ -510,7 +510,8 @@ def execute_utopia_model(input_obj):
         size_dict,
         comp_mass_balance_df,
     )
-    return heatmap_mass_fraction_df
+    
+    return heatmap_mass_fraction_df, heatmap_number_fraction_df
 
     """ Generate PDF report """  ## WORK IN PROGRESS
     # from functions.generate_pfd_report import *

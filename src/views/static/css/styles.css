@@ -16,9 +16,18 @@ label {
     border: 1px solid black;    
     display: none;
     flex-direction: column;
-    padding: 10px;
+    padding: 3rem;
+    background-color: rgb(244, 244, 244);
 }
 #materialProperties {
     display: flex;
     flex-direction: column;
+}
+.tooltip {
+    position: fixed; /* Position the tooltip relative to the viewport */
+    display: none;
+    background-color: white;
+    border: solid 2px black;
+    border-radius: 5px;
+    padding: 5px;
 }

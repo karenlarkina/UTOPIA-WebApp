@@ -1,3 +1,5 @@
+var utopia_model_results = null;
+
 document.addEventListener('DOMContentLoaded', function () {
     // Select the "Run" button
     let runButton = document.getElementById('run-model');
@@ -26,11 +28,11 @@ document.addEventListener('DOMContentLoaded', function () {
         return JSON.stringify(utopiaObject)
     }
     // This method builds the heatmap
-    let assembleHeatMap = function(csvText){
+    let assembleHeatMap = function(title, csvText){
         // Remove any existing heatmap
         d3.select('#heatmap-container').selectAll('*').remove();
         // set the dimensions and margins of the graph
-        const margin = {top: 100, right: 100, bottom: 100, left: 150},
+        const margin = {top: 100, right: 100, bottom: 100, left: 100},
         width = 700 - margin.left - margin.right,
         height = 700 - margin.top - margin.bottom;
 
@@ -105,7 +107,8 @@ document.addEventListener('DOMContentLoaded', function () {
             .style("border-width", "2px")
             .style("border-radius", "5px")
             .style("padding", "5px")
-        // Three functions that change the tooltip when the user hovers/moves/leaves a cell
+        
+            // Three functions that change the tooltip when the user hovers/moves/leaves a cell
         const mouseover = function (event, d) {
                 tooltip
                     .style("opacity", 1);
@@ -114,11 +117,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     .style("opacity", 1);
         };
 
-        const mousemove = function (event, d) {
-                tooltip
-                    .html("" + d.value)
-                    .style("left", (event.pageX + 10) + "px")
-                    .style("top", (event.pageY - 40) + "px"); // Adjust top position
+        const mousemove = function(event, d) {
+            // Calculate the position of the tooltip relative to the mouse pointer
+            const tooltipLeft = event.pageX + 10;
+            const tooltipTop = event.pageY - 40;
+            
+            // Update the position of the tooltip
+            tooltip
+                .html("" + d.value)
+                .style("left", tooltipLeft + "px")
+                .style("top", tooltipTop + "px");
         };
 
         const mouseleave = function (event, d) {
@@ -152,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr("y", -10)
             .attr("text-anchor", "left")
             .style("font-size", "22px")
-            .text("Fraction Distribution Heatmap");
+            .text(title);
 
     }
     
@@ -179,12 +187,28 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 return response.json(); // Parse the response body as JSON
             })
-            .then(server_obj => {                
-                assembleHeatMap(server_obj.data);
+            .then(model_results => {                
+                utopia_model_results = model_results; //store values from backend for assembling all visualizations
+                assembleHeatMap("Mass Fraction Distribution Heatmap", model_results.mass_fraction_distribution_heatmap);
             })
             .catch(error => {
                 console.error('There was a problem with the POST request:', error);
             });        
         
+    });
+
+    // Views actions
+    let mass_fraction_distribution_btn = document.getElementById('mass_fraction_distribution_btn')
+    let number_fraction_distribution_btn = document.getElementById('number_fraction_distribution_btn')
+    
+    mass_fraction_distribution_btn.addEventListener('click', function() {
+        if (utopia_model_results !== null){
+            assembleHeatMap("Mass Fraction Distribution Heatmap", utopia_model_results.mass_fraction_distribution_heatmap)
+        }
+    });
+    number_fraction_distribution_btn.addEventListener('click', function() {
+        if(utopia_model_results !== null){
+            assembleHeatMap('Number Fraction Distribution Heatmap' , utopia_model_results.number_fraction_distribution_heatmap);
+        }
     });
 });

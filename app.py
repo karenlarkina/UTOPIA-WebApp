@@ -4,7 +4,6 @@ from flask import render_template
 from flask import send_from_directory
 from flask_cors import CORS
 import warnings
-
 from src.controllers.utopia_controller import assemble_html_table, read_csv_files, run_utopia
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -29,8 +28,10 @@ def index():
 def post_model_run():
     # Retrieve the data sent in the POST request
     data = request.json    
-    utopia_data = run_utopia(data)
-    return jsonify({'data': utopia_data})
+    heatmap_mass_fraction, heatmap_number_fraction = run_utopia(data)
+    return jsonify({'mass_fraction_distribution_heatmap': heatmap_mass_fraction,
+                    'number_fraction_distribution_heatmap': heatmap_number_fraction, 
+                    })
 
 @app.route('/csv/<path:filename>')
 def csv_file(filename):    
