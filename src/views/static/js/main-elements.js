@@ -63,13 +63,13 @@ function generateMaterialProperties() {
     // Add new content based on selected material
     switch (selectedMaterial) {
       case "PVC":
-        materialPropertiesDiv.innerHTML = '<div class="row"><label class="col-md-4" for="density">Density (kg/m³):</label><input type="number" class="col-md-3" id="density" value="1580"></div><label>Shape: Sphere</label><div class="row"><label for="bbdiameter" class="col-md-4">Big Bin Diameter (µm):</label> <input class="col-md-3" type="number" id="bbdiameter" value="5000"></div>';
+        materialPropertiesDiv.innerHTML = '<div class="row"><label class="col-md-4" for="density">Density (kg/m³):</label><input type="number" class="col-md-3" id="density" value="1580"></div><div class="row"><label>Shape: Sphere</label></div><div class="row"><label for="bbdiameter" class="col-md-4">Big Bin Diameter (µm):</label> <input class="col-md-3" type="number" id="bbdiameter" value="5000"></div>';
         break;
       case "PE":
-        materialPropertiesDiv.innerHTML = '<div class="row"><label class="col-md-4" for="density">Density (kg/m³):</label><input type="number" class="col-md-3" id="density" value="980"></div><label>Shape: Sphere</label><div class="row"><label for="bbdiameter" class="col-md-4">Big Bin Diameter (µm):</label> <input class="col-md-3" type="number" id="bbdiameter" value="5000"></div>';
+        materialPropertiesDiv.innerHTML = '<div class="row"><label class="col-md-4" for="density">Density (kg/m³):</label><input type="number" class="col-md-3" id="density" value="980"></div><div class="row"><label>Shape: Sphere</label></div><div class="row"><label for="bbdiameter" class="col-md-4">Big Bin Diameter (µm):</label> <input class="col-md-3" type="number" id="bbdiameter" value="5000"></div>';
         break;
       case "PA":
-        materialPropertiesDiv.innerHTML = '<div class="row"><label class="col-md-4" for="density">Density (kg/m³): </label> <input type="number" class="col-md-3" id="density" value="1000"></div><label>Shape: Sphere</label><div class="row"><label for="bbdiameter" class="col-md-4">Big Bin Diameter (µm):</label> <input class="col-md-3" type="number" id="bbdiameter" value="5000"></div>';
+        materialPropertiesDiv.innerHTML = '<div class="row"><label class="col-md-4" for="density">Density (kg/m³): </label> <input type="number" class="col-md-3" id="density" value="1000"></div><div class="row"><label>Shape: Sphere</label></div><div class="row"><label for="bbdiameter" class="col-md-4">Big Bin Diameter (µm):</label> <input class="col-md-3" type="number" id="bbdiameter" value="5000"></div>';
         break;
       default:
         materialPropertiesDiv.innerHTML = '<div class="row"><label class="col-md-4">No properties available for selected material</label></div>';

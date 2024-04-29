@@ -32,11 +32,13 @@ document.addEventListener('DOMContentLoaded', function () {
         // Remove any existing heatmap
         d3.select('#heatmap-container').selectAll('*').remove();
         // set the dimensions and margins of the graph
-        const margin = {top: 100, right: 100, bottom: 100, left: 100},
-        width = 700 - margin.left - margin.right,
-        height = 700 - margin.top - margin.bottom;
+        const margin = {top: 150, right: 150, bottom: 150, left: 150},
+        viewportWidth = window.innerWidth * 0.7,
+        viewportHeight = window.innerHeight * 0.7,
+        width = viewportWidth - margin.left - margin.right,
+        height = viewportHeight - margin.top - margin.bottom;
 
-        // append the svg object to the body of the page
+        // / Append the SVG element to the body of the page
         const svg = d3.select("#heatmap-container")
             .append("svg")
             .attr("width", width + margin.left + margin.right)
@@ -60,15 +62,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 .range([0, width])
                 .domain(myVars)
                 .padding(0.05);
+
         svg.append("g")
-                .style("font-size", 12) // Decrease font size
+                .style("font-size", 16) // Decrease font size
                 .attr("transform", `translate(0, ${height})`)
                 .call(d3.axisBottom(x)
                     .tickSize(0))
                 .selectAll("text")
                 .attr("dy", "0.5em") // Adjust vertical positioning
                 .attr("transform", "rotate(-45)") // Rotate labels
-                .style("text-anchor", "end"); // Adjust text alignment
+                .style("text-anchor", "end")
+                .attr("dx", "-0.5em"); // Adjust text alignment
 
         // Build Y scales and axis:
         const y = d3.scaleBand()
@@ -76,12 +80,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 .domain(myGroups.reverse())
                 .padding(0.05);
         svg.append("g")
-                .style("font-size", 12) // Decrease font size
+                .style("font-size", 16) // Decrease font size
                 .call(d3.axisLeft(y)
                     .tickSize(0))
                 .selectAll("text")
-                .attr("transform", "rotate(0)") // Keep labels horizontal
-                .style("text-anchor", "end"); // Adjust text alignment
+                .attr("transform", "rotate(0)") // Keep labels horizontal                
+                .style("text-anchor", "end")
+                .attr("dx", "-0.5em"); // Add some margin to the right for y labels // Adjust text alignment
 
         // Build color scale
         const myColor = d3.scaleSequential()
@@ -153,13 +158,18 @@ document.addEventListener('DOMContentLoaded', function () {
             .on("mouseleave", mouseleave)
     
         // })
+    
 
-    // Add title to graph
+        // Update the text size of the axes labels
+        svg.selectAll(".axis text")
+            .style("font-size", "16px"); 
+
+        // Update the text size of the title
         svg.append("text")
-            .attr("x", 0)
-            .attr("y", -10)
-            .attr("text-anchor", "left")
-            .style("font-size", "22px")
+            .attr("x", width / 2)
+            .attr("y", -20)
+            .attr("text-anchor", "middle")
+            .style("font-size", "24px")
             .text(title);
 
     }

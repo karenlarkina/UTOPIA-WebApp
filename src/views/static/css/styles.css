@@ -1,14 +1,17 @@
 label {
     font-weight: bold;
 }
+h3 {
+    margin-bottom: 2rem !important;
+}
 
 .table-responsive {
     display: none; /* Hide all tables by default */
 }
 
-.row {
-    margin-top: 5px !important;
-    margin-bottom: 5px;
+.row {    
+    margin-bottom: 1rem;
+    margin-left: 1rem !important;
 }
 
 .toggle_container{   
@@ -16,7 +19,10 @@ label {
     border: 1px solid black;    
     display: none;
     flex-direction: column;
-    padding: 3rem;
+    padding-left: 3rem;
+    padding-right: 3rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
     background-color: rgb(244, 244, 244);
 }
 #materialProperties {
