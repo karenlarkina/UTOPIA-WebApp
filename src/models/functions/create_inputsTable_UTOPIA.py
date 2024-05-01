@@ -444,7 +444,7 @@ def create_inputsTable_UTOPIA(
 
     # Output dataFrame_inputs as csv file
 
-    dataFrame_inputs.to_csv(inputs_path + "\processInputs_table.csv", index=False)
+    dataFrame_inputs.to_csv(inputs_path + "/processInputs_table.csv", index=False)
 
     return dataFrame_inputs
 
