@@ -1,0 +1,11 @@
+species,Compartment,MP_Form,Size_Fraction_um,mass_fraction
+eD8_Utopia,Sediment_Ocean,heterBiofMP,5000.0,0.5107547882767453
+dD8_Utopia,Sediment_Ocean,heterBiofMP,500.0,0.4457772987152836
+cD8_Utopia,Sediment_Ocean,heterBiofMP,50.0,0.042973167994262616
+bD8_Utopia,Sediment_Ocean,heterBiofMP,5.0,0.0004914047471037018
+aD8_Utopia,Sediment_Ocean,heterBiofMP,0.5,1.4165028247832467e-06
+cD2_Utopia,Ocean_Column_Water,heterBiofMP,50.0,1.356307894689551e-06
+bD2_Utopia,Ocean_Column_Water,heterBiofMP,5.0,3.1730082869981756e-07
+dD2_Utopia,Ocean_Column_Water,heterBiofMP,500.0,1.6972649386741498e-07
+eD2_Utopia,Ocean_Column_Water,heterBiofMP,5000.0,3.4109060148045534e-08
+eD9_Utopia,Sediment_Coast,heterBiofMP,5000.0,2.4567932397386345e-08
