@@ -23,6 +23,8 @@ document.addEventListener('DOMContentLoaded', function () {
             EmScenario:{
                 MPform: document.getElementById('mp_form').value,
                 size_bin: document.getElementById('es_bin_size').value,
+                input_flow_g_s: document.getElementById('input_flow_g_s').value,
+                emiss_comp: document.getElementById('emiss_comp').value
             }
         }        
         return JSON.stringify(utopiaObject)
@@ -123,15 +125,21 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         const mousemove = function(event, d) {
-            // Calculate the position of the tooltip relative to the mouse pointer
-            const tooltipLeft = event.pageX + 10;
-            const tooltipTop = event.pageY - 40;
-            
-            // Update the position of the tooltip
-            tooltip
-                .html("" + d.value)
-                .style("left", tooltipLeft + "px")
-                .style("top", tooltipTop + "px");
+            if (d.value !== "") {
+                // Calculate the position of the tooltip relative to the mouse pointer
+                const tooltipLeft = event.pageX + 10;
+                const tooltipTop = event.pageY - 40;
+
+                // Update the position of the tooltip
+                tooltip
+                    .html("" + d.value)
+                    .style("left", tooltipLeft + "px")
+                    .style("top", tooltipTop + "px")
+                    .style("display", "block");
+            } else {
+                // If d.value is empty, hide the tooltip
+                tooltip.style("display", "none");
+            }
         };
 
         const mouseleave = function (event, d) {

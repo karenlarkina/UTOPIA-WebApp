@@ -233,9 +233,18 @@ def execute_utopia_model(input_obj):
 
     MP_form = em_input.get('MPform')  # Choose from MPforms_list above
 
+    
     # input flow (in g per second) for each compartment the User should specify here the input flows per compartment
+
+    input_flow_g_s = int(em_input.get('input_flow_g_s'))
+
+
+    emiss_comp = str(em_input.get('emiss_comp'))
+    
+    # input flow (in g per second) for each compartment the User should specify here the input flows per compartment
+  
     q_mass_g_s_dict = {
-        "Ocean_Surface_Water": 1,
+        "Ocean_Surface_Water": 0,
         "Ocean_Mixed_Water": 0,
         "Ocean_Column_Water": 0,
         "Coast_Surface_Water": 0,
@@ -253,6 +262,9 @@ def execute_utopia_model(input_obj):
         "Agricultural_Soil": 0,
         "Air": 0,
     }
+
+    q_mass_g_s_dict[emiss_comp] = input_flow_g_s
+
 
     input_flow_filename = os.path.join(inputs_path, "inputFlows.csv")
     input_flows_df = pd.DataFrame(
@@ -429,7 +441,7 @@ def execute_utopia_model(input_obj):
 
 
     ## Compartment mass balance
-
+    
     comp_mass_balance = {}
     for comp in list(dict_comp.keys()):
         comp_mass_balance[comp] = compartment_massBalance(
