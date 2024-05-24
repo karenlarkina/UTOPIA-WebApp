@@ -1,5 +1,8 @@
-from src.models.objects.particulates import Particulates  # class to generate MP and SPM object
+from src.models.objects.particulates import (
+    Particulates,
+)  # class to generate MP and SPM object
 from src.models.helpers import *
+
 
 # define ParticulatesBF class (inheriting from Particulates class)
 class ParticulatesBF(Particulates):

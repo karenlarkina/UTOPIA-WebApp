@@ -44,10 +44,10 @@ def plot_bySize_total_number_particles(results_dict, comp_name, dict_size_coding
     #     axs[i].set_xlabel("Size bin (nm)")
     # fig.suptitle(comp_name)
 
-    # Save the plots
-    totalNumber_filename = os.path.join(
-        path, comp_name + "_SS_totalNumber_distribution.png"
-    )
+    # # Save the plots
+    # totalNumber_filename = os.path.join(
+    #     path, comp_name + "_SS_totalNumber_distribution.png"
+    # )
     # plt.savefig(totalNumber_filename, bbox_inches="tight")
 
     # plt.close(fig)
@@ -63,27 +63,27 @@ def plot_bySize_total_mass(results_dict, comp_name, dict_size_coding, path):
 
     # fig, axs = plt.subplots(nrows=1, ncols=4, figsize=(15, 7), sharey=True)
 
-    for i, agg in enumerate(results_dict[comp_name]):
-        y = results_dict[comp_name][agg]["mass_g"]
-        X = results_dict[comp_name][agg]["species"]
-        X_1 = [s[0] for s in X]
-        x = [new_size_dict[s] for s in X_1]
-        L = list(zip([float(z) for z in x], y))
-        L.sort()
-        L_shorted = [(str(x), y) for (x, y) in L]
-        xs = [x for x, y in L_shorted]
-        ys = [y for x, y in L_shorted]
-        # axs[i].bar(xs, ys)
-        # axs[i].title.set_text(agg)
-        # axs[i].set_yscale("log")
-        # axs[i].set_ylabel("Total mass (g)")
-        # axs[i].set_xlabel("Size bin (nm)")
+    # for i, agg in enumerate(results_dict[comp_name]):
+    #     y = results_dict[comp_name][agg]["mass_g"]
+    #     X = results_dict[comp_name][agg]["species"]
+    #     X_1 = [s[0] for s in X]
+    #     x = [new_size_dict[s] for s in X_1]
+    #     L = list(zip([float(z) for z in x], y))
+    #     L.sort()
+    #     L_shorted = [(str(x), y) for (x, y) in L]
+    #     xs = [x for x, y in L_shorted]
+    #     ys = [y for x, y in L_shorted]
+    #     axs[i].bar(xs, ys)
+    #     axs[i].title.set_text(agg)
+    #     axs[i].set_yscale("log")
+    #     axs[i].set_ylabel("Total mass (g)")
+    #     axs[i].set_xlabel("Size bin (nm)")
     # fig.suptitle(comp_name)
 
-    # Save the plots
-    totalMass_filename = os.path.join(
-        path, comp_name + "_SS_totalMass_distribution.png"
-    )
+    # # Save the plots
+    # totalMass_filename = os.path.join(
+    #     path, comp_name + "_SS_totalMass_distribution.png"
+    # )
     # plt.savefig(totalMass_filename, bbox_inches="tight")
 
     # plt.close(fig)
@@ -99,16 +99,16 @@ def plot_by(results_dict, comp_name, dict_size_coding, plot_by):
 
     # fig, axs = plt.subplots(nrows=1, ncols=4, figsize=(15, 7), sharey=True)
 
-    for i, agg in enumerate(results_dict[comp_name]):
-        y = results_dict[comp_name][agg][plot_by]
-        X = results_dict[comp_name][agg]["species"]
-        X_1 = [s[0] for s in X]
-        x = [new_size_dict[s] for s in X_1]
-        L = list(zip([float(z) for z in x], y))
-        L.sort()
-        L_shorted = [(str(x), y) for (x, y) in L]
-        xs = [x for x, y in L_shorted]
-        ys = [y for x, y in L_shorted]
+    # for i, agg in enumerate(results_dict[comp_name]):
+    #     y = results_dict[comp_name][agg][plot_by]
+    #     X = results_dict[comp_name][agg]["species"]
+    #     X_1 = [s[0] for s in X]
+    #     x = [new_size_dict[s] for s in X_1]
+    #     L = list(zip([float(z) for z in x], y))
+    #     L.sort()
+    #     L_shorted = [(str(x), y) for (x, y) in L]
+    #     xs = [x for x, y in L_shorted]
+    #     ys = [y for x, y in L_shorted]
     #     axs[i].bar(xs, ys)
     #     axs[i].title.set_text(agg)
     #     axs[i].set_yscale("log")
@@ -119,7 +119,6 @@ def plot_by(results_dict, comp_name, dict_size_coding, plot_by):
     # plt.close(fig)
 
     # return fig
-    
 
 
 def extract_output_table(
@@ -191,11 +190,11 @@ def plot_heatmap_RC(comp, rateConstants_df, path_RC):
     #     ax=ax,
     # )
 
-    # Save the heatmap as an image
-    heatmap_filename = os.path.join(path_RC, comp + "_RC_heatmap.png")
+    # # Save the heatmap as an image
+    # heatmap_filename = os.path.join(path_RC, comp + "_RC_heatmap.png")
     # plt.savefig(heatmap_filename, bbox_inches="tight")
 
-    # Add a title to the heatmap
+    # # Add a title to the heatmap
     # ax.set_title(comp + " rate constants (s-1)")
 
     # plt.close(fig)
@@ -287,7 +286,7 @@ def plot_fractionDistribution_heatmap(Results_extended, fraction):
     pivot_table = Results_extended.pivot_table(
         index=["MP_Form", "Size_Fraction_um"],
         columns="Compartment",
-        values="mass_fraction",
+        values=fraction,
         aggfunc="mean",
     )
 
@@ -299,31 +298,43 @@ def plot_fractionDistribution_heatmap(Results_extended, fraction):
 
     # Replace -inf values with NaN
     pivot_table_log.replace(-np.inf, np.nan, inplace=True)
+
+    # Stablish a lower limit
+    # Set the lower limit for the values
+    lower_limit = -14
+    upper_limit = np.nanmax(pivot_table_log)
+
+    # Replace values below the lower limit with NaN
+    pivot_table_log = pivot_table_log.applymap(
+        lambda x: np.nan if x < lower_limit else x
+    )
+
     # Define a custom colormap with grey color for NaN values
     cmap = sns.color_palette("viridis", as_cmap=True)
-    cmap.set_bad("grey")
+    cmap.set_bad("white")
 
     # Plot the heatmap with logarithmic scale and custom colormap
     # plt.figure(figsize=(12, 8))
-    
     # sns.heatmap(
     #     pivot_table_log,
     #     cmap=cmap,
     #     cbar=True,
-    #     cbar_kws={"label": "log10_mass_fraction"},
+    #     cbar_kws={"label": "log10 (" + fraction + ") "},
     #     annot=False,
     #     linewidths=0.5,
     #     linecolor="grey",
+    #     vmin=lower_limit,
+    #     vmax=upper_limit,
     # )
 
-    # Set compartment labels to cover all size fractions underneath
+    # # Set compartment labels to cover all size fractions underneath
     # compartment_labels = pivot_table.columns
     # compartment_label_positions = np.arange(len(compartment_labels)) + 0.5
     # plt.xticks(
     #     ticks=compartment_label_positions, labels=compartment_labels, rotation=90
     # )
 
-    # Set MP_Form and Size_Fraction_um labels
+    # # Set MP_Form and Size_Fraction_um labels
     # row_labels = [
     #     f"{mp_form} - {size_frac_um}" for mp_form, size_frac_um in pivot_table.index
     # ]
@@ -335,9 +346,10 @@ def plot_fractionDistribution_heatmap(Results_extended, fraction):
     #     + fraction
     #     + " by MP_Form, Compartment, and Size_Fraction_um"
     # )
-    # plt.xlabel("Compartment")
-    # plt.ylabel("MP_Form - Size_Fraction_um")
+    # plt.xlabel("Compartment", fontsize=14)
+    # plt.ylabel("MP_Form - Size_Fraction_um", fontsize=14)
 
     # plt.tight_layout()
     # plt.show()
+
     return pivot_table_log
