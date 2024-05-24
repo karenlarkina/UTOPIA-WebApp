@@ -1,6 +1,8 @@
 import math
 from src.models.helpers import *
-from src.models.objects.particulates import Particulates  # class to generate MP and SPM objects
+from src.models.objects.particulates import (
+    Particulates,
+)  # class to generate MP and SPM objects
 
 
 # define ParticulatesSPM class (inheriting from Particulates class)

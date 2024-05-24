@@ -12,30 +12,34 @@ from src.models.functions.generate_modelObjects import *
 from src.models.functions.generateRateConstants_particles import *
 from src.models.functions.solver_SteadyState import *
 from src.models.functions.extract_results import *
+
 # from src.models.functions.plot_results import *
 from src.models.functions.massBalance import *
-from src.models.functions.fill_interactions_Knames import *
 from src.models.functions.exposure_indicators_calculation import *
 from src.models.functions.generate_MPinputs_table import *
 from src.models.functions.save_results import *
+from src.models.functions.loop_CTD_calculation import *
 from src.models.functions.generate_compartmentFlows_tables import *
+
 
 def execute_utopia_model(input_obj):
     inputs_path = os.path.join(os.path.dirname(__file__), "inputs")
     MPforms_list = ["freeMP", "heterMP", "biofMP", "heterBiofMP"]
     """Define run parameters"""
-    
+
     ## Define microplastics physical properties
     input_obj = eval(input_obj)
-    # The user can also select a preloaded file instead of typing in the values. In this case the user wont need to run the code between lines 29 and 34 and neither the code between lines 42 and 50. The user will have to run line 56 with the selected input file    
-    
-    mpp_input = input_obj.get('MicroPhysProperties')    
-    
-    MPdensity_kg_m3 = int(mpp_input.get('MPdensity_kg_m3'))
-    MP_composition = str(mpp_input.get('MP_composition'))
-    shape = str(mpp_input.get('shape'))  # Fixed for now
+    # The user can also select a preloaded file instead of typing in the values. In this case the user wont need to run the code between lines 29 and 34 and neither the code between lines 42 and 50. The user will have to run line 56 with the selected input file
+
+    mpp_input = input_obj.get("MicroPhysProperties")
+
+    MPdensity_kg_m3 = int(mpp_input.get("MPdensity_kg_m3"))
+    MP_composition = str(mpp_input.get("MP_composition"))
+    shape = str(mpp_input.get("shape"))  # Fixed for now
     N_sizeBins = 5  # Fixed, should not be changed. The 5 size bins are generated as being one order of magnitude appart and cover the range from mm to nm(i.e. 5000um, 500um, 50um, 5um, 0.5um)
-    big_bin_diameter_um = int(mpp_input.get('big_bin_diameter_um'))  # This size can not be bigger than 10 mm (10000um) or smaller than 1 mm(1000um)
+    big_bin_diameter_um = int(
+        mpp_input.get("big_bin_diameter_um")
+    )  # This size can not be bigger than 10 mm (10000um) or smaller than 1 mm(1000um)
     runName = MP_composition
 
     # write microplastics inputs file
@@ -52,10 +56,9 @@ def execute_utopia_model(input_obj):
     ## Environmental Characteristics
 
     ## Suspended particulates properties
-    ec_input = input_obj.get('EnvCharacteristics')
-    spm_diameter_um = float(ec_input.get('spm_diameter_um'))
-    spm_density_kg_m3 = float(ec_input.get('spm_density_kg_m3'))
-
+    ec_input = input_obj.get("EnvCharacteristics")
+    spm_diameter_um = float(ec_input.get("spm_diameter_um"))
+    spm_density_kg_m3 = float(ec_input.get("spm_density_kg_m3"))
 
     ## choose input files to load
 
@@ -91,7 +94,7 @@ def execute_utopia_model(input_obj):
     surfComp_list = [c for c in dict_comp if "Surface" in c]
 
     ## Microplastics weathering properties
-    mwp_input = input_obj.get('MicroWeatProperties')
+    mwp_input = input_obj.get("MicroWeatProperties")
     ## Select fragmentation style
     """estimate fragmentation relation between size bins using fragment size distribution matrix (https://microplastics-cluster.github.io/fragment-mnp/advanced-usage/fragment-size-distribution.html). Each particle fractions into fragments of smaller sizes and the distribution is expresses via the fragment size distribution matrix fsd. # In this matrix the smallest size fraction is in the first possition and we consider no fragmentation for this size class """
 
@@ -135,7 +138,7 @@ def execute_utopia_model(input_obj):
             ),
         }
 
-        frag_style = str(mwp_input.get('fragmentation_style'))
+        frag_style = str(mwp_input.get("fragmentation_style"))
 
         fsd = frag_styles_dict[frag_style]
         sizes = [list(model_lists["dict_size_coding"].keys())]
@@ -145,7 +148,6 @@ def execute_utopia_model(input_obj):
         fsd_filename = os.path.join(inputs_path, "fsd.csv")
         fsd_df.to_csv(fsd_filename)
 
-
     else:
         # print(
         #     "Fragmetation size distribution not defined for this number of size fractions, please define manually the fsd matrix via the fsd.csv file"
@@ -154,7 +156,6 @@ def execute_utopia_model(input_obj):
         fsd = fsd_df.to_numpy()
 
     # optionally the user can type its own fsd matrix following the desciption above
-
 
     ## Weahering processes input parameters
 
@@ -178,7 +179,6 @@ def execute_utopia_model(input_obj):
     # t_half_deg_df = pd.DataFrame(list(thalf_deg_d_dict.items()), columns=['MP_form', 'thalf_deg_d'])
     # t_half_deg_df.to_csv(t_half_deg_filename,index=False)
 
-
     # If user wants to modify the default thalf_deg_d_dict, they can do so here or through the csv file and upload it
 
     # Read the CSV file into a DataFrame
@@ -193,12 +193,16 @@ def execute_utopia_model(input_obj):
     alpha_heter_df = pd.read_csv(alpha_heter_filename)
     alpha_hetr_dict = alpha_heter_df.set_index("MP_form")["alpha_heter"].to_dict()
 
-    # Timescale for fragmentation of the biggest size fraction (mp5): tfrag_gen_d
+    # Timescale for fragmentation of the biggest size fraction (mp5) in free form in the water surface: t_frag_gen_FreeSurfaceWater
 
-    # t_frag_gen_df=
+    t_frag_gen_FreeSurfaceWater = 36.5  # in days
 
     process_inputs_df = create_inputsTable_UTOPIA(
-        inputs_path, model_lists, thalf_deg_d_dict, alpha_hetr_dict
+        inputs_path,
+        model_lists,
+        thalf_deg_d_dict,
+        alpha_hetr_dict,
+        t_frag_gen_FreeSurfaceWater,
     )
 
     """Revisit create inputs table function...assumptions to be discussed and parameters to be added"""
@@ -215,34 +219,32 @@ def execute_utopia_model(input_obj):
     # c= 50 um
     # d= 500 um
     # e= 5000 um
-    
-    em_input = input_obj.get('EmScenario')
+
+    em_input = input_obj.get("EmScenario")
     size_codes = [letter for letter in string.ascii_lowercase[0:N_sizeBins]]
     size_dict = dict(zip(size_codes, model_lists["dict_size_coding"].values()))
 
-    size_bin = em_input.get('size_bin')  # Chosse from size_dict
-    
+    size_bin = em_input.get("size_bin")  # Chosse from size_dict
+
     # Aggregation state (MP form):
     # A= Free MP
     # B= heteroaggregatedMP
     # C= biofouled MP
     # D= biofouled and heteroaggregated MP
-    
+
     particle_forms_coding = dict(zip(MPforms_list, ["A", "B", "C", "D"]))
     MP_form_dict_reverse = {v: k for k, v in particle_forms_coding.items()}
 
-    MP_form = em_input.get('MPform')  # Choose from MPforms_list above
+    MP_form = em_input.get("MPform")  # Choose from MPforms_list above
 
-    
     # input flow (in g per second) for each compartment the User should specify here the input flows per compartment
 
-    input_flow_g_s = int(em_input.get('input_flow_g_s'))
+    input_flow_g_s = int(em_input.get("input_flow_g_s"))
 
+    emiss_comp = str(em_input.get("emiss_comp"))
 
-    emiss_comp = str(em_input.get('emiss_comp'))
-    
     # input flow (in g per second) for each compartment the User should specify here the input flows per compartment
-  
+
     q_mass_g_s_dict = {
         "Ocean_Surface_Water": 0,
         "Ocean_Mixed_Water": 0,
@@ -265,7 +267,6 @@ def execute_utopia_model(input_obj):
 
     q_mass_g_s_dict[emiss_comp] = input_flow_g_s
 
-
     input_flow_filename = os.path.join(inputs_path, "inputFlows.csv")
     input_flows_df = pd.DataFrame(
         list(q_mass_g_s_dict.items()), columns=["compartment", "q_mass_g_s"]
@@ -282,13 +283,13 @@ def execute_utopia_model(input_obj):
         + "_"
         + str(size_dict[size_bin])
         + "_nm_"
+        + frag_style
     )
 
     """Estimate rate constants per particle"""
 
     for particle in system_particle_object_list:
         generate_rateConstants(particle, spm, dict_comp, fsd)
-
 
     ## create rate constants table:
     RC_df = create_rateConstants_table(system_particle_object_list)
@@ -298,13 +299,11 @@ def execute_utopia_model(input_obj):
 
     """(FIX RC for wet deposition, now its given as a list of rate constants per surface compartment only for dry deposition and wet depossition is turned off)This needs to be fixed also for the matrix of interactions and estimation of flows"""
 
-
     """Build Matrix of interactions"""
 
     interactions_df = fillInteractions_fun_OOP(
         system_particle_object_list, SpeciesList, surfComp_list
     )
-
 
     """SOLVE SYSTEM OF ODES"""
 
@@ -331,6 +330,12 @@ def execute_utopia_model(input_obj):
 
     imput_flows_g_s = dict(zip(sp_imputs, q_mass_g_s))
 
+    q_num_s = [
+        mass_to_num(v, p.Pvolume_m3, p.Pdensity_kg_m3) if v != 0 else 0
+        for k, v in zip(imput_flows_g_s.keys(), imput_flows_g_s.values())
+        for p in system_particle_object_list
+        if k == p.Pcode
+    ]
 
     R, PartMass_t0 = solve_ODES_SS(
         system_particle_object_list=system_particle_object_list,
@@ -359,7 +364,6 @@ def execute_utopia_model(input_obj):
     # Solve mass balance and print result
     massBalance(R, system_particle_object_list, q_mass_g_s)
 
-
     # Test that there are no negative results
     for i, idx in zip(R["mass_g"], R.index):
         if i < 0:
@@ -384,8 +388,7 @@ def execute_utopia_model(input_obj):
     # print(mf_shorted[:10])
     df_massDistribution = mf_shorted[:10]
 
-
-    # 
+    #
     df_numberDistribution = nf_shorted[:10]
 
     # Mass distribution by compartment
@@ -395,12 +398,18 @@ def execute_utopia_model(input_obj):
     num_conc = []
     for comp in list(dict_comp.keys()):
         mass_frac_100.append(
-            sum(Results_extended[Results_extended["Compartment"] == comp]["mass_fraction"])
+            sum(
+                Results_extended[Results_extended["Compartment"] == comp][
+                    "mass_fraction"
+                ]
+            )
             * 100
         )
         num_frac_100.append(
             sum(
-                Results_extended[Results_extended["Compartment"] == comp]["number_fraction"]
+                Results_extended[Results_extended["Compartment"] == comp][
+                    "number_fraction"
+                ]
             )
             * 100
         )
@@ -426,22 +435,22 @@ def execute_utopia_model(input_obj):
     mass_dist_comp["Concentration_g_m3"] = mass_conc_g_m3
     mass_dist_comp["Concentration_num_m3"] = num_conc
 
-
     ### MASS BALANCE PER COMPARTMENT###
 
     # Estimate mass flows due to the different particle fate process (transfer between compartments, elimination and transformation processes)
-    
 
     # Estimate outflows
-    tables_outputFlows = estimate_outFlows(system_particle_object_list, dict_comp)
-
+    (tables_outputFlows, tables_outputFlows_number) = estimate_outFlows(
+        system_particle_object_list, dict_comp
+    )
 
     # Estimate imput flows from transport from other compartments
-    tables_inputFlows = estimate_inFlows(tables_outputFlows, dict_comp, surfComp_list)
-
+    (tables_inputFlows, tables_inputFlows_num) = estimate_inFlows(
+        tables_outputFlows, tables_outputFlows_number, dict_comp, surfComp_list
+    )
 
     ## Compartment mass balance
-    
+
     comp_mass_balance = {}
     for comp in list(dict_comp.keys()):
         comp_mass_balance[comp] = compartment_massBalance(
@@ -470,22 +479,26 @@ def execute_utopia_model(input_obj):
         sum(Results_comp_dict[c].concentration_g_m3) for c in comp_mass_balance_df.index
     ]
     comp_mass_balance_df["Concentration (N/m3)"] = [
-        sum(Results_comp_dict[c].concentration_num_m3) for c in comp_mass_balance_df.index
+        sum(Results_comp_dict[c].concentration_num_m3)
+        for c in comp_mass_balance_df.index
     ]
-
 
     """ Generate mass and number distribution heatmaps"""
 
     #############################################
     ## Here is the entry point for the heatmap ##
     #############################################
-    heatmap_mass_fraction_df = plot_fractionDistribution_heatmap(Results_extended, fraction="mass_fraction")
-    heatmap_number_fraction_df = plot_fractionDistribution_heatmap(Results_extended, fraction="number_fraction")
+    heatmap_mass_fraction_df = plot_fractionDistribution_heatmap(
+        Results_extended, fraction="mass_fraction"
+    )
+    heatmap_number_fraction_df = plot_fractionDistribution_heatmap(
+        Results_extended, fraction="number_fraction"
+    )
 
     """ Estimate exposure indicators """
 
     # Overall residence time
-    overall_residence_time_calculation(tables_outputFlows, Results_extended)
+    # overall_residence_time_calculation(tables_outputFlows, Results_extended)
 
     # Save results
 
@@ -522,21 +535,5 @@ def execute_utopia_model(input_obj):
         size_dict,
         comp_mass_balance_df,
     )
-    
+
     return heatmap_mass_fraction_df, heatmap_number_fraction_df
-
-    """ Generate PDF report """  ## WORK IN PROGRESS
-    # from functions.generate_pfd_report import *
-
-    # filename = saveName + "_" + current_date
-    # text_elements = {
-    #     "plastic_density_kg_m3": system_particle_object_list[0].Pdensity_kg_m3,
-    #     "imput_flow_g_s": q_mass_g_s,
-    #     "particle_emissions_form": MP_form,
-    #     "particle_emissions_size_nm": size_dict[size_bin],
-    #     "recieving_compartment": comp,
-    # }
-    # df_list = [df_massDistribution, df_numberDistribution, df4]
-    # figs = ["rateConstants.png", "massDistribution.png", "numberDistribution.png"]
-
-    # create_pdf_report(df_list, figs, filename, text_elements)

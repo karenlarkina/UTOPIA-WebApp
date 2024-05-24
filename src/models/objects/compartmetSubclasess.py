@@ -118,6 +118,7 @@ class compartment_surfaceSea_water(Compartment):
             "rising",
             "mixing",
             "sea_spray_aerosol",
+            "beaching",
         ]
 
 
@@ -185,9 +186,9 @@ class compartment_soil_surface(Compartment):
             "discorporation",
             "fragmentation",
             "runoff_transport",
-            "tillage",
             "percolation",
             "soil_air_resuspension",
+            "soil_convection",
         ]
         # self.earthworm_density_in_m3 = earthworm_density_in_m3
         # self.Qrunoff_m3 = Qrunoff_m3
@@ -210,6 +211,7 @@ class compartment_deep_soil(Compartment):
             "discorporation",
             "fragmentation",
             "sequestration_deep_soils",
+            "soil_convection",
         ]
 
 
@@ -231,6 +233,7 @@ class compartment_air(Compartment):
         Cwidth_m=None,
         Cvolume_m3=None,
         CsurfaceArea_m2=None,
+        flowVelocity_m_s=None,
     ):
         super().__init__(
             Cname, Cdepth_m, Clength_m, Cwidth_m, Cvolume_m3, CsurfaceArea_m2
@@ -238,6 +241,7 @@ class compartment_air(Compartment):
         self.T_K = T_K
         self.wind_speed_m_s = wind_speed_m_s
         self.I_rainfall_mm = I_rainfall_mm
+        self.flowVelocity_m_s = flowVelocity_m_s
         self.processess = [
             "discorporation",
             "fragmentation",
