@@ -56,7 +56,17 @@ def execute_utopia_model(input_obj):
     ## Environmental Characteristics
 
     ## Suspended particulates properties
+
+    # From Kooi et al. (2017)
+    v_a = 2.0e-16  # Volume of 1 algal cell [m-3]
+    r_a = ((3.0 / 4.0) * (v_a / math.pi)) ** (1.0 / 3.0)  # radius of algae [m]
+
+    spm_radius_um = r_a * 1e6
+    spm_density_kg_m3 = 1.388
+
     ec_input = input_obj.get("EnvCharacteristics")
+
+    # We dont need to include these tw inputs in the EnvCharacteristics menu. --> To be updated to the new input values or deleted??
     spm_diameter_um = float(ec_input.get("spm_diameter_um"))
     spm_density_kg_m3 = float(ec_input.get("spm_density_kg_m3"))
 
@@ -87,7 +97,7 @@ def execute_utopia_model(input_obj):
         comp_impFile_name=comp_impFile_name,
         comp_interactFile_name=comp_interactFile_name,
         mp_imputFile_name=mp_imputFile_name,
-        spm_diameter_um=spm_diameter_um,
+        spm_radius_um=spm_radius_um,
         spm_density_kg_m3=spm_density_kg_m3,
     )
 
