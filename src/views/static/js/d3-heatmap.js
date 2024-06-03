@@ -34,9 +34,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // Remove any existing heatmap
         d3.select('#heatmap-container').selectAll('*').remove();
         // set the dimensions and margins of the graph
-        const margin = {top: 150, right: 150, bottom: 150, left: 150},
+        const margin = {top: 50, right: 150, bottom: 150, left: 150},
         viewportWidth = window.innerWidth * 0.7,
         viewportHeight = window.innerHeight * 0.7,
+        cellSize = 30, // Size of each cell in px
         width = viewportWidth - margin.left - margin.right,
         height = viewportHeight - margin.top - margin.bottom;
 
@@ -44,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const svg = d3.select("#heatmap-container")
             .append("svg")
             .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
+            .attr("height", height + margin.top + margin.bottom * 2) // Adjusted to square cells
             .append("g")
             .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
@@ -61,24 +62,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Build X scales and axis:
         const x = d3.scaleBand()
-                .range([0, width])
+                .range([0, myVars.length * cellSize]) // Adjusted to square cells
+                // TODO find a way to move the horizontal line (domain) to match the new cells
                 .domain(myVars)
                 .padding(0.05);
 
         svg.append("g")
                 .style("font-size", 16) // Decrease font size
-                .attr("transform", `translate(0, ${height})`)
+                .attr("transform", `translate(-100, ${myGroups.length * cellSize - 102})`) // Adjusted to square cells
                 .call(d3.axisBottom(x)
                     .tickSize(0))
                 .selectAll("text")
-                .attr("dy", "0.5em") // Adjust vertical positioning
+                .attr("dy", "15em") // Adjust vertical positioning
                 .attr("transform", "rotate(-45)") // Rotate labels
                 .style("text-anchor", "end")
                 .attr("dx", "-0.5em"); // Adjust text alignment
 
         // Build Y scales and axis:
         const y = d3.scaleBand()
-                .range([height, 0])
+                .range([myGroups.length * cellSize, 0]) // Adjusted to square cells
                 .domain(myGroups.reverse())
                 .padding(0.05);
         svg.append("g")
@@ -95,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .interpolator(d3.interpolateViridis)
             .domain([minValue, maxValue])
 
-            // Function to get color based on value
+        // Function to get color based on value
         const getColor = value => {
                 if (value === '') {
                     return 'grey'; // Color for empty values
@@ -104,6 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             };
 
+        // TODO fix the strange white borders when hovering over the cells/add borders from the beginning
         // create a tooltip
         const tooltip = d3.select("#heatmap-container")
             .append("div")
@@ -156,8 +159,8 @@ document.addEventListener('DOMContentLoaded', function () {
             .join("rect")
                 .attr("x", function(d) { return x(d.variable) })
                 .attr("y", function(d) { return y(d.group) })
-                .attr("width", x.bandwidth() )
-                .attr("height", y.bandwidth() )
+                .attr("width", cellSize) // Adjusted to square cells
+                .attr("height", cellSize) // Adjusted to square cells
             .style("fill", function (d) { return getColor(d.value) })
             .style("stroke-width", 1) // Reduce stroke width to 1 pixel
                 .style("opacity", 0.8)
@@ -174,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Update the text size of the title
         svg.append("text")
-            .attr("x", width / 2)
+            .attr("x", 255) // Title's position on the x-axis
             .attr("y", -20)
             .attr("text-anchor", "middle")
             .style("font-size", "24px")
