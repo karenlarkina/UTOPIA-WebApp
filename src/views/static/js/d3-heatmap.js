@@ -37,15 +37,15 @@ document.addEventListener('DOMContentLoaded', function () {
         const margin = {top: 50, right: 150, bottom: 150, left: 150},
         viewportWidth = window.innerWidth * 0.7,
         viewportHeight = window.innerHeight * 0.7,
-        cellSize = 30, // Size of each cell in px
+        cellSize = 26, // Size of each cell in px
         width = viewportWidth - margin.left - margin.right,
         height = viewportHeight - margin.top - margin.bottom;
 
         // / Append the SVG element to the body of the page
         const svg = d3.select("#heatmap-container")
             .append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom * 2) // Adjusted to square cells
+            .attr("width", width + margin.left + margin.right + 55) // Adjusted to square cells
+            .attr("height", height + margin.top + margin.bottom * 2 + 30) // Adjusted to square cells
             .append("g")
             .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
@@ -62,14 +62,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Build X scales and axis:
         const x = d3.scaleBand()
-                .range([0, myVars.length * cellSize]) // Adjusted to square cells
+                .range([0, myVars.length * cellSize + 55]) // Adjusted to square cells
                 // TODO find a way to move the horizontal line (domain) to match the new cells
                 .domain(myVars)
                 .padding(0.05);
 
         svg.append("g")
                 .style("font-size", 16) // Decrease font size
-                .attr("transform", `translate(-100, ${myGroups.length * cellSize - 102})`) // Adjusted to square cells
+                .attr("transform", `translate(-100, ${myGroups.length * cellSize - 55})`) // Adjusted to square cells
                 .call(d3.axisBottom(x)
                     .tickSize(0))
                 .selectAll("text")
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Build Y scales and axis:
         const y = d3.scaleBand()
-                .range([myGroups.length * cellSize, 0]) // Adjusted to square cells
+                .range([myGroups.length * cellSize + 50, 0]) // Adjusted to square cells
                 .domain(myGroups.reverse())
                 .padding(0.05);
         svg.append("g")
@@ -106,7 +106,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             };
 
-        // TODO fix the strange white borders when hovering over the cells/add borders from the beginning
         // create a tooltip
         const tooltip = d3.select("#heatmap-container")
             .append("div")
@@ -131,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (d.value !== "") {
                 // Calculate the position of the tooltip relative to the mouse pointer
                 const tooltipLeft = event.pageX + 10;
-                const tooltipTop = event.pageY - 40;
+                const tooltipTop = event.pageY - 50;
 
                 // Update the position of the tooltip
                 tooltip
@@ -161,6 +160,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 .attr("y", function(d) { return y(d.group) })
                 .attr("width", cellSize) // Adjusted to square cells
                 .attr("height", cellSize) // Adjusted to square cells
+                .attr("margin-bottom", 1.6)
+                .attr("margin-right", 1.6)
             .style("fill", function (d) { return getColor(d.value) })
             .style("stroke-width", 1) // Reduce stroke width to 1 pixel
                 .style("opacity", 0.8)
