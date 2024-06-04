@@ -204,12 +204,17 @@ document.addEventListener('DOMContentLoaded', function () {
         // Send the POST request
         fetch(url, options)
             .then(response => {
+                // Closing the open parameter containers
+                var containers = document.querySelectorAll('.toggle_container');
+                containers.forEach(function(container) {
+                    container.style.display = "none"; // Hide the entire container
+                });
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
                 return response.json(); // Parse the response body as JSON
             })
-            .then(model_results => {                
+            .then(model_results => {
                 utopia_model_results = model_results; //store values from backend for assembling all visualizations
                 assembleHeatMap("Mass Fraction Distribution Heatmap", model_results.mass_fraction_distribution_heatmap);
             })
