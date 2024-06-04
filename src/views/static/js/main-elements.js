@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
     generateMaterialProperties()
 });
 
-function toggleOptions(container_id) {
+function toggleOptions(container_id, element) {
     // Get all toggle containers
     var containers = document.querySelectorAll('.toggle_container');
 
@@ -50,6 +50,12 @@ function toggleOptions(container_id) {
         // Trigger the onchange event manually
         mppCompositionSelect.dispatchEvent(new Event('change'));
     }
+    // Highlighting selection on the navbar
+    var navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(function(link) {
+        link.classList.remove('active'); // Remove all active elements
+    });
+    element.classList.add('active'); // Reactivate newly selected element
 }
 
 function generateMaterialProperties() {
