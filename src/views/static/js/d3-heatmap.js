@@ -63,20 +63,19 @@ document.addEventListener('DOMContentLoaded', function () {
         // Build X scales and axis:
         const x = d3.scaleBand()
                 .range([0, myVars.length * cellSize + 55]) // Adjusted to square cells
-                // TODO find a way to move the horizontal line (domain) to match the new cells
                 .domain(myVars)
                 .padding(0.05);
 
         svg.append("g")
                 .style("font-size", 16) // Decrease font size
-                .attr("transform", `translate(-100, ${myGroups.length * cellSize - 55})`) // Adjusted to square cells
+                .attr("transform", `translate(-2, ${myGroups.length * cellSize + 50})`) // Adjusted to square cells
                 .call(d3.axisBottom(x)
                     .tickSize(0))
                 .selectAll("text")
-                .attr("dy", "15em") // Adjust vertical positioning
+                .attr("dy", "1em") // Adjust vertical positioning
                 .attr("transform", "rotate(-45)") // Rotate labels
                 .style("text-anchor", "end")
-                .attr("dx", "-0.5em"); // Adjust text alignment
+                .attr("dx", "-0.7em"); // Adjust text alignment
 
         // Build Y scales and axis:
         const y = d3.scaleBand()
@@ -85,6 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 .padding(0.05);
         svg.append("g")
                 .style("font-size", 16) // Decrease font size
+                .attr("transform", `translate(-2, 0)`) // Adjusted to square cells
                 .call(d3.axisLeft(y)
                     .tickSize(0))
                 .selectAll("text")
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .style("border-radius", "5px")
             .style("padding", "5px")
         
-            // Three functions that change the tooltip when the user hovers/moves/leaves a cell
+        // Three functions that change the tooltip when the user hovers/moves/leaves a cell
         const mouseover = function (event, d) {
                 tooltip
                     .style("opacity", 1);
