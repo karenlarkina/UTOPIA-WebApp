@@ -42,7 +42,7 @@ function toggleOptions(container_id, element) {
         // Show elements for the selected container
         selectedContainer.style.display = "flex"; // Show the selected container
     }
-    if (container_id == 'mpp_container'){
+    if (container_id === 'mpp_container'){
         // Select the first option by default
         var mppCompositionSelect = document.getElementById("mpp_composition");
         mppCompositionSelect.selectedIndex = 0;
@@ -56,6 +56,11 @@ function toggleOptions(container_id, element) {
         link.classList.remove('active'); // Remove all active elements
     });
     element.classList.add('active'); // Reactivate newly selected element
+}
+
+// TODO method to fetch information from json for a particular toggle container
+function showInformation(container_id, element) {
+
 }
 
 function generateMaterialProperties() {

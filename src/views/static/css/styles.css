@@ -37,3 +37,7 @@ h3 {
     border-radius: 5px;
     padding: 5px;
 }
+.info-icon {
+    cursor: pointer;
+    color: #acacb0;
+}
