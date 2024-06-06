@@ -18,6 +18,46 @@ document.addEventListener('DOMContentLoaded', function() {
     generateMaterialProperties()
 });
 
+const jsonPath = '/static/json-files/information.json';
+// Initializing the explanations for input menu info buttons
+document.addEventListener('DOMContentLoaded', fetchInformation);
+
+async function fetchInformation() {
+    const requestURL = jsonPath;
+    const request = new Request(requestURL);
+    try {
+        const response = await fetch(request);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        // Getting the data from the JSON file
+        const information = await response.json();
+        populateTooltipsInfo(information[0]); // Adding into to the HTML
+    } catch (error) {
+        console.error('Error fetching the JSON data:', error);
+    }
+}
+
+function populateTooltipsInfo(information) {
+    for (let key in information) {
+        const container = document.getElementById(key);
+
+        // Finding the corresponding HTML field with given ID (key from json)
+        if (container) {
+            const infoIcon = container.querySelector('.info-icon');
+
+            // Assigning information (value from json) as the info button's tooltip title
+            if (infoIcon) {
+                infoIcon.setAttribute('title', information[key]);
+            } else {
+                console.warn(`No info icon found in container with ID: ${key}`);
+            }
+        } else {
+            console.warn(`No container found with ID: ${key}`);
+        }
+    }
+}
+
 function toggleOptions(container_id, element) {
     // Get all toggle containers
     var containers = document.querySelectorAll('.toggle_container');
@@ -56,11 +96,6 @@ function toggleOptions(container_id, element) {
         link.classList.remove('active'); // Remove all active elements
     });
     element.classList.add('active'); // Reactivate newly selected element
-}
-
-// TODO method to fetch information from json for a particular toggle container
-function showInformation(container_id, element) {
-
 }
 
 function generateMaterialProperties() {
