@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Remove any existing heatmap
         d3.select('#heatmap-container').selectAll('*').remove();
         // set the dimensions and margins of the graph
-        const margin = {top: 50, right: 150, bottom: 150, left: 150},
+        const margin = {top: 50, right: 25, bottom: 150, left: 150},
         viewportWidth = window.innerWidth * 0.7,
         viewportHeight = window.innerHeight * 0.7,
         cellSize = 26, // Size of each cell in px
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     return myColor(value); // Scalar color for other values
                 }
-            };
+        };
 
         // create a tooltip
         const tooltip = d3.select("#heatmap-container")
@@ -168,9 +168,6 @@ document.addEventListener('DOMContentLoaded', function () {
             .on("mouseover", mouseover)
             .on("mousemove", mousemove)
             .on("mouseleave", mouseleave)
-    
-        // })
-    
 
         // Update the text size of the axes labels
         svg.selectAll(".axis text")
@@ -184,6 +181,45 @@ document.addEventListener('DOMContentLoaded', function () {
             .style("font-size", "24px")
             .text(title);
 
+        // Initializing color variables for the legend
+        const colors = [];
+        const numOfColors = Math.round(maxValue + 1 - minValue); // Depends on min and max values in model
+        // TODO currently the scale adjusts when switching between mass and number fraction distribution
+        for (let i = 0; i < numOfColors; i++) {
+            let value= Math.round(minValue + i);
+            colors.push(myColor(value));
+        }
+
+        // Box for the legend
+        const lgndWidth = 30;
+        const lgndHeight = 30;
+        const lgndMargin = width / 2 - 50;
+        const constWidth = lgndWidth / 2;
+
+        // Scale for the legend
+        const legendScale = d3.scaleLinear()
+            .domain([minValue - 1, maxValue + 1])
+            .range([0, lgndHeight * numOfColors]);
+
+        // Build axis for the legend
+        svg.append("g")
+            .attr('transform', `translate(${lgndMargin + lgndWidth}, ${margin.top + constWidth})`)
+            .attr("id", "legend-axis")
+            .call(d3.axisRight(legendScale)
+                .ticks(Math.round(maxValue + 1 - minValue))
+                .tickFormat(d3.format(".2f")));
+
+        // Build the color box for the legend
+        svg.append("g")
+            .attr("id", "legend")
+            .selectAll("rect")
+            .data(colors)
+            .join('rect')
+            .attr('width', lgndWidth)
+            .attr('height', lgndHeight)
+            .style('fill', d => d)
+            .style("opacity", 0.8) // To match cell colors in the heatmap when not selected
+            .attr('transform', (d, i) => `translate(${lgndMargin}, ${margin.top + lgndHeight * i + constWidth})`);
     }
     
     // Add event listener for button click
