@@ -29,28 +29,31 @@ document.addEventListener('DOMContentLoaded', function () {
         }        
         return JSON.stringify(utopiaObject)
     }
+
     // This method builds the heatmap
     let assembleHeatMap = function(title, csvText){
         // Remove any existing heatmap
         d3.select('#heatmap-container').selectAll('*').remove();
-        // set the dimensions and margins of the graph
+        // Set the dimensions and margins of the graph
         const margin = {top: 50, right: 25, bottom: 150, left: 150},
         viewportWidth = window.innerWidth * 0.7,
         viewportHeight = window.innerHeight * 0.7,
         cellSize = 26, // Size of each cell in px
         width = viewportWidth - margin.left - margin.right,
         height = viewportHeight - margin.top - margin.bottom;
+        const heatmapContainerWidth = width + margin.left + margin.right + 55;
+        const heatmapContainerHeight = height + margin.top + margin.bottom * 2 + 30;
 
-        // / Append the SVG element to the body of the page
+        // Append the SVG element to the body of the page
         const svg = d3.select("#heatmap-container")
             .append("svg")
-            .attr("width", width + margin.left + margin.right + 55) // Adjusted to square cells
-            .attr("height", height + margin.top + margin.bottom * 2 + 30) // Adjusted to square cells
+            .attr("width",heatmapContainerWidth)
+            .attr("height", heatmapContainerHeight)
             .append("g")
             .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
         var data = d3.csvParse(csvText);
-        
+
         // Labels of row and columns -> unique identifier of the column called 'group' and 'variable'
         const myGroups = Array.from(new Set(data.map(d => d.group)))
         const myVars = Array.from(new Set(data.map(d => d.variable)))
@@ -62,13 +65,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Build X scales and axis:
         const x = d3.scaleBand()
-                .range([0, myVars.length * cellSize + 55]) // Adjusted to square cells
+                .range([0, myVars.length * cellSize + 55])
                 .domain(myVars)
                 .padding(0.05);
+        const yHeight = myGroups.length * cellSize + 50;
 
         svg.append("g")
                 .style("font-size", 16) // Decrease font size
-                .attr("transform", `translate(-2, ${myGroups.length * cellSize + 50})`) // Adjusted to square cells
+                .attr("transform", `translate(-2, ${yHeight})`)
                 .call(d3.axisBottom(x)
                     .tickSize(0))
                 .selectAll("text")
@@ -79,18 +83,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Build Y scales and axis:
         const y = d3.scaleBand()
-                .range([myGroups.length * cellSize + 50, 0]) // Adjusted to square cells
+                .range([yHeight, 0])
                 .domain(myGroups.reverse())
                 .padding(0.05);
         svg.append("g")
                 .style("font-size", 16) // Decrease font size
-                .attr("transform", `translate(-2, 0)`) // Adjusted to square cells
+                .attr("transform", `translate(-2, 0)`)
                 .call(d3.axisLeft(y)
                     .tickSize(0))
                 .selectAll("text")
-                .attr("transform", "rotate(0)") // Keep labels horizontal                
+                .attr("transform", "rotate(0)") // Keep labels horizontal
                 .style("text-anchor", "end")
-                .attr("dx", "-0.5em"); // Add some margin to the right for y labels // Adjust text alignment
+                .attr("dx", "-0.5em"); // Add some margin to the right for y labels
 
         // Build color scale
         const myColor = d3.scaleSequential()
@@ -99,14 +103,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Function to get color based on value
         const getColor = value => {
-                if (value === '') {
-                    return 'grey'; // Color for empty values
-                } else {
-                    return myColor(value); // Scalar color for other values
-                }
+            if (value === '') {
+                return 'grey'; // Color for empty values
+            } else {
+                return myColor(value); // Scalar color for other values
+            }
         };
 
-        // create a tooltip
+        // Create a tooltip
         const tooltip = d3.select("#heatmap-container")
             .append("div")
             .style("opacity", 0)
@@ -116,14 +120,14 @@ document.addEventListener('DOMContentLoaded', function () {
             .style("border-width", "2px")
             .style("border-radius", "5px")
             .style("padding", "5px")
-        
+
         // Three functions that change the tooltip when the user hovers/moves/leaves a cell
         const mouseover = function (event, d) {
                 tooltip
                     .style("opacity", 1);
                 d3.select(this)
-                    .style("stroke", "black")
-                    .style("opacity", 1);
+                    .style("stroke", "black") // Set stroke color to a darker grey
+                    .style("opacity", 1);  // Make the cell color darker
         };
 
         const mousemove = function(event, d) {
@@ -148,8 +152,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 tooltip
                     .style("opacity", 0);
                 d3.select(this)
-                    .style("stroke", "white") // Set stroke color to a darker grey
-                    .style("opacity", 0.8);
+                    .style("stroke", "white") // Set stroke color back to white
+                    .style("opacity", 0.8); // Reset the cell color
         };
 
         // add the squares
@@ -171,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Update the text size of the axes labels
         svg.selectAll(".axis text")
-            .style("font-size", "16px"); 
+            .style("font-size", "16px");
 
         // Update the text size of the title
         svg.append("text")
@@ -181,45 +185,62 @@ document.addEventListener('DOMContentLoaded', function () {
             .style("font-size", "24px")
             .text(title);
 
-        // Initializing color variables for the legend
-        const colors = [];
-        const numOfColors = Math.round(maxValue + 1 - minValue); // Depends on min and max values in model
-        // TODO currently the scale adjusts when switching between mass and number fraction distribution
-        for (let i = 0; i < numOfColors; i++) {
-            let value= Math.round(minValue + i);
-            colors.push(myColor(value));
+        // Constants for the legend
+        const legendWidth = 30;
+        const legendSpacing = width / 2 - 50 + legendWidth - 10;
+        const legendHeight = myGroups.length * cellSize + 50; // Height of the legend to match heatmap
+
+        // Scale numerical values for the legend
+        const legendScale = d3.scaleLinear()
+            .domain([minValue, maxValue])
+            .range([legendHeight - 3, 0]);
+
+        // Append legend gradient definition
+        const minMaxDifference = maxValue - minValue
+        const defs = svg.append("defs");
+        const linearGradient = defs.append("linearGradient")
+            .attr("id", "linear-gradient")
+            .attr("x1", "0%")
+            .attr("y1", "100%")
+            .attr("x2", "0%")
+            .attr("y2", "0%");
+
+        // Define the gradient stops with more breakpoints
+        // Starting (minimum) color value
+        linearGradient.append("stop")
+            .attr("offset", "0%")
+            .attr("stop-color", myColor(minValue));
+
+        // Inbetween breakpoint color values
+        for (let i = 0.25; i < 1; i += 0.25) {
+            let num = 100 * i;
+            linearGradient.append("stop")
+                .attr("offset", `${num}%`)
+                .attr("stop-color", myColor(minValue + (minMaxDifference) * i));
         }
 
-        // Box for the legend
-        const lgndWidth = 30;
-        const lgndHeight = 30;
-        const lgndMargin = width / 2 - 50;
-        const constWidth = lgndWidth / 2;
+        // Last (maximum) color value
+        linearGradient.append("stop")
+            .attr("offset", "100%")
+            .attr("stop-color", myColor(maxValue));
 
-        // Scale for the legend
-        const legendScale = d3.scaleLinear()
-            .domain([minValue - 1, maxValue + 1])
-            .range([0, lgndHeight * numOfColors]);
+        // Build the rectangle and fill with gradient color
+        svg.append("rect")
+            .attr("transform", `translate(${legendSpacing}, 2)`)
+            .attr("width", cellSize)
+            .attr("height", legendHeight - 3)
+            .attr("stroke", "black")
+            .style("stroke-width", 0.9)
+            .style("fill", "url(#linear-gradient)")
+            .style("opacity", 0.8); // To match cell colors in the heatmap when not selected
 
-        // Build axis for the legend
+        // Add the scale for the legend
         svg.append("g")
-            .attr('transform', `translate(${lgndMargin + lgndWidth}, ${margin.top + constWidth})`)
-            .attr("id", "legend-axis")
+            .attr("transform", `translate(${legendSpacing + cellSize}, 1.5)`)
+            .style("stroke-width", 0.9)
             .call(d3.axisRight(legendScale)
-                .ticks(Math.round(maxValue + 1 - minValue))
+                .ticks(10)
                 .tickFormat(d3.format(".2f")));
-
-        // Build the color box for the legend
-        svg.append("g")
-            .attr("id", "legend")
-            .selectAll("rect")
-            .data(colors)
-            .join('rect')
-            .attr('width', lgndWidth)
-            .attr('height', lgndHeight)
-            .style('fill', d => d)
-            .style("opacity", 0.8) // To match cell colors in the heatmap when not selected
-            .attr('transform', (d, i) => `translate(${lgndMargin}, ${margin.top + lgndHeight * i + constWidth})`);
     }
     
     // Add event listener for button click
