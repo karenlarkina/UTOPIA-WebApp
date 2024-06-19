@@ -41,3 +41,48 @@ h3 {
     cursor: pointer;
     color: #acacb0;
 }
+#master-column { /* Container holding the heatmap, legend, information container. */
+    display: none;
+    align-items: flex-start;
+    gap: 10px;
+}
+#heatmap-container {
+    border: 1px solid black;
+    margin-left: 50px;
+    padding: 10px;
+}
+#legend-container {
+    border: 1px solid black;
+    margin-left: 10px;
+    padding: 10px;
+}
+.info-containers { /* Vertical container holding the information fields. */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+#model-run-container {
+    display: flex;
+    width: 50rem;
+    height: 150px;
+    border: 1px solid black;
+    margin-left: 10px;
+    margin-right: 50px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+.text-center {
+    text-align: center;
+    font-weight: bold;
+    font-size: larger;
+}
+#detailed-view {
+    display: flex;
+    width: 50rem;
+    height: 36.42rem;
+    border: 1px solid black;
+    margin-left: 10px;
+    margin-right: 50px;
+    padding: 10px;
+    box-sizing: border-box;
+}

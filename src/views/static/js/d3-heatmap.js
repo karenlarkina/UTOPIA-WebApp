@@ -35,19 +35,20 @@ document.addEventListener('DOMContentLoaded', function () {
         // Remove any existing heatmap
         d3.select('#heatmap-container').selectAll('*').remove();
         // Set the dimensions and margins of the graph
-        const margin = {top: 50, right: 25, bottom: 150, left: 150},
-        viewportWidth = window.innerWidth * 0.7,
-        viewportHeight = window.innerHeight * 0.7,
+        const margin = {top: 50, right: 5, bottom: 150, left: 150},
+        // viewportWidth = window.innerWidth * 0.48,
+        viewportWidth = 810, // Temporary static width for the heatmap container
+        viewportHeight = window.innerHeight * 0.6,
         cellSize = 26, // Size of each cell in px
         width = viewportWidth - margin.left - margin.right,
         height = viewportHeight - margin.top - margin.bottom;
-        const heatmapContainerWidth = width + margin.left + margin.right + 55;
+        // const heatmapContainerWidth = width + margin.left + margin.right + 55;
         const heatmapContainerHeight = height + margin.top + margin.bottom * 2 + 30;
 
         // Append the SVG element to the body of the page
         const svg = d3.select("#heatmap-container")
             .append("svg")
-            .attr("width",heatmapContainerWidth)
+            .attr("width", width)
             .attr("height", heatmapContainerHeight)
             .append("g")
             .attr("transform", `translate(${margin.left}, ${margin.top})`);
@@ -156,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     .style("opacity", 0.8); // Reset the cell color
         };
 
-        // add the squares
+        // Add the squares
         svg.selectAll()
             .data(data, function(d) {return d.group+':'+d.variable;})
             .join("rect")
@@ -187,8 +188,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Constants for the legend
         const legendWidth = 30;
-        const legendSpacing = width / 2 - 50 + legendWidth - 10;
         const legendHeight = myGroups.length * cellSize + 50; // Height of the legend to match heatmap
+        const legendYOffset = 52; // Offset to match the heatmap
+        const legendScaleOffset = legendYOffset - 0.5;
+
+        // Remove any existing heatmap
+        d3.select('#legend-container').selectAll('*').remove();
+        const legendSvg = d3.select("#legend-container")
+            .append("svg")
+            .attr("width", legendWidth + 50)
+            .attr("height", heatmapContainerHeight)
+            .style("padding-left", "9px")
+            .attr("dy", "2em") // Adjust vertical positioning
+            .append("g");
 
         // Scale numerical values for the legend
         const legendScale = d3.scaleLinear()
@@ -197,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Append legend gradient definition
         const minMaxDifference = maxValue - minValue
-        const defs = svg.append("defs");
+        const defs = legendSvg.append("defs");
         const linearGradient = defs.append("linearGradient")
             .attr("id", "linear-gradient")
             .attr("x1", "0%")
@@ -225,8 +237,8 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr("stop-color", myColor(maxValue));
 
         // Build the rectangle and fill with gradient color
-        svg.append("rect")
-            .attr("transform", `translate(${legendSpacing}, 2)`)
+        legendSvg.append("rect")
+            .attr("transform", `translate(0, ${legendYOffset})`)
             .attr("width", cellSize)
             .attr("height", legendHeight - 3)
             .attr("stroke", "black")
@@ -235,8 +247,8 @@ document.addEventListener('DOMContentLoaded', function () {
             .style("opacity", 0.8); // To match cell colors in the heatmap when not selected
 
         // Add the scale for the legend
-        svg.append("g")
-            .attr("transform", `translate(${legendSpacing + cellSize}, 1.5)`)
+        legendSvg.append("g")
+            .attr("transform", `translate(${cellSize}, ${legendScaleOffset})`)
             .style("stroke-width", 0.9)
             .call(d3.axisRight(legendScale)
                 .ticks(10)
@@ -266,6 +278,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 containers.forEach(function(container) {
                     container.style.display = "none"; // Hide the entire container
                 });
+                // Fetching the master column container
+                let masterContainer = document.getElementById('master-column');
+                masterContainer.style.display = "flex"; // Reveal the model run information box
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
