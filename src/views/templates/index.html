@@ -50,7 +50,7 @@
                             <option value="PE">PE</option>
                             <option value="PA">PA</option>
                         </select>
-                    </div>                
+                    </div>
                     <div id="materialProperties">
                     <!-- will be dynamically generated -->
                     </div>
@@ -64,7 +64,7 @@
                             <label class="col-md-4" for="spmDiameter">SPM Diameter (µm):</label>
                             <input class="col-md-3" type="number" id="spmDiameter" value="0.5" min="0.1" step="0.1">
                         </div>
-                        <div class="row">    
+                        <div class="row">
                             <label class="col-md-4" for="spmDensity">SPM Density (kg/m³):</label>
                             <input class="col-md-3" type="number" id="spmDensity" value="2000">
                         </div>
@@ -84,7 +84,7 @@
                             <option value="sequential_fragmentation">Sequential</option>
                             <option value="erosive_fragmentation">Erosive</option>
                             <option value="mixed_fragmentation">Mixed</option>
-                            <option value="no_fragmentation">No Fragmentation</option>                        
+                            <option value="no_fragmentation">No Fragmentation</option>
                         </select>
                     </div>
                     <div class="row">
@@ -144,6 +144,10 @@
                     </div>
                 </div>
             </div>
+    <div id="loading-spinner" class="spinner" style="display: none;">
+        <!-- You can use any loading spinner markup here. -->
+        <div class="loader"></div>
+    </div>
         <!--Visualizations container-->
             <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
                 <div class="container-fluid">
@@ -154,18 +158,18 @@
                     <div class="collapse navbar-collapse" id="navbarNav">
                         <ul class="navbar-nav w-100">
                             <li class="nav-item">
-                                <a class="nav-link active" id="mass_fraction_distribution_btn" href="#" onclick="">Mass Fraction Distribution</a>                    
+                                <a class="nav-link active" id="mass_fraction_distribution_btn" href="#" onclick="">Mass Fraction Distribution</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link active" id="number_fraction_distribution_btn" href="#" onclick="">Number Fraction Distribution</a>                    
+                                <a class="nav-link active" id="number_fraction_distribution_btn" href="#" onclick="">Number Fraction Distribution</a>
                             </li>
                         </ul>
                     </div>
                 </div>
             </nav>
-        
+
         <!-- Heatmap container -->
-            <div class="mt-5">
+            <div class="mt-5" id="main-content">
                 <div class="col" id="master-column">
                     <div class="">
                         <div id="heatmap-container" class="text-center"></div> <!-- Centered heatmap container -->
@@ -175,12 +179,47 @@
                     </div>
                     <div class="info-containers">
                         <div id="model-run-container">
-                            <!-- Model Run information container -->
-                            <p class="text-center">Model Run:</p>
+                            <div id="detailed-info-column" >
+                                <!-- Model Run information container -->
+                                <p id="detailed-title">Model Run:</p>
+                                <div class="inner-detail-container" id="model-run-input">
+                                    Input of _ g/s _ of ___ _mm spherical microplastics particles of ___ kg/m3 density into the _________ compartment, using ___ fragmentation.
+                                </div>
+                            </div>
                         </div>
                         <div id="detailed-view">
                             <!-- Detailed information container -->
-                            <p class="text-center">Detailed information:</p>
+                            <div id="detailed-info-column" >
+                                <div class="inner-detail-container">
+                                    <p class="text-field-input">
+                                        Log mass function = __ <br>
+                                        % of total mass = __% <br>
+                                        Residence time = mass_ss/sum(output_flows) <br>
+                                        Persistence = mass_ss/discorporation_flow <br>
+                                    </p>
+                                </div>
+                                <div class="detail-container">
+                                    <p id="detailed-title">Inflows</p>
+                                </div>
+                                <div class="inner-detail-container">
+                                    <p class="text-field">Settling</p>
+                                </div>
+                                <div class="detail-container">
+                                    <p id="detailed-title">Outflows</p>
+                                </div>
+                                <div class="inner-detail-container">
+                                    <p class="text-field">Discorporation</p>
+                                </div>
+                                <div class="inner-detail-container">
+                                    <p class="text-field">Fragmentation</p>
+                                </div>
+                                <div class="inner-detail-container">
+                                    <p class="text-field">Sediment resuspension</p>
+                                </div>
+                                <div class="inner-detail-container">
+                                    <p class="text-field">Burial</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

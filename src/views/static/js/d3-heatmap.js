@@ -254,9 +254,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 .ticks(10)
                 .tickFormat(d3.format(".2f")));
     }
-    
+
     // Add event listener for button click
     runButton.addEventListener('click', function() {
+        document.getElementById('loading-spinner').style.display = 'block'; // Loading animation
+        document.getElementById('main-content').classList.add('blur'); // Blurring the background
         // Collect all variable values to be sent to the backend
         let inputData = extractVariablesFromClientSide();
         // Make HTTP post and get result
@@ -270,14 +272,14 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: JSON.stringify(inputData)
         };
+        // Closing the open parameter containers
+        var containers = document.querySelectorAll('.toggle_container');
+        containers.forEach(function(container) {
+            container.style.display = "none"; // Hide the entire container
+        });
         // Send the POST request
         fetch(url, options)
             .then(response => {
-                // Closing the open parameter containers
-                var containers = document.querySelectorAll('.toggle_container');
-                containers.forEach(function(container) {
-                    container.style.display = "none"; // Hide the entire container
-                });
                 // Fetching the master column container
                 let masterContainer = document.getElementById('master-column');
                 masterContainer.style.display = "flex"; // Reveal the model run information box
@@ -292,8 +294,11 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .catch(error => {
                 console.error('There was a problem with the POST request:', error);
-            });        
-        
+            })
+            .finally(() => { // Hiding the loading animation and cancelling the blur effect
+                document.getElementById('loading-spinner').style.display = 'none';
+                document.getElementById('main-content').classList.remove('blur');
+            });
     });
 
     // Views actions
