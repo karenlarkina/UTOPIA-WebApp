@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 input_flow_g_s: document.getElementById('input_flow_g_s').value,
                 emiss_comp: document.getElementById('emiss_comp').value
             }
-        }        
+        }
         return JSON.stringify(utopiaObject)
     }
 
@@ -298,8 +298,63 @@ document.addEventListener('DOMContentLoaded', function () {
             .finally(() => { // Hiding the loading animation and cancelling the blur effect
                 document.getElementById('loading-spinner').style.display = 'none';
                 document.getElementById('main-content').classList.remove('blur');
+                let inputs = getModelRunInfo(inputData); // Getting input information as an array
+                let modelRunText = `Input of ${inputs[0]}g/s of ${inputs[1]} ${inputs[2]}μm spherical microplastics particles of ${inputs[3]}kg/m3 density into the ${inputs[4]} compartment. Selected fragmentation style: ${inputs[5]}.`
+                let runModelContainer = document.getElementById("model-run-input");
+                runModelContainer.textContent = modelRunText; // Assigning the text with model input to Model Run
             });
     });
+
+    // Getting the input information
+    function getModelRunInfo(inputJsonData) {
+        let parsedInput = JSON.parse(inputJsonData); // Parsing the JSON object
+        let indexes = [3, 3, 3, 0, 3, 2]; // Listing the input parameter field indexes in the correct order
+        // Listing the input elements with the correct names in model
+        let fieldNameArray = ["input_flow_g_s", "MPform", "size_bin", "MPdensity_kg_m3", "emiss_comp", "fragmentation_style"];
+        let fieldValueArray = []; // Array for storing the actual presentable elements
+        for (let i = 0; i < indexes.length; i++) {
+            let index = indexes[i]; // Index for fetching the field from JSON object
+            let inputFieldName = fieldNameArray[i]; // The input field name from some specific field
+            // Validating the parsed JSON object
+            if (Object.keys(parsedInput)[index]) {
+                // Fetching the input element from the model (JSON)
+                let element = parsedInput[Object.keys(parsedInput)[index]][inputFieldName];
+                if (i === 1) { // Check to make Emission Scenario MP form field presentable
+                    let cleanName = "";
+                    if (element === "freeMP") {
+                        cleanName = "Free";
+                    } else if (element === "heterMP") {
+                        cleanName = "Heter";
+                    } else if (element === "biofMP") {
+                        cleanName = "Biof";
+                    } else {
+                        cleanName = "HeterBiof";
+                    }
+                    fieldValueArray.push(cleanName);
+                } else if (i === 2) { // Check to make Emission Scenario size bin field presentable
+                    let numValue = 0;
+                    if (element === "a") {
+                        numValue = 0.5;
+                    } else if (element === "b") {
+                        numValue = 5;
+                    } else if (element === "c") {
+                        numValue = 50;
+                    } else if (element === "d") {
+                        numValue = 500;
+                    } else {
+                        numValue = 5000;
+                    }
+                    fieldValueArray.push(numValue);
+                } else { // Adding the element name, replacing _ with spaces where needed
+                    fieldValueArray.push(element.toString().replaceAll("_", " "));
+                }
+            } else {
+                console.log(`Index ${index} is out of bounds.`);
+                fieldValueArray.push(null);
+            }
+        }
+        return fieldValueArray; // Returning the array of presentable inputs
+    }
 
     // Views actions
     let mass_fraction_distribution_btn = document.getElementById('mass_fraction_distribution_btn')
