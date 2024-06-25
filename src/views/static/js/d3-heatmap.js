@@ -14,8 +14,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 runName: document.getElementById('mpp_composition').value,
             }, 
             EnvCharacteristics: {
-                spm_diameter_um: document.getElementById('spmDiameter').value,
-                spm_density_kg_m3: document.getElementById('spmDensity').value
+                // spm_diameter_um: document.getElementById('spmDiameter').value,
+                // spm_density_kg_m3: document.getElementById('spmDensity').value
             },
             MicroWeatProperties:{
                 fragmentation_style: document.getElementById('fragmentation_style').value
@@ -157,6 +157,21 @@ document.addEventListener('DOMContentLoaded', function () {
                     .style("opacity", 0.8); // Reset the cell color
         };
 
+        // Function to handle cell selection/click
+        // TODO need to store selected cells
+        const cellClick = function(event, d) {
+            if (d.value !== "") {
+                d3.select("#cell-info")
+                    // TODO Need to figure out the basis for cells, possibly create objects instead of values
+                    // TODO and perhaps store the object id in the cell
+                    .html("Log mass function = " + d.value);
+                document.getElementById('detailed-info-column1').style.display = 'flex';
+            } else {
+                d3.select("#cell-info")
+                    .html("");
+            }
+        };
+
         // Add the squares
         svg.selectAll()
             .data(data, function(d) {return d.group+':'+d.variable;})
@@ -173,6 +188,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .on("mouseover", mouseover)
             .on("mousemove", mousemove)
             .on("mouseleave", mouseleave)
+            .on("click", cellClick); // To select a cell
 
         // Update the text size of the axes labels
         svg.selectAll(".axis text")
@@ -324,11 +340,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (element === "freeMP") {
                         cleanName = "Free";
                     } else if (element === "heterMP") {
-                        cleanName = "Heter";
+                        cleanName = "Heter"; // heteroaggregated
                     } else if (element === "biofMP") {
-                        cleanName = "Biof";
+                        cleanName = "Biof"; // biofouled
                     } else {
-                        cleanName = "HeterBiof";
+                        cleanName = "HeterBiof"; // heteroaggregted and biofouled
                     }
                     fieldValueArray.push(cleanName);
                 } else if (i === 2) { // Check to make Emission Scenario size bin field presentable

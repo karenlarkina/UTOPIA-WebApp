@@ -60,14 +60,14 @@
                         <h3>Environmental Characteristics</h3>
                         <i class="fas fa-info-circle info-icon" data-toggle="tooltip" data-placement="right" title="..."></i>
                     </div>
-                        <div class="row">
-                            <label class="col-md-4" for="spmDiameter">SPM Diameter (µm):</label>
-                            <input class="col-md-3" type="number" id="spmDiameter" value="0.5" min="0.1" step="0.1">
-                        </div>
-                        <div class="row">
-                            <label class="col-md-4" for="spmDensity">SPM Density (kg/m³):</label>
-                            <input class="col-md-3" type="number" id="spmDensity" value="2000">
-                        </div>
+{#                        <div class="row">#}
+{#                            <label class="col-md-4" for="spmDiameter">SPM Diameter (µm):</label>#}
+{#                            <input class="col-md-3" type="number" id="spmDiameter" value="0.5" min="0.1" step="0.1">#}
+{#                        </div>#}
+{#                        <div class="row">#}
+{#                            <label class="col-md-4" for="spmDensity">SPM Density (kg/m³):</label>#}
+{#                            <input class="col-md-3" type="number" id="spmDensity" value="2000">#}
+{#                        </div>#}
                         <div class="row">
                             <label class="col-md-4">Compartments Properties:</label>
                             <button class="col-md-3">Edit File</button>
@@ -179,7 +179,7 @@
                     </div>
                     <div class="info-containers">
                         <div id="model-run-container">
-                            <div id="detailed-info-column" >
+                            <div class="detailed-info-column" >
                                 <!-- Model Run information container -->
                                 <t class="detailed-title" style="margin-left: 20px">Model Run:</t>
                                 <div class="inner-detail-container" id="model-run-input"></div>
@@ -187,14 +187,12 @@
                         </div>
                         <div id="detailed-view">
                             <!-- Detailed information container -->
-                            <div id="detailed-info-column" >
-                                <div class="inner-detail-container">
-                                    <t class="text-field-input">
-                                        Log mass function = __ <br>
-                                        % of total mass = __% <br>
-                                        Residence time = mass_ss/sum(output_flows) <br>
-                                        Persistence = mass_ss/discorporation_flow <br>
-                                    </t>
+                            <div class="detailed-info-column" id="detailed-info-column1">
+                                <div class="inner-detail-container-general">
+                                    <div id="cell-info"></div>
+                                    <div class="general-info">% of total mass = __% </div>
+                                    <div class="general-info">Residence time = mass_ss/sum(output_flows) </div>
+                                    <div class="general-info">Persistence = mass_ss/discorporation_flow</div>
                                 </div>
                                 <div class="inner-detail-container" style="border-top: 1px solid black;">
                                     <div class="param-container">
@@ -209,6 +207,11 @@
                                 </div>
                                 <div class="inner-detail-container">
                                     <t class="text-field">Settling</t>
+                                    <div class="param-container">
+                                        <div class="param-value">Rate (g/s)</div>
+                                        <div class="param-value">Total</div>
+                                        <div class="param-value">%</div>
+                                    </div>
                                 </div>
                                 <div class="detail-container">
                                     <t class="detailed-title">Outflows</t>
@@ -228,7 +231,6 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         
