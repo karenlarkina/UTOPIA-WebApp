@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 big_bin_diameter_um: document.getElementById('bbdiameter').value,  
                 runName: document.getElementById('mpp_composition').value,
             }, 
-            EnvCharacteristics: {
+            EnvCharacteristics: { // Currently just commented out
                 // spm_diameter_um: document.getElementById('spmDiameter').value,
                 // spm_density_kg_m3: document.getElementById('spmDensity').value
             },
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 tooltip
                     .style("opacity", 1);
                 d3.select(this)
-                    .style("stroke", "black") // Set stroke color to a darker grey
+                    .style("stroke", "#737373") // Set stroke color to a darker grey
                     .style("opacity", 1);  // Make the cell color darker
         };
 
@@ -150,25 +150,40 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         const mouseleave = function (event, d) {
-                tooltip
-                    .style("opacity", 0);
+            tooltip
+                .style("opacity", 0);
+            if (this !== selectedCell) { // Only reset stroke for the unselected cells
                 d3.select(this)
                     .style("stroke", "white") // Set stroke color back to white
                     .style("opacity", 0.8); // Reset the cell color
+            }
         };
 
-        // Function to handle cell selection/click
-        // TODO need to store selected cells
+        let selectedCell = null; // Variable to store the selected cell
+        // Function to handle cell selection
         const cellClick = function(event, d) {
-            if (d.value !== "") {
-                d3.select("#cell-info")
-                    // TODO Need to figure out the basis for cells, possibly create objects instead of values
-                    // TODO and perhaps store the object id in the cell
+            if (d.value !== "") { // For cells that have a value
+                if (selectedCell) { // Unselecting previously selected cell
+                    d3.select(selectedCell)
+                        .style("stroke", "white") // Set stroke color back to white
+                        .style("opacity", 0.8); // Reset the cell color
+                }
+                selectedCell = this; // Update selected cell
+                d3.select("#cell-info") // Update cell info
                     .html("Log mass function = " + d.value);
-                document.getElementById('detailed-info-column1').style.display = 'flex';
-            } else {
+                d3.select(this)
+                    .style("stroke", "black") // Set stroke color to black
+                    .style("opacity", 1);  // Make the cell color darker
+                document.getElementById('detailed-view').style.display = 'flex'; // Display detailed view container
+
+            } else { // For empty grey cells
                 d3.select("#cell-info")
                     .html("");
+                document.getElementById('detailed-view').style.display = 'none'; // Hide the detailed view
+                d3.select(selectedCell)
+                    .style("stroke", "white") // Set stroke color back to white
+                    .style("opacity", 0.8); // Reset the cell color
+                selectedCell = null;
             }
         };
 
@@ -203,12 +218,14 @@ document.addEventListener('DOMContentLoaded', function () {
             .text(title);
 
         // Constants for the legend
+        // NB Legends vary in scale when larger emission size bin is used for mass and number fragmentation
+        // ... since two separate heatmaps are created for mass and number fragmentation
         const legendWidth = 30;
         const legendHeight = myGroups.length * cellSize + 50; // Height of the legend to match heatmap
         const legendYOffset = 52; // Offset to match the heatmap
         const legendScaleOffset = legendYOffset - 0.5;
 
-        // Remove any existing heatmap
+        // Remove any existing legend
         d3.select('#legend-container').selectAll('*').remove();
         const legendSvg = d3.select("#legend-container")
             .append("svg")
@@ -315,7 +332,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('loading-spinner').style.display = 'none';
                 document.getElementById('main-content').classList.remove('blur');
                 let inputs = getModelRunInfo(inputData); // Getting input information as an array
-                let modelRunText = `Input of ${inputs[0]}g/s of ${inputs[1]} ${inputs[2]}μm spherical microplastics particles of ${inputs[3]}kg/m3 density into the ${inputs[4]} compartment. Selected fragmentation style: ${inputs[5]}.`
+                let modelRunText = `Input of ${inputs[0]}g/s of ${inputs[1]} ${inputs[2]} spherical microplastics particles of ${inputs[3]}kg/m3 density into the ${inputs[4]} compartment. Selected fragmentation style: ${inputs[5]}.`
                 let runModelContainer = document.getElementById("model-run-input");
                 runModelContainer.textContent = modelRunText; // Assigning the text with model input to Model Run
             });
@@ -350,15 +367,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else if (i === 2) { // Check to make Emission Scenario size bin field presentable
                     let numValue = 0;
                     if (element === "a") {
-                        numValue = 0.5;
+                        numValue = "0.5μm";
                     } else if (element === "b") {
-                        numValue = 5;
+                        numValue = "5μm";
                     } else if (element === "c") {
-                        numValue = 50;
+                        numValue = "50μm";
                     } else if (element === "d") {
-                        numValue = 500;
+                        numValue = "500μm";
                     } else {
-                        numValue = 5000;
+                        numValue = "5mm";
                     }
                     fieldValueArray.push(numValue);
                 } else { // Adding the element name, replacing _ with spaces where needed
