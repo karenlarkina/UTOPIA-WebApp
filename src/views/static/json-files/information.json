@@ -1,0 +1,8 @@
+[
+  {
+    "mpp_container": "Particles are distributed in 5 size bins of 1 order of magnitude difference from micro to nanometers (i.e. 5000,500,50,5,0.5 µm) ",
+    "ec_container": "Preloaded UTOPIA Global scenario for compartments parameterization. Click on edit file to modify compartments dimensions and characteristics (i.e. water flow velocities, compartments depth and surface area extension, water SPM concentrations, etc.)",
+    "mwp_container": "Preloaded UTOPIA process parameters. Click on edit file to modify the input process parameters (i.e. t_half_deg, t_frag_gen, alpha_heter, t_biof, t_defoul). ",
+    "es_container": "Additional information about Emissions Scenario."
+  }
+]
