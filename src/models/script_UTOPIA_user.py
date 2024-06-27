@@ -20,6 +20,7 @@ from src.models.functions.generate_MPinputs_table import *
 from src.models.functions.save_results import *
 from src.models.functions.loop_CTD_calculation import *
 from src.models.functions.generate_compartmentFlows_tables import *
+from src.models.model_run import *
 
 
 def execute_utopia_model(input_obj):
@@ -87,7 +88,7 @@ def execute_utopia_model(input_obj):
         comp_impFile_name=comp_impFile_name,
         comp_interactFile_name=comp_interactFile_name,
         mp_imputFile_name=mp_imputFile_name,
-        spm_diameter_um=spm_diameter_um,
+        spm_radius_um=spm_radius_um,
         spm_density_kg_m3=spm_density_kg_m3,
     )
 
