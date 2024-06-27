@@ -57,9 +57,9 @@ def execute_utopia_model(input_obj):
     ## Environmental Characteristics
 
     ## Suspended particulates properties
-    ec_input = input_obj.get("EnvCharacteristics")
-    spm_diameter_um = float(ec_input.get("spm_diameter_um"))
-    spm_density_kg_m3 = float(ec_input.get("spm_density_kg_m3"))
+    # ec_input = input_obj.get("EnvCharacteristics")  # TODO by Karen: changed to hardcoded values below
+    spm_diameter_um = 0.5  # spm_diameter_um = float(ec_input.get("spm_diameter_um"))
+    spm_density_kg_m3 = 2000  # spm_density_kg_m3 = float(ec_input.get("spm_density_kg_m3"))
 
     ## choose input files to load
 

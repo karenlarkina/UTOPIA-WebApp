@@ -37,3 +37,158 @@ h3 {
     border-radius: 5px;
     padding: 5px;
 }
+.info-icon {
+    cursor: pointer;
+    color: #acacb0;
+}
+#main-content {
+    margin-top: 0px;
+}
+#master-column { /* Container holding the heatmap, legend, information container. */
+    display: none;
+    align-items: center;
+    gap: 10px;
+    margin-top: -15px;
+    margin-bottom: 50px;
+}
+#heatmap-container {
+    border: 1px solid black;
+    margin-left: 50px;
+    padding: 10px;
+}
+#legend-container {
+    border: 1px solid black;
+    margin-left: 10px;
+    padding: 10px;
+}
+.info-containers { /* Vertical container holding the information fields. */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-start;
+    margin-left: 20px;
+    width: 50rem;
+}
+#model-run-container {
+    display: flex;
+    width: 100%;
+    height: 149px;
+    border: 1px solid black;
+    margin-left: 10px;
+}
+#model-run-input {
+    display: flex;
+    width: 100%;
+    text-align: left;
+    font-size: medium;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+.text-center {
+    text-align: left;
+    font-weight: bold;
+    font-size: larger;
+}
+.param-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    width: 100%;
+}
+.param-name {
+    font-weight: bold;
+    font-size: larger;
+    text-align: right;
+    padding: 10px;
+}
+.param-value {
+    font-size: large;
+    text-align: right;
+    padding: 10px;
+}
+.param-value-left{
+    font-size: large;
+    text-align: left;
+    padding-bottom: 10px;
+    padding-top: 10px;
+}
+#detailed-view {
+    display: none;
+    width: 100%;
+    height: 36.42rem;
+    border: 1px solid black;
+    margin-left: 10px;
+    box-sizing: border-box;
+}
+.detailed-info-column {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+}
+#detailed-info-column1 {
+    display: flex;
+}
+.detail-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    border-top: 1px solid black; /* Vertical separator lines between info sections */
+    border-bottom: 1px solid black; /* Vertical separator lines between info sections */
+    box-sizing: border-box;
+    padding-left: 10px;
+    margin-bottom: 10px;
+}
+.inner-detail-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    padding-left: 20px;
+    padding-bottom: 10px;
+}
+.inner-detail-container-general {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    padding-left: 20px;
+    padding-bottom: 10px;
+    flex-direction: column;
+}
+.detailed-title {
+    margin-left:10px;
+    margin-top:10px;
+    pointer-events: none;
+    text-align: left;
+    font-weight: bold;
+    font-size: larger;
+}
+.text-field-input {
+    padding-top: 10px;
+}
+/* Loading animation */
+.spinner { /* Style for the loading animation */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999; /* Put it in the topmost layer */
+}
+.loader { /* Style for the loading circle */
+    border: 16px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 16px solid #acacb0;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+}
+@keyframes spin { /* Spinning animation */
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.blur { /* Blur effect for the background when loading */
+    filter: blur(5px);
+    pointer-events: none; /* Disable interactions while blurred */
+}

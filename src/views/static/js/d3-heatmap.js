@@ -13,9 +13,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 big_bin_diameter_um: document.getElementById('bbdiameter').value,  
                 runName: document.getElementById('mpp_composition').value,
             }, 
-            EnvCharacteristics: {
-                spm_diameter_um: document.getElementById('spmDiameter').value,
-                spm_density_kg_m3: document.getElementById('spmDensity').value
+            EnvCharacteristics: { // Currently just commented out
+                // spm_diameter_um: document.getElementById('spmDiameter').value,
+                // spm_density_kg_m3: document.getElementById('spmDensity').value
             },
             MicroWeatProperties:{
                 fragmentation_style: document.getElementById('fragmentation_style').value
@@ -26,30 +26,35 @@ document.addEventListener('DOMContentLoaded', function () {
                 input_flow_g_s: document.getElementById('input_flow_g_s').value,
                 emiss_comp: document.getElementById('emiss_comp').value
             }
-        }        
+        }
         return JSON.stringify(utopiaObject)
     }
+
     // This method builds the heatmap
     let assembleHeatMap = function(title, csvText){
         // Remove any existing heatmap
         d3.select('#heatmap-container').selectAll('*').remove();
-        // set the dimensions and margins of the graph
-        const margin = {top: 150, right: 150, bottom: 150, left: 150},
-        viewportWidth = window.innerWidth * 0.7,
-        viewportHeight = window.innerHeight * 0.7,
+        // Set the dimensions and margins of the graph
+        const margin = {top: 50, right: 5, bottom: 150, left: 150},
+        // viewportWidth = window.innerWidth * 0.48,
+        viewportWidth = 810, // Temporary static width for the heatmap container
+        viewportHeight = window.innerHeight * 0.6,
+        cellSize = 26, // Size of each cell in px
         width = viewportWidth - margin.left - margin.right,
         height = viewportHeight - margin.top - margin.bottom;
+        // const heatmapContainerWidth = width + margin.left + margin.right + 55;
+        const heatmapContainerHeight = height + margin.top + margin.bottom * 2 + 30;
 
-        // / Append the SVG element to the body of the page
+        // Append the SVG element to the body of the page
         const svg = d3.select("#heatmap-container")
             .append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
+            .attr("width", width)
+            .attr("height", heatmapContainerHeight)
             .append("g")
             .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
         var data = d3.csvParse(csvText);
-        
+
         // Labels of row and columns -> unique identifier of the column called 'group' and 'variable'
         const myGroups = Array.from(new Set(data.map(d => d.group)))
         const myVars = Array.from(new Set(data.map(d => d.variable)))
@@ -61,50 +66,52 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Build X scales and axis:
         const x = d3.scaleBand()
-                .range([0, width])
+                .range([0, myVars.length * cellSize + 55])
                 .domain(myVars)
                 .padding(0.05);
+        const yHeight = myGroups.length * cellSize + 50;
 
         svg.append("g")
                 .style("font-size", 16) // Decrease font size
-                .attr("transform", `translate(0, ${height})`)
+                .attr("transform", `translate(-2, ${yHeight})`)
                 .call(d3.axisBottom(x)
                     .tickSize(0))
                 .selectAll("text")
-                .attr("dy", "0.5em") // Adjust vertical positioning
+                .attr("dy", "1em") // Adjust vertical positioning
                 .attr("transform", "rotate(-45)") // Rotate labels
                 .style("text-anchor", "end")
-                .attr("dx", "-0.5em"); // Adjust text alignment
+                .attr("dx", "-0.7em"); // Adjust text alignment
 
         // Build Y scales and axis:
         const y = d3.scaleBand()
-                .range([height, 0])
+                .range([yHeight, 0])
                 .domain(myGroups.reverse())
                 .padding(0.05);
         svg.append("g")
                 .style("font-size", 16) // Decrease font size
+                .attr("transform", `translate(-2, 0)`)
                 .call(d3.axisLeft(y)
                     .tickSize(0))
                 .selectAll("text")
-                .attr("transform", "rotate(0)") // Keep labels horizontal                
+                .attr("transform", "rotate(0)") // Keep labels horizontal
                 .style("text-anchor", "end")
-                .attr("dx", "-0.5em"); // Add some margin to the right for y labels // Adjust text alignment
+                .attr("dx", "-0.5em"); // Add some margin to the right for y labels
 
         // Build color scale
         const myColor = d3.scaleSequential()
             .interpolator(d3.interpolateViridis)
             .domain([minValue, maxValue])
 
-            // Function to get color based on value
+        // Function to get color based on value
         const getColor = value => {
-                if (value === '') {
-                    return 'grey'; // Color for empty values
-                } else {
-                    return myColor(value); // Scalar color for other values
-                }
-            };
+            if (value === '') {
+                return 'grey'; // Color for empty values
+            } else {
+                return myColor(value); // Scalar color for other values
+            }
+        };
 
-        // create a tooltip
+        // Create a tooltip
         const tooltip = d3.select("#heatmap-container")
             .append("div")
             .style("opacity", 0)
@@ -114,21 +121,21 @@ document.addEventListener('DOMContentLoaded', function () {
             .style("border-width", "2px")
             .style("border-radius", "5px")
             .style("padding", "5px")
-        
-            // Three functions that change the tooltip when the user hovers/moves/leaves a cell
+
+        // Three functions that change the tooltip when the user hovers/moves/leaves a cell
         const mouseover = function (event, d) {
                 tooltip
                     .style("opacity", 1);
                 d3.select(this)
-                    .style("stroke", "black")
-                    .style("opacity", 1);
+                    .style("stroke", "#737373") // Set stroke color to a darker grey
+                    .style("opacity", 1);  // Make the cell color darker
         };
 
         const mousemove = function(event, d) {
             if (d.value !== "") {
                 // Calculate the position of the tooltip relative to the mouse pointer
                 const tooltipLeft = event.pageX + 10;
-                const tooltipTop = event.pageY - 40;
+                const tooltipTop = event.pageY - 50;
 
                 // Update the position of the tooltip
                 tooltip
@@ -143,47 +150,148 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         const mouseleave = function (event, d) {
-                tooltip
-                    .style("opacity", 0);
+            tooltip
+                .style("opacity", 0);
+            if (this !== selectedCell) { // Only reset stroke for the unselected cells
                 d3.select(this)
-                    .style("stroke", "white") // Set stroke color to a darker grey
-                    .style("opacity", 0.8);
+                    .style("stroke", "white") // Set stroke color back to white
+                    .style("opacity", 0.8); // Reset the cell color
+            }
         };
 
-        // add the squares
+        let selectedCell = null; // Variable to store the selected cell
+        // Function to handle cell selection
+        const cellClick = function(event, d) {
+            if (d.value !== "") { // For cells that have a value
+                if (selectedCell) { // Unselecting previously selected cell
+                    d3.select(selectedCell)
+                        .style("stroke", "white") // Set stroke color back to white
+                        .style("opacity", 0.8); // Reset the cell color
+                }
+                selectedCell = this; // Update selected cell
+                d3.select("#cell-info") // Update cell info
+                    .html("Log mass function = " + d.value);
+                d3.select(this)
+                    .style("stroke", "black") // Set stroke color to black
+                    .style("opacity", 1);  // Make the cell color darker
+                document.getElementById('detailed-view').style.display = 'flex'; // Display detailed view container
+
+            } else { // For empty grey cells
+                d3.select("#cell-info")
+                    .html("");
+                document.getElementById('detailed-view').style.display = 'none'; // Hide the detailed view
+                d3.select(selectedCell)
+                    .style("stroke", "white") // Set stroke color back to white
+                    .style("opacity", 0.8); // Reset the cell color
+                selectedCell = null;
+            }
+        };
+
+        // Add the squares
         svg.selectAll()
             .data(data, function(d) {return d.group+':'+d.variable;})
             .join("rect")
                 .attr("x", function(d) { return x(d.variable) })
                 .attr("y", function(d) { return y(d.group) })
-                .attr("width", x.bandwidth() )
-                .attr("height", y.bandwidth() )
+                .attr("width", cellSize) // Adjusted to square cells
+                .attr("height", cellSize) // Adjusted to square cells
+                .attr("margin-bottom", 1.6)
+                .attr("margin-right", 1.6)
             .style("fill", function (d) { return getColor(d.value) })
             .style("stroke-width", 1) // Reduce stroke width to 1 pixel
                 .style("opacity", 0.8)
             .on("mouseover", mouseover)
             .on("mousemove", mousemove)
             .on("mouseleave", mouseleave)
-    
-        // })
-    
+            .on("click", cellClick); // To select a cell
 
         // Update the text size of the axes labels
         svg.selectAll(".axis text")
-            .style("font-size", "16px"); 
+            .style("font-size", "16px");
 
         // Update the text size of the title
         svg.append("text")
-            .attr("x", width / 2)
+            .attr("x", 255) // Title's position on the x-axis
             .attr("y", -20)
             .attr("text-anchor", "middle")
             .style("font-size", "24px")
             .text(title);
 
+        // Constants for the legend
+        // NB Legends vary in scale when larger emission size bin is used for mass and number fragmentation
+        // ... since two separate heatmaps are created for mass and number fragmentation
+        const legendWidth = 30;
+        const legendHeight = myGroups.length * cellSize + 50; // Height of the legend to match heatmap
+        const legendYOffset = 52; // Offset to match the heatmap
+        const legendScaleOffset = legendYOffset - 0.5;
+
+        // Remove any existing legend
+        d3.select('#legend-container').selectAll('*').remove();
+        const legendSvg = d3.select("#legend-container")
+            .append("svg")
+            .attr("width", legendWidth + 50)
+            .attr("height", heatmapContainerHeight)
+            .style("padding-left", "9px")
+            .attr("dy", "2em") // Adjust vertical positioning
+            .append("g");
+
+        // Scale numerical values for the legend
+        const legendScale = d3.scaleLinear()
+            .domain([minValue, maxValue])
+            .range([legendHeight - 3, 0]);
+
+        // Append legend gradient definition
+        const minMaxDifference = maxValue - minValue
+        const defs = legendSvg.append("defs");
+        const linearGradient = defs.append("linearGradient")
+            .attr("id", "linear-gradient")
+            .attr("x1", "0%")
+            .attr("y1", "100%")
+            .attr("x2", "0%")
+            .attr("y2", "0%");
+
+        // Define the gradient stops with more breakpoints
+        // Starting (minimum) color value
+        linearGradient.append("stop")
+            .attr("offset", "0%")
+            .attr("stop-color", myColor(minValue));
+
+        // Inbetween breakpoint color values
+        for (let i = 0.25; i < 1; i += 0.25) {
+            let num = 100 * i;
+            linearGradient.append("stop")
+                .attr("offset", `${num}%`)
+                .attr("stop-color", myColor(minValue + (minMaxDifference) * i));
+        }
+
+        // Last (maximum) color value
+        linearGradient.append("stop")
+            .attr("offset", "100%")
+            .attr("stop-color", myColor(maxValue));
+
+        // Build the rectangle and fill with gradient color
+        legendSvg.append("rect")
+            .attr("transform", `translate(0, ${legendYOffset})`)
+            .attr("width", cellSize)
+            .attr("height", legendHeight - 3)
+            .attr("stroke", "black")
+            .style("stroke-width", 0.9)
+            .style("fill", "url(#linear-gradient)")
+            .style("opacity", 0.8); // To match cell colors in the heatmap when not selected
+
+        // Add the scale for the legend
+        legendSvg.append("g")
+            .attr("transform", `translate(${cellSize}, ${legendScaleOffset})`)
+            .style("stroke-width", 0.9)
+            .call(d3.axisRight(legendScale)
+                .ticks(10)
+                .tickFormat(d3.format(".2f")));
     }
-    
+
     // Add event listener for button click
     runButton.addEventListener('click', function() {
+        document.getElementById('loading-spinner').style.display = 'block'; // Loading animation
+        document.getElementById('main-content').classList.add('blur'); // Blurring the background
         // Collect all variable values to be sent to the backend
         let inputData = extractVariablesFromClientSide();
         // Make HTTP post and get result
@@ -197,23 +305,89 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: JSON.stringify(inputData)
         };
+        // Closing the open parameter containers
+        var containers = document.querySelectorAll('.toggle_container');
+        containers.forEach(function(container) {
+            container.style.display = "none"; // Hide the entire container
+        });
         // Send the POST request
         fetch(url, options)
             .then(response => {
+                // Fetching the master column container
+                let masterContainer = document.getElementById('master-column');
+                masterContainer.style.display = "flex"; // Reveal the model run information box
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
                 return response.json(); // Parse the response body as JSON
             })
-            .then(model_results => {                
+            .then(model_results => {
                 utopia_model_results = model_results; //store values from backend for assembling all visualizations
                 assembleHeatMap("Mass Fraction Distribution Heatmap", model_results.mass_fraction_distribution_heatmap);
             })
             .catch(error => {
                 console.error('There was a problem with the POST request:', error);
-            });        
-        
+            })
+            .finally(() => { // Hiding the loading animation and cancelling the blur effect
+                document.getElementById('loading-spinner').style.display = 'none';
+                document.getElementById('main-content').classList.remove('blur');
+                let inputs = getModelRunInfo(inputData); // Getting input information as an array
+                let modelRunText = `Input of ${inputs[0]}g/s of ${inputs[1]} ${inputs[2]} spherical microplastics particles of ${inputs[3]}kg/m3 density into the ${inputs[4]} compartment. Selected fragmentation style: ${inputs[5]}.`
+                let runModelContainer = document.getElementById("model-run-input");
+                runModelContainer.textContent = modelRunText; // Assigning the text with model input to Model Run
+            });
     });
+
+    // Getting the input information
+    function getModelRunInfo(inputJsonData) {
+        let parsedInput = JSON.parse(inputJsonData); // Parsing the JSON object
+        let indexes = [3, 3, 3, 0, 3, 2]; // Listing the input parameter field indexes in the correct order
+        // Listing the input elements with the correct names in model
+        let fieldNameArray = ["input_flow_g_s", "MPform", "size_bin", "MPdensity_kg_m3", "emiss_comp", "fragmentation_style"];
+        let fieldValueArray = []; // Array for storing the actual presentable elements
+        for (let i = 0; i < indexes.length; i++) {
+            let index = indexes[i]; // Index for fetching the field from JSON object
+            let inputFieldName = fieldNameArray[i]; // The input field name from some specific field
+            // Validating the parsed JSON object
+            if (Object.keys(parsedInput)[index]) {
+                // Fetching the input element from the model (JSON)
+                let element = parsedInput[Object.keys(parsedInput)[index]][inputFieldName];
+                if (i === 1) { // Check to make Emission Scenario MP form field presentable
+                    let cleanName = "";
+                    if (element === "freeMP") {
+                        cleanName = "Free";
+                    } else if (element === "heterMP") {
+                        cleanName = "Heter"; // heteroaggregated
+                    } else if (element === "biofMP") {
+                        cleanName = "Biof"; // biofouled
+                    } else {
+                        cleanName = "HeterBiof"; // heteroaggregted and biofouled
+                    }
+                    fieldValueArray.push(cleanName);
+                } else if (i === 2) { // Check to make Emission Scenario size bin field presentable
+                    let numValue = 0;
+                    if (element === "a") {
+                        numValue = "0.5μm";
+                    } else if (element === "b") {
+                        numValue = "5μm";
+                    } else if (element === "c") {
+                        numValue = "50μm";
+                    } else if (element === "d") {
+                        numValue = "500μm";
+                    } else {
+                        numValue = "5mm";
+                    }
+                    fieldValueArray.push(numValue);
+                } else { // Adding the element name, replacing _ with spaces where needed
+                    fieldValueArray.push(element.toString().replaceAll("_", " "));
+                }
+            } else {
+                console.log(`Index ${index} is out of bounds.`);
+                fieldValueArray.push(null);
+            }
+        }
+        return fieldValueArray; // Returning the array of presentable inputs
+    }
 
     // Views actions
     let mass_fraction_distribution_btn = document.getElementById('mass_fraction_distribution_btn')
