@@ -10,6 +10,7 @@ particle_sizes_coding = {"mp5": "a", "mp4": "b", "mp3": "c", "mp2": "d", "mp1": 
 
 
 # Define a function to check if a value is a list and calculate the sum if it is
+# Define a function to check if a value is a list and calculate the sum if it is
 def sum_if_list(value):
     if isinstance(value, list):
         return sum(value)

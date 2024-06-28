@@ -20,6 +20,10 @@ from src.models.functions.generate_MPinputs_table import *
 from src.models.functions.save_results import *
 from src.models.functions.loop_CTD_calculation import *
 from src.models.functions.generate_compartmentFlows_tables import *
+
+from src.models.functions.model_run_by_comp import *
+from src.models.functions.emission_fractions_calculation import *
+
 from src.models.model_run import *
 
 
@@ -58,16 +62,20 @@ def execute_utopia_model(input_obj):
 
     ## Suspended particulates properties
     # ec_input = input_obj.get("EnvCharacteristics")  # TODO by Karen: changed to hardcoded values below
-    spm_diameter_um = 0.5  # spm_diameter_um = float(ec_input.get("spm_diameter_um"))
-    spm_density_kg_m3 = 2000  # spm_density_kg_m3 = float(ec_input.get("spm_density_kg_m3"))
+
+    # From Kooi et al. (2017)
+    v_a = 2.0e-16  # Volume of 1 algal cell [m-3]
+    r_a = ((3.0 / 4.0) * (v_a / math.pi)) ** (1.0 / 3.0)  # radius of algae [m]
+
+    spm_radius_um = r_a * 1e6
+    spm_density_kg_m3 = 1388  # REF: Kooi et al. (2017)
 
     ## choose input files to load
 
-    comp_impFile_name = "inputs_compartments.csv"  # Preloaded values, the user should be able to create its own inputs_compartments.csv file (via donwloading the file and typing news values without chaing the structure of the file) when a new file wants to be used the name should be changed here
+    comp_impFile_name = "/inputs_compartments.csv"  # Preloaded values, the user should be able to create its own inputs_compartments.csv file (via donwloading the file and typing news values without chaing the structure of the file) when a new file wants to be used the name should be changed here
     comp_interactFile_name = (
-        "compartment_interactions.csv"  # Fixed, should not be modified
+        "/compartment_interactions.csv"  # Fixed, should not be modified
     )
-    # mp_imputFile_name = os.path.join(inputs_path, "inputs_microplastics.csv") #Choose one existing input file to load
 
     boxName = "Utopia"  # fixed, do not modify
 
@@ -389,7 +397,6 @@ def execute_utopia_model(input_obj):
     # print(mf_shorted[:10])
     df_massDistribution = mf_shorted[:10]
 
-    #
     df_numberDistribution = nf_shorted[:10]
 
     # Mass distribution by compartment
@@ -450,6 +457,34 @@ def execute_utopia_model(input_obj):
         tables_outputFlows, tables_outputFlows_number, dict_comp, surfComp_list
     )
 
+    # Decode index in input and output flow tables
+    flows_dict = dict()
+    flows_dict["input_flows"] = {}
+    flows_dict["output_flows"] = {}
+    # Decode index in input and output flow tables
+    for comp in tables_outputFlows:
+        df1 = tables_outputFlows[comp].copy()
+        MP_size_df1 = []
+        MP_form_df1 = []
+        for x in df1.index:
+            MP_size_df1.append(size_dict[x[0]])
+            MP_form_df1.append(MP_form_dict_reverse[x[1:2]])
+
+        df1.insert(0, "MP_size", MP_size_df1)
+        df1.insert(1, "MP_form", MP_form_df1)
+        flows_dict["output_flows"][comp] = df1
+
+    for comp in tables_inputFlows:
+        df2 = tables_inputFlows[comp].copy()
+        MP_size_df2 = []
+        MP_form_df2 = []
+        for y in df2.index:
+            MP_size_df2.append(size_dict[y[0]])
+            MP_form_df2.append(MP_form_dict_reverse[y[1:2]])
+        df2.insert(0, "MP_size", MP_size_df2)
+        df2.insert(1, "MP_form", MP_form_df2)
+        flows_dict["input_flows"][comp] = df2
+
     ## Compartment mass balance
 
     comp_mass_balance = {}
@@ -498,43 +533,160 @@ def execute_utopia_model(input_obj):
 
     """ Estimate exposure indicators """
 
-    # Overall residence time
-    # overall_residence_time_calculation(tables_outputFlows, Results_extended)
+    # For estimating exposure indicators we need to make emissions to targeted compartments.
 
-    # Save results
+    # Run model with emissions to specific compartments to estimate the emission fractions
 
-    outputs_path = os.path.join(os.path.dirname(__file__), "Results")
+    model_results = {}
+    dispersing_comp_list = [
+        "Air",
+        "Ocean_Mixed_Water",
+        "Ocean_Surface_Water",
+    ]
 
-    # Create directory with current date where to save results
+    for dispersing_comp in dispersing_comp_list:
+        model_results[dispersing_comp] = run_model_comp(
+            dispersing_comp,
+            input_flow_g_s,
+            interactions_df,
+            MP_form,
+            size_bin,
+            particle_forms_coding,
+            particle_compartmentCoding,
+            system_particle_object_list,
+            comp_dict_inverse,
+            dict_comp,
+            size_dict,
+            MP_form_dict_reverse,
+            surfComp_list,
+        )
 
-    # get current date and time to store results
-    current_date = datetime.now().strftime("%Y-%m-%d")
-    directory = current_date
-    path = os.path.join(outputs_path, directory)
+    #### EXPOSURE INDICATORS ####
 
-    # Create directory with model run name under the current date directory where to save results
+    # Estimate emission fractions for the setted emission scenario
 
-    subDirectory = current_date + "_" + saveName
-
-    path_run = os.path.join(path, subDirectory)
-
-    store_results(
-        path,
-        outputs_path,
-        saveName,
-        path_run,
-        df4,
-        Results_comp_dict,
-        Results_comp_organiced,
-        model_lists,
-        df_massDistribution,
-        df_numberDistribution,
-        mass_dist_comp,
-        tables_outputFlows,
-        tables_inputFlows,
-        MP_form_dict_reverse,
+    emission_fractions_mass_data = emission_fractions_calculations(
+        Results_extended,
+        model_results,
+        dispersing_comp_list,
+        dict_comp,
+        input_flow_g_s,
+        q_num_s,
         size_dict,
-        comp_mass_balance_df,
+        emiss_comp,
+    )
+
+    emiss_fract_fig = plot_emission_fractions(emission_fractions_mass_data, emiss_comp)
+
+    # Overall persistance (Pov) and Overall residence time (Tov) in years:
+
+    (
+        Pov_mass_years,
+        Pov_num_years,
+        Pov_size_dict_sec,
+        Tov_mass_years,
+        Tov_num_years,
+        Tov_size_dict_sec,
+    ) = Exposure_indicators_calculation(
+        tables_outputFlows,
+        tables_outputFlows_number,
+        Results_extended,
+        size_dict,
+        dict_comp,
+        system_particle_object_list,
+    )
+
+    # Caracteristic travel distance (CDT) (m):
+
+    # To calculate CTD we need to estimate it by emitting into the especific mobile compartment. We will calculate CTD derived from emmiting to each compartment and taking the higest value:
+    CTD_mass_list = []
+    CTD_number_list = []
+
+    for CDT_comp in [
+        "Ocean_Surface_Water",
+        "Ocean_Mixed_Water",
+        "Coast_Surface_Water",
+        "Coast_Column_Water",
+        "Surface_Freshwater",
+        "Bulk_Freshwater",
+        "Air",
+    ]:
+        # input flow (in g per second) for each compartment the User should specify here the input flows per compartment
+        q_mass_g_s_dict_CTD = {
+            "Ocean_Surface_Water": 0,
+            "Ocean_Mixed_Water": 0,
+            "Ocean_Column_Water": 0,
+            "Coast_Surface_Water": 0,
+            "Coast_Column_Water": 0,
+            "Surface_Freshwater": 0,
+            "Bulk_Freshwater": 0,
+            "Sediment_Freshwater": 0,
+            "Sediment_Ocean": 0,
+            "Sediment_Coast": 0,
+            "Urban_Soil_Surface": 0,
+            "Urban_Soil": 0,
+            "Background_Soil_Surface": 0,
+            "Background_Soil": 0,
+            "Agricultural_Soil_Surface": 0,
+            "Agricultural_Soil": 0,
+            "Air": 0,
+        }
+        q_mass_g_s_dict_CTD[CDT_comp] = input_flow_g_s
+
+        sp_imputs_CTD = []
+        q_mass_g_s_CTD = []
+        for compartment in q_mass_g_s_dict_CTD.keys():
+            sp_imputs_CTD.append(
+                size_bin
+                + particle_forms_coding[MP_form]
+                + str(particle_compartmentCoding[compartment])
+                + "_"
+                + boxName
+            )
+            q_mass_g_s_CTD.append(q_mass_g_s_dict_CTD[compartment])
+
+        imput_flows_g_s_CTD = dict(zip(sp_imputs_CTD, q_mass_g_s_CTD))
+
+        CTD_km = model_run_CTD(
+            system_particle_object_list,
+            CDT_comp,
+            imput_flows_g_s_CTD,
+            interactions_df,
+            q_mass_g_s_CTD,
+            size_dict,
+            MP_form_dict_reverse,
+            comp_dict_inverse,
+            dict_comp,
+        )
+
+        CTD_mass_list.append(CTD_km[0])
+        CTD_number_list.append(CTD_km[1])
+
+    CTD_df = pd.DataFrame(
+        index=[
+            "Ocean_Surface_Water",
+            "Ocean_Mixed_Water",
+            "Coast_Surface_Water",
+            "Coast_Column_Water",
+            "Surface_Freshwater",
+            "Bulk_Freshwater",
+            "Air",
+        ]
+    )
+
+    CTD_df["CTD_mass_km"] = CTD_mass_list
+    CTD_df["CTD_particle_number_km"] = CTD_number_list
+
+    print(
+        "Characteristic mass travel distance (CDT): ",
+        round(CTD_df["CTD_mass_km"].max(), 1),
+        " km",
+    )
+
+    print(
+        "Characteristic particle number travel distance (CDT): ",
+        round(CTD_df["CTD_particle_number_km"].max(), 1),
+        " km",
     )
 
     return heatmap_mass_fraction_df, heatmap_number_fraction_df
