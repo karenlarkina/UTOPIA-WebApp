@@ -76,6 +76,20 @@ def generate_objects(
         # print(f"Density of {i.Pname}: {i.Pdensity_kg_m3} kg_m3")
 
     ##Biofouled microplastics (biofMP)
+    spm = Particulates(
+        Pname="spm1",
+        Pform="suspendedParticulates",
+        Pcomposition="Mixed",
+        Pdensity_kg_m3=spm_density_kg_m3,
+        Pshape="sphere",
+        PdimensionX_um=spm_radius_um,
+        PdimensionY_um=0,
+        PdimensionZ_um=0,
+    )
+    spm.calc_volume()
+    # print(f"spm Volume: {spm.Pvolume_m3} m3")
+    # print(f"Density of spm: {spm.Pdensity_kg_m3} kg_m3")
+
     MP_biofouledParticles = []
     for i in MP_freeParticles:
         MP_biofouledParticles.append(ParticulatesBF(parentMP=i, spm=spm))
