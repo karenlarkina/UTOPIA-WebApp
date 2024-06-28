@@ -32,15 +32,12 @@ def generate_objects(
     # Compartmets
     """Call read imput file function for compartments"""
 
-    compartments = instantiate_compartments(
-        os.path.join(inputs_path, comp_impFile_name)
-    )
+    compartments = instantiate_compartments(inputs_path + comp_impFile_name)
 
     # Establish connexions between compartments defining their interaction mechanism: only listed those compartments wich will recieve particles from the define compartment. i.e. the ocean surface water compartment transports particles to the ocean mix layer through settling and to air through sea spray resuspension
 
     set_interactions(
-        compartments,
-        connexions_path_file=os.path.join(inputs_path, comp_interactFile_name),
+        compartments, connexions_path_file=inputs_path + comp_interactFile_name
     )
 
     # Assign modelling code to compartmanes
@@ -79,18 +76,6 @@ def generate_objects(
         # print(f"Density of {i.Pname}: {i.Pdensity_kg_m3} kg_m3")
 
     ##Biofouled microplastics (biofMP)
-    spm = Particulates(
-        Pname="spm1",
-        Pform="suspendedParticulates",
-        Pcomposition="Mixed",
-        Pdensity_kg_m3=spm_density_kg_m3,
-        Pshape="sphere",
-        PdimensionX_um=spm_radius_um,
-        PdimensionY_um=0,
-        PdimensionZ_um=0,
-    )
-    spm.calc_volume()
-
     MP_biofouledParticles = []
     for i in MP_freeParticles:
         MP_biofouledParticles.append(ParticulatesBF(parentMP=i, spm=spm))

@@ -20,6 +20,8 @@ from src.models.functions.generate_MPinputs_table import *
 from src.models.functions.save_results import *
 from src.models.functions.loop_CTD_calculation import *
 from src.models.functions.generate_compartmentFlows_tables import *
+from src.models.functions.model_run_by_comp import *
+from src.models.functions.emission_fractions_calculation import *
 
 
 def execute_utopia_model(input_obj):
@@ -56,27 +58,18 @@ def execute_utopia_model(input_obj):
     ## Environmental Characteristics
 
     ## Suspended particulates properties
-
-    # From Kooi et al. (2017)
-    v_a = 2.0e-16  # Volume of 1 algal cell [m-3]
-    r_a = ((3.0 / 4.0) * (v_a / math.pi)) ** (1.0 / 3.0)  # radius of algae [m]
-
-    spm_radius_um = r_a * 1e6
-    spm_density_kg_m3 = 1.388
-
-    ec_input = input_obj.get("EnvCharacteristics")
-
-    # We dont need to include these tw inputs in the EnvCharacteristics menu. --> To be updated to the new input values or deleted??
-    spm_diameter_um = float(ec_input.get("spm_diameter_um"))
-    spm_density_kg_m3 = float(ec_input.get("spm_density_kg_m3"))
+    # ec_input = input_obj.get("EnvCharacteristics")  # TODO by Karen: changed to hardcoded values below
+    spm_diameter_um = 0.5  # spm_diameter_um = float(ec_input.get("spm_diameter_um"))
+    spm_density_kg_m3 = (
+        2000  # spm_density_kg_m3 = float(ec_input.get("spm_density_kg_m3"))
+    )
 
     ## choose input files to load
 
-    comp_impFile_name = "inputs_compartments.csv"  # Preloaded values, the user should be able to create its own inputs_compartments.csv file (via donwloading the file and typing news values without chaing the structure of the file) when a new file wants to be used the name should be changed here
+    comp_impFile_name = "/inputs_compartments.csv"  # Preloaded values, the user should be able to create its own inputs_compartments.csv file (via donwloading the file and typing news values without chaing the structure of the file) when a new file wants to be used the name should be changed here
     comp_interactFile_name = (
-        "compartment_interactions.csv"  # Fixed, should not be modified
+        "/compartment_interactions.csv"  # Fixed, should not be modified
     )
-    # mp_imputFile_name = os.path.join(inputs_path, "inputs_microplastics.csv") #Choose one existing input file to load
 
     boxName = "Utopia"  # fixed, do not modify
 
@@ -398,7 +391,6 @@ def execute_utopia_model(input_obj):
     # print(mf_shorted[:10])
     df_massDistribution = mf_shorted[:10]
 
-    #
     df_numberDistribution = nf_shorted[:10]
 
     # Mass distribution by compartment
@@ -504,46 +496,3 @@ def execute_utopia_model(input_obj):
     heatmap_number_fraction_df = plot_fractionDistribution_heatmap(
         Results_extended, fraction="number_fraction"
     )
-
-    """ Estimate exposure indicators """
-
-    # Overall residence time
-    # overall_residence_time_calculation(tables_outputFlows, Results_extended)
-
-    # Save results
-
-    outputs_path = os.path.join(os.path.dirname(__file__), "Results")
-
-    # Create directory with current date where to save results
-
-    # get current date and time to store results
-    current_date = datetime.now().strftime("%Y-%m-%d")
-    directory = current_date
-    path = os.path.join(outputs_path, directory)
-
-    # Create directory with model run name under the current date directory where to save results
-
-    subDirectory = current_date + "_" + saveName
-
-    path_run = os.path.join(path, subDirectory)
-
-    store_results(
-        path,
-        outputs_path,
-        saveName,
-        path_run,
-        df4,
-        Results_comp_dict,
-        Results_comp_organiced,
-        model_lists,
-        df_massDistribution,
-        df_numberDistribution,
-        mass_dist_comp,
-        tables_outputFlows,
-        tables_inputFlows,
-        MP_form_dict_reverse,
-        size_dict,
-        comp_mass_balance_df,
-    )
-
-    return heatmap_mass_fraction_df, heatmap_number_fraction_df
