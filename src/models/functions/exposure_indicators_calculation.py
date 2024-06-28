@@ -6,6 +6,7 @@ import numpy as np
 from src.models.model_run import *
 from src.models.functions.generate_MPinputs_table import *
 
+
 size_list = ["a", "b", "c", "d", "e"]
 
 
