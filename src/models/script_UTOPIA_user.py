@@ -502,3 +502,5 @@ def execute_utopia_model(input_obj):
     heatmap_number_fraction_df = plot_fractionDistribution_heatmap(
         Results_extended, fraction="number_fraction"
     )
+
+    return heatmap_mass_fraction_df, heatmap_number_fraction_df
