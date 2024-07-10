@@ -61,7 +61,7 @@ def execute_utopia_model(input_obj):
     ## Environmental Characteristics
 
     ## Suspended particulates properties
-    # ec_input = input_obj.get("EnvCharacteristics")  # TODO by Karen: changed to hardcoded values below
+    # ec_input = input_obj.get("EnvCharacteristics")
 
     # From Kooi et al. (2017)
     v_a = 2.0e-16  # Volume of 1 algal cell [m-3]
@@ -484,7 +484,6 @@ def execute_utopia_model(input_obj):
         df2.insert(0, "MP_size", MP_size_df2)
         df2.insert(1, "MP_form", MP_form_df2)
         flows_dict["input_flows"][comp] = df2
-
     ## Compartment mass balance
 
     comp_mass_balance = {}
@@ -499,7 +498,7 @@ def execute_utopia_model(input_obj):
         )
 
     # Print compartment mass balance table
-    comp_mass_balance_df = pd.DataFrame.from_dict(comp_mass_balance, orient="index")
+    comp_mass_balance_df = pd.DataFrame.from_dict(comp_mass_balance, orient="index")  # TODO input/output rates
     # print(comp_mass_balance_df)
 
     comp_mass_balance_df["Mass balance"] = [

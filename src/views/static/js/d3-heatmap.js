@@ -30,12 +30,239 @@ document.addEventListener('DOMContentLoaded', function () {
         return JSON.stringify(utopiaObject)
     }
 
+    // Building the new heatmap with respect to compartments
+    let assembleCompHeatMap = function(title, csvText) {
+        // Remove any existing heatmap
+        d3.select('#heatmap-container').selectAll('*').remove();
+        // Set the dimensions and margins of the graph
+        const margin = {top: 50, right: 5, bottom: 150, left: 150},
+            // viewportWidth = window.innerWidth * 0.48,
+            viewportWidth = 810, // Temporary static width for the heatmap container
+            viewportHeight = window.innerHeight * 0.6,
+            // cellSize = 26, // Size of each cell in px
+            width = viewportWidth - margin.left - margin.right,
+            height = viewportHeight - margin.top - margin.bottom;
+        const heatmapContainerHeight = height + margin.top + margin.bottom * 2 + 30;
+        // Append the SVG element to the body of the page
+        const container = d3.select("#heatmap-container")
+            .attr("width", width + 160)
+            .attr("height", heatmapContainerHeight)
+            .append("g")
+            .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+        // Update the text size of the title
+        container.append("text")
+            .attr("x", 255) // Title's position on the x-axis
+            .attr("y", -20)
+            .attr("text-anchor", "middle")
+            .style("font-size", "24px")
+            .style("margin-bottom", "30px")
+            .text(title);
+
+        let data = d3.csvParse(csvText);
+        // Labels of row and columns -> unique identifier of the column called 'group' and 'variable'
+        const myGroups = Array.from(new Set(data.map(d => d.group)));
+        const myVars = Array.from(new Set(data.map(d => d.variable))).reverse();
+        const myValues = data.map(d => parseFloat(d.value));
+
+        // // Get the minimum and maximum values
+        const minValue = d3.min(myValues);
+        const maxValue = d3.max(myValues);
+
+        // Drawing out the compartments
+        for (let i = 1; i < 6; i++) {
+            const row = container.append("div")
+                .attr("class", "horiz-area")
+                .style("background-color", "white");
+
+            if (i === 1) {
+                row.append("div")
+                    .attr("class", "compartment air")
+                    .attr("id", "compartment-air")
+                    .text(`${myVars[0]}`);
+            } else {
+                // Create columns within each row
+                for (let j = 1; j < 7; j++) {
+                    const uniqueNumber = (i - 2) * 6 + j;
+                    let compartmentType = "";
+                    let uniqueCompartment = "";
+                    let compTitle = "";
+
+                    if (uniqueNumber === 1 || uniqueNumber === 7) { // Agricultural
+                        compartmentType = "compartment agricultural";
+                        uniqueCompartment = `compartment-${uniqueNumber}`;
+                        if (uniqueNumber === 1) {
+                            compTitle = myVars[2];
+                        } else {
+                            compTitle = myVars[1];
+                        }
+                    } else if (uniqueNumber === 2 || uniqueNumber === 8) { // Urban
+                        compartmentType = "compartment urban";
+                        uniqueCompartment = `compartment-${uniqueNumber}`;
+                        if (uniqueNumber === 2) {
+                            compTitle = myVars[6];
+                        } else {
+                            compTitle = myVars[5];
+                        }
+                    } else if (uniqueNumber === 3 || uniqueNumber === 9) { // Background
+                        compartmentType = "compartment background";
+                        uniqueCompartment = `compartment-${uniqueNumber}`;
+                        if (uniqueNumber === 3) {
+                            compTitle = myVars[4];
+                        } else {
+                            compTitle = myVars[3];
+                        }
+                    } else if (uniqueNumber === 4 || uniqueNumber === 10) { // Fresh Water
+                        compartmentType = "compartment freshwater";
+                        uniqueCompartment = `compartment-${uniqueNumber}`;
+                        if (uniqueNumber === 4) {
+                            compTitle = myVars[11];
+                        } else {
+                            compTitle = myVars[10];
+                        }
+                    } else if (uniqueNumber === 5 || uniqueNumber === 11) { // Coast
+                        compartmentType = "compartment coastal";
+                        uniqueCompartment = `compartment-${uniqueNumber}`;
+                        if (uniqueNumber === 5) {
+                            compTitle = myVars[13];
+                        } else {
+                            compTitle = myVars[12];
+                        }
+                    } else if (uniqueNumber === 6 || uniqueNumber === 12 || uniqueNumber === 18) { // Ocean
+                        compartmentType = "compartment ocean";
+                        uniqueCompartment = `compartment-${uniqueNumber}`;
+                        if (uniqueNumber === 6) {
+                            compTitle = myVars[16];
+                        } else if (uniqueNumber === 12) {
+                            compTitle = myVars[15];
+                        } else {
+                            compTitle = myVars[14];
+                        }
+                    } else if (uniqueNumber === 16 || uniqueNumber === 17 || uniqueNumber === 24) { // Sediment
+                        compartmentType = "compartment sediment";
+                        uniqueCompartment = `compartment-${uniqueNumber}`;
+                        if (uniqueNumber === 16) {
+                            compTitle = myVars[9];
+                        } else if (uniqueNumber === 17) {
+                            compTitle = myVars[7];
+                        } else {
+                            compTitle = myVars[8];
+                        }
+                    } else { // Legend or empty
+                        compartmentType = "compartment empty";
+                        uniqueCompartment = `compartment-${uniqueNumber}`;
+                    }
+                    row.append("div")
+                        .attr("class", `${compartmentType}`)
+                        .attr("id", `${uniqueCompartment}`)
+                        .text(`${compTitle.replaceAll("_", " ")}`);
+                }
+            }
+            let masterContainer = document.getElementById('legend-container');
+            masterContainer.style.display = "none"; // Reveal the model run information box
+        }
+
+        // Append the new legend container
+        const legendBox = container.append("div") // TODO currently absolute values for x, y
+            .attr("class", "new-legend-container")
+            .style("left", `${62}px`) // TODO temporary hardcoded value
+            .style("top", `${587}px`); // TODO temporary hardcoded value
+
+        legendBox.append("h5")
+                .text(`Legend`);
+
+        legendBox.append("h5")
+            .text(`Fraction of plastic mass/particle number:`);
+
+        // Build color scale
+        const myColor = d3.scaleSequential()
+            .interpolator(d3.interpolateViridis)
+            .domain([minValue, maxValue])
+
+        // Function to get color based on value
+        const getColor = value => {
+            if (value === '') {
+                return 'grey'; // Color for empty values
+            } else {
+                return myColor(value); // Scalar color for other values
+            }
+        };
+
+        // Constants for the legend
+        const legendWidth = 17;
+        const legendHeight = 220;
+        // Remove any existing legend
+        d3.select('#new-legend').remove();
+
+        const legendSvg = legendBox.append("div")
+            .attr("id", "new-legend")
+            .append("svg")
+            .style("position", "absolute")
+            .attr("transform", `translate(420, -55)`)
+            .attr("width", legendWidth + 50)  // Additional space for axis
+            .attr("height", legendHeight);
+
+        // Scale numerical values for the legend
+        const legendScale = d3.scaleLinear()
+            .domain([-10, -1])
+            .range([legendHeight - 20, 0]);
+
+        // Append legend gradient definition
+        const minMaxDifference = maxValue - minValue
+        const defs = legendSvg.append("defs");
+        const linearGradient = defs.append("linearGradient")
+            .attr("id", "linear-gradient")
+            .attr("x1", "0%")
+            .attr("y1", "100%")
+            .attr("x2", "0%")
+            .attr("y2", "0%");
+
+        // Define the gradient stops with more breakpoints
+        // Starting (minimum) color value
+        linearGradient.append("stop")
+            .attr("offset", "0%")
+            .attr("stop-color", myColor(minValue));
+
+        // Inbetween breakpoint color values
+        for (let i = 0.25; i < 1; i += 0.25) {
+            let num = 100 * i;
+            linearGradient.append("stop")
+                .attr("offset", `${num}%`)
+                .attr("stop-color", myColor(minValue + (minMaxDifference) * i));
+        }
+
+        // Last (maximum) color value
+        linearGradient.append("stop")
+            .attr("offset", "100%")
+            .attr("stop-color", myColor(maxValue));
+
+        // Build the rectangle and fill with gradient color
+        legendSvg.append("rect")
+            .attr("width", legendWidth)
+            .attr("height", legendHeight - 10)
+            .attr("stroke", "black")
+            .style("stroke-width", 0.9)
+            .style("position", "absolute")
+            .style("fill", "url(#linear-gradient)")
+            .style("opacity", 0.8);
+
+        // Add the scale for the legend
+        legendSvg.append("g")
+            .attr("transform", `translate(${legendWidth}, 5)`)
+            .attr("height", legendHeight - 15)
+            .style("stroke-width", 0.0)
+            .call(d3.axisRight(legendScale)
+                .tickValues([-10, -1])
+                .tickSize(0)  // No visible ticks
+                .tickFormat(d => `10\u207B${Math.abs(d)}`));
+    }
+
     // This method builds the heatmap
     let assembleHeatMap = function(title, csvText){
         // Remove any existing heatmap
         d3.select('#heatmap-container').selectAll('*').remove();
         // Set the dimensions and margins of the graph
-        const margin = {top: 50, right: 5, bottom: 150, left: 150},
+        const margin = {top: 50, right: 5, bottom: 150, left: 100},
         // viewportWidth = window.innerWidth * 0.48,
         viewportWidth = 810, // Temporary static width for the heatmap container
         viewportHeight = window.innerHeight * 0.6,
@@ -218,8 +445,8 @@ document.addEventListener('DOMContentLoaded', function () {
             .text(title);
 
         // Constants for the legend
-        // NB Legends vary in scale when larger emission size bin is used for mass and number fragmentation
-        // ... since two separate heatmaps are created for mass and number fragmentation
+        let masterContainer = document.getElementById('legend-container');
+        masterContainer.style.display = "flex"; // Reveal the model run information box
         const legendWidth = 30;
         const legendHeight = myGroups.length * cellSize + 50; // Height of the legend to match heatmap
         const legendYOffset = 52; // Offset to match the heatmap
@@ -237,7 +464,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Scale numerical values for the legend
         const legendScale = d3.scaleLinear()
-            .domain([minValue, maxValue])
+            .domain([-10, -1])
             .range([legendHeight - 3, 0]);
 
         // Append legend gradient definition
@@ -284,8 +511,9 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr("transform", `translate(${cellSize}, ${legendScaleOffset})`)
             .style("stroke-width", 0.9)
             .call(d3.axisRight(legendScale)
-                .ticks(10)
-                .tickFormat(d3.format(".2f")));
+                .tickValues([-10, -1])
+                .tickSize(0)  // No visible ticks
+                .tickFormat(d => `10\u207B${Math.abs(d)}`));
     }
 
     // Add event listener for button click
@@ -392,6 +620,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Views actions
     let mass_fraction_distribution_btn = document.getElementById('mass_fraction_distribution_btn')
     let number_fraction_distribution_btn = document.getElementById('number_fraction_distribution_btn')
+    let comp_mass_fraction_distribution_btn = document.getElementById('comp_mass_fraction_distribution_btn')
+    let comp_number_fraction_distribution_btn = document.getElementById('comp_number_fraction_distribution_btn')
     
     mass_fraction_distribution_btn.addEventListener('click', function() {
         if (utopia_model_results !== null){
@@ -401,6 +631,16 @@ document.addEventListener('DOMContentLoaded', function () {
     number_fraction_distribution_btn.addEventListener('click', function() {
         if(utopia_model_results !== null){
             assembleHeatMap('Number Fraction Distribution Heatmap' , utopia_model_results.number_fraction_distribution_heatmap);
+        }
+    });
+    comp_mass_fraction_distribution_btn.addEventListener('click', function() {
+        if(utopia_model_results !== null){
+            assembleCompHeatMap('New Mass Fraction Distribution Heatmap' , utopia_model_results.mass_fraction_distribution_heatmap);
+        }
+    });
+    comp_number_fraction_distribution_btn.addEventListener('click', function() {
+        if(utopia_model_results !== null){
+            assembleCompHeatMap('New Number Fraction Distribution Heatmap' , utopia_model_results.number_fraction_distribution_heatmap);
         }
     });
 });
