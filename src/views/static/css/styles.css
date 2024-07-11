@@ -66,7 +66,7 @@ h3 {
     flex-direction: column;
     gap: 20px;
     align-items: flex-start;
-    margin-left: 20px;
+    /*margin-left: 10px;*/
     width: 50rem;
 }
 #model-run-container {
@@ -192,3 +192,72 @@ h3 {
     filter: blur(5px);
     pointer-events: none; /* Disable interactions while blurred */
 }
+
+/* New heatmap */
+.horiz-area {
+    display: flex;
+    width: 1000px;
+    margin-bottom: 10px;
+    gap: 5px;
+}
+.comp-rect {
+    border: solid 2px deeppink;
+    border-radius:3px;
+    height: 230px;
+    width: 50%;
+    justify-content: center;
+    align-items: center;
+    font-size: small;
+}
+.compartment {
+    border: solid 2px #000;
+    border-radius:3px;
+    height: 115px;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    font-size: small;
+}
+.air {
+    width: 100%;
+    margin-top: 20px;
+    background-color: #D8F1F1;
+}
+.agricultural {
+    background-color: #EDD5B8;
+}
+.urban {
+    background-color: #CFCFCF;
+}
+.background {
+    background-color: #A1AC78;
+}
+.freshwater {
+    background-color: #BED4E3;
+}
+.coastal {
+    background-color: #9DD9DF;
+}
+.ocean {
+    background-color: #979DEB;
+}
+.sediment {
+    background-color: #D7C4A5;
+}
+.empty {
+    border: solid 2px white;
+    border-radius:3px;
+}
+.new-legend-container {
+    border: solid 2px white;
+    border-radius:3px;
+    width: 497px;
+    height: 240px;
+    position: absolute;
+    text-align: left;
+    align-items: start;
+}
+.new-legend {
+    position: absolute;
+}
+
