@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr("x", 255) // Title's position on the x-axis
             .attr("y", -20)
             .attr("text-anchor", "middle")
-            .style("font-size", "24px")
+            .style("grid-template-columns", "repeat(6, 1fr)")
             .style("margin-bottom", "30px")
             .text(title);
 
@@ -149,8 +149,14 @@ document.addEventListener('DOMContentLoaded', function () {
                             compTitle = myVars[8];
                         }
                     } else { // Legend or empty
-                        compartmentType = "compartment empty";
                         uniqueCompartment = `compartment-${uniqueNumber}`;
+                        if (uniqueNumber === 13) {
+                            compartmentType = "new-legend-container";
+                        } else if (uniqueNumber === 14 || uniqueNumber === 15) {
+                            compartmentType = "nothing";
+                        } else {
+                            compartmentType = "compartment empty";
+                        }
                     }
                     row.append("div")
                         .attr("class", `${compartmentType}`)
@@ -163,15 +169,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Append the new legend container
-        const legendBox = container.append("div") // TODO currently absolute values for x, y
-            .attr("class", "new-legend-container")
-            .style("left", `${62}px`) // TODO temporary hardcoded value
-            .style("top", `${587}px`); // TODO temporary hardcoded value
+        const cont13 = d3.select("#compartment-13");
+        const newLegendContainer = cont13.append("div")
+            .attr("class", "new-legend-container");
 
-        legendBox.append("h5")
+        newLegendContainer.append("h5")
                 .text(`Legend`);
 
-        legendBox.append("h5")
+        newLegendContainer.append("h5")
             .text(`Fraction of plastic mass/particle number:`);
 
         // Build color scale
@@ -194,11 +199,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // Remove any existing legend
         d3.select('#new-legend').remove();
 
-        const legendSvg = legendBox.append("div")
+        const newLegendSvg = newLegendContainer.append("div")
             .attr("id", "new-legend")
             .append("svg")
-            .style("position", "absolute")
-            .attr("transform", `translate(420, -55)`)
+            .attr("transform", `translate(420, -35)`)
             .attr("width", legendWidth + 50)  // Additional space for axis
             .attr("height", legendHeight);
 
@@ -209,7 +213,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Append legend gradient definition
         const minMaxDifference = maxValue - minValue
-        const defs = legendSvg.append("defs");
+        const defs = newLegendSvg.append("defs");
         const linearGradient = defs.append("linearGradient")
             .attr("id", "linear-gradient")
             .attr("x1", "0%")
@@ -237,17 +241,16 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr("stop-color", myColor(maxValue));
 
         // Build the rectangle and fill with gradient color
-        legendSvg.append("rect")
+        newLegendSvg.append("rect")
             .attr("width", legendWidth)
             .attr("height", legendHeight - 10)
             .attr("stroke", "black")
             .style("stroke-width", 0.9)
-            .style("position", "absolute")
             .style("fill", "url(#linear-gradient)")
             .style("opacity", 0.8);
 
         // Add the scale for the legend
-        legendSvg.append("g")
+        newLegendSvg.append("g")
             .attr("transform", `translate(${legendWidth}, 5)`)
             .attr("height", legendHeight - 15)
             .style("stroke-width", 0.0)
@@ -255,6 +258,70 @@ document.addEventListener('DOMContentLoaded', function () {
                 .tickValues([-10, -1])
                 .tickSize(0)  // No visible ticks
                 .tickFormat(d => `10\u207B${Math.abs(d)}`));
+
+        // Creating variables the legend matrix
+        const cellSize = 20;
+        const cellGap = 2;
+        var legendMargin = {top: 0, right: 30, bottom: 70, left: 180},
+            legWidth = 300 - margin.left - margin.right,
+            legHeight = 300 - margin.top - margin.bottom;
+
+        // Creating svg for the legend matrix and its axes
+        var svg = d3.select("#new-legend")
+            .append("svg")
+            .attr("width", legWidth + legendMargin.left + legendMargin.right)
+            .attr("height", legHeight + legendMargin.top + legendMargin.bottom)
+            .append("g")
+            .attr("transform",
+                "translate(" + legendMargin.left + "," + legendMargin.top + ")");
+
+        // Labels for x and y axis
+        var myNewGroups = [5000, 500, 50, 5, 0.5]
+        var myNewVars = ["Biofouled and Heteoaggregated", "Biofouled", "Heteoaggregated", "Free Microplastic"]
+
+        // Build X scales and axis:
+        var x = d3.scaleBand()
+            .range([0, legWidth])
+            .domain(myNewGroups)
+            .padding(0.01);
+        const xaxis = svg.append("g")
+            .attr("transform", "translate(0," + legHeight + ")")
+            .call(d3.axisBottom(x)
+                .tickSize(0));
+        xaxis.selectAll("text").style("font-size", "12px")
+        xaxis.selectAll("path").style("stroke", "none");
+
+        // Build Y scales and axis:
+        var y = d3.scaleBand()
+            .range([legHeight, 0 ])
+            .domain(myNewVars)
+            .padding(0.01);
+        const yaxis = svg.append("g")
+            .call(d3.axisLeft(y)
+                .tickSize(0));
+        yaxis.selectAll("text").style("font-size", "12px");
+        yaxis.selectAll("path").style("stroke", "none");
+
+        // Creating the grid of squares
+        for (let row = 0; row < 4; row++) {
+            for (let col = 0; col < 5; col++) {
+                svg.append("rect")
+                    .attr("x", x(myNewGroups[col]) + 3)
+                    .attr("y", y(myNewVars[row]) + 2)
+                    .attr("width", cellSize - cellGap)
+                    .attr("height", cellSize - cellGap)
+                    .attr("fill", "white")
+                    .attr("stroke", "black");
+            }
+        }
+        // Add heading text within the SVG
+        svg.append("text")
+            .attr("x", legWidth / 2) // Center horizontally
+            .attr("y", 135) // Lift it a bit higher
+            .attr("text-anchor", "middle")
+            .style("font-size", "16px")
+            .style("font-weight", "normal")
+            .text("Size Class (µm)");
     }
 
     // This method builds the heatmap
