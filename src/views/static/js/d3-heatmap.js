@@ -69,6 +69,16 @@ document.addEventListener('DOMContentLoaded', function () {
         const minValue = d3.min(myValues);
         const maxValue = d3.max(myValues);
 
+        let xNoLabels = [0, 1, 2, 3, 4]
+        let yNoLabels = [0, 1, 2, 3]
+        // Variables compartment matrices
+        const singleCellSize = 19;
+        const singleCellGap = 0.02;
+        var singleMargin = {top: 0, right: 0, bottom: 0, left: 0},
+            singleWidth = 270 - margin.left - margin.right,
+            singleHeight = 290 - margin.top - margin.bottom;
+
+
         // Drawing out the compartments
         for (let i = 1; i < 6; i++) {
             const row = container.append("div")
@@ -76,10 +86,62 @@ document.addEventListener('DOMContentLoaded', function () {
                 .style("background-color", "white");
 
             if (i === 1) {
-                row.append("div")
+                // Create a container for the title and svg
+                const compartmentContainer = row.append("div")
                     .attr("class", "compartment air")
-                    .attr("id", "compartment-air")
+                    .attr("id", "compartment-air-container");
+
+                // Append the title
+                compartmentContainer.append("div")
+                    .attr("class", "compartment-title")
+                    .style("text-align", "center")
                     .text(`${myVars[0]}`);
+
+                // Create svg for the air compartment matrix and its axes
+                var svg = compartmentContainer.append("svg")
+                    .attr("width", singleWidth + singleMargin.top + singleMargin.right)
+                    .attr("height", singleHeight + 20 + 10)
+                    .append("g")
+                    .attr("transform", "translate(" + singleMargin.left + "," + 0 + ")");
+
+                // Build X scales and axis:
+                var x = d3.scaleBand()
+                    .range([0, singleWidth])
+                    .domain(xNoLabels)
+                    .padding(0.01);
+                const xaxis = svg.append("g")
+                    .attr("transform", "translate(-7," + (singleHeight - 0) + ")")
+                    .call(d3.axisBottom(x)
+                        .tickSize(0)
+                        .tickFormat(""))
+                    .selectAll("path, line, text")
+                    .style("display", "none");
+
+                // Build Y scales and axis:
+                var y = d3.scaleBand()
+                    .range([singleHeight, 0 ])
+                    .domain(yNoLabels)
+                    .padding(0.01);
+                const yaxis = svg.append("g")
+                    .call(d3.axisLeft(y)
+                        .tickSize(0)
+                        .tickFormat(""))
+                    .selectAll("path, line, text")
+                    .style("display", "none");
+
+                // Creating the grid of squares
+                for (let row = 0; row < 4; row++) {
+                    for (let col = 0; col < 5; col++) {
+                        svg.append("rect")
+                            .attr("x", x(xNoLabels[col]) + 1)
+                            .attr("y", y(yNoLabels[row]) + 1)
+                            .attr("width", singleCellSize - singleCellGap)
+                            .attr("height", singleCellSize - singleCellGap)
+                            .attr("fill", "white")
+                            .attr("stroke", "black");
+                    }
+                }
+
             } else {
                 // Create columns within each row
                 for (let j = 1; j < 7; j++) {
@@ -162,6 +224,55 @@ document.addEventListener('DOMContentLoaded', function () {
                         .attr("class", `${compartmentType}`)
                         .attr("id", `${uniqueCompartment}`)
                         .text(`${compTitle.replaceAll("_", " ")}`);
+
+                    if (compartmentType !== "compartment empty" && compartmentType !== "new-legend-container" && compartmentType !== "nothing") {
+                        // Creating svg for the compartment matrix and its axes
+                        var svg = d3.select(`#${uniqueCompartment}`)
+                            .append("svg")
+                            .attr("width", singleWidth + singleMargin.left + singleMargin.right)
+                            .attr("height", singleHeight + singleMargin.top + singleMargin.bottom)
+                            .append("g")
+                            .attr("transform",
+                                "translate(" + singleMargin.left + "," + singleMargin.top + ")");
+
+                        // Build X scales and axis:
+                        var x = d3.scaleBand()
+                            .range([0, singleWidth])
+                            .domain(xNoLabels)
+                            .padding(0.01);
+                        const xaxis = svg.append("g")
+                            .attr("transform", "translate(-7," + (singleHeight - 0) + ")")
+                            .call(d3.axisBottom(x)
+                                .tickSize(0)
+                                .tickFormat(""))
+                            .selectAll("path, line, text")
+                            .style("display", "none");
+
+                        // Build Y scales and axis:
+                        var y = d3.scaleBand()
+                            .range([singleHeight, 0 ])
+                            .domain(yNoLabels)
+                            .padding(0.01);
+                        const yaxis = svg.append("g")
+                            .call(d3.axisLeft(y)
+                                .tickSize(0)
+                                .tickFormat(""))
+                            .selectAll("path, line, text")
+                            .style("display", "none");
+
+                        // Creating the grid of squares
+                        for (let row = 0; row < 4; row++) {
+                            for (let col = 0; col < 5; col++) {
+                                svg.append("rect")
+                                    .attr("x", x(xNoLabels[col]) + 1)
+                                    .attr("y", y(yNoLabels[row]) + 1)
+                                    .attr("width", singleCellSize - singleCellGap)
+                                    .attr("height", singleCellSize - singleCellGap)
+                                    .attr("fill", "white")
+                                    .attr("stroke", "black");
+                            }
+                        }
+                    }
                 }
             }
             let masterContainer = document.getElementById('legend-container');
@@ -259,12 +370,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 .tickSize(0)  // No visible ticks
                 .tickFormat(d => `10\u207B${Math.abs(d)}`));
 
-        // Creating variables the legend matrix
-        const cellSize = 20;
-        const cellGap = 2;
+        // Labels for x and y axis
+        var xAxisLabels = [5000, 500, 50, 5, 0.5]
+        var yAxisLabels = ["Biofouled and Heteoaggregated", "Biofouled", "Heteoaggregated", "Free Microplastic"]
+        // Variables the legend matrix
+        const cellSize = 19;
+        const cellGap = 0.02;
         var legendMargin = {top: 0, right: 30, bottom: 70, left: 180},
-            legWidth = 300 - margin.left - margin.right,
-            legHeight = 300 - margin.top - margin.bottom;
+            legWidth = 270 - margin.left - margin.right,
+            legHeight = 290 - margin.top - margin.bottom;
 
         // Creating svg for the legend matrix and its axes
         var svg = d3.select("#new-legend")
@@ -275,39 +389,40 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr("transform",
                 "translate(" + legendMargin.left + "," + legendMargin.top + ")");
 
-        // Labels for x and y axis
-        var myNewGroups = [5000, 500, 50, 5, 0.5]
-        var myNewVars = ["Biofouled and Heteoaggregated", "Biofouled", "Heteoaggregated", "Free Microplastic"]
 
         // Build X scales and axis:
         var x = d3.scaleBand()
             .range([0, legWidth])
-            .domain(myNewGroups)
+            .domain(xAxisLabels)
             .padding(0.01);
         const xaxis = svg.append("g")
-            .attr("transform", "translate(0," + legHeight + ")")
+            .attr("transform", "translate(-7," + (legHeight - 0) + ")")
             .call(d3.axisBottom(x)
                 .tickSize(0));
-        xaxis.selectAll("text").style("font-size", "12px")
+        xaxis.selectAll("text").style("font-size", "10px")
+        xaxis.selectAll("text").style("font-weight", "normal");
+        xaxis.selectAll("text").attr("transform", "rotate(-90)");
+        xaxis.selectAll("text").attr("text-anchor", "end");
         xaxis.selectAll("path").style("stroke", "none");
 
         // Build Y scales and axis:
         var y = d3.scaleBand()
             .range([legHeight, 0 ])
-            .domain(myNewVars)
+            .domain(yAxisLabels)
             .padding(0.01);
         const yaxis = svg.append("g")
             .call(d3.axisLeft(y)
                 .tickSize(0));
-        yaxis.selectAll("text").style("font-size", "12px");
+        yaxis.selectAll("text").style("font-size", "11px");
+        yaxis.selectAll("text").style("font-weight", "normal");
         yaxis.selectAll("path").style("stroke", "none");
 
         // Creating the grid of squares
         for (let row = 0; row < 4; row++) {
             for (let col = 0; col < 5; col++) {
                 svg.append("rect")
-                    .attr("x", x(myNewGroups[col]) + 3)
-                    .attr("y", y(myNewVars[row]) + 2)
+                    .attr("x", x(xAxisLabels[col]) + 1)
+                    .attr("y", y(yAxisLabels[row]))
                     .attr("width", cellSize - cellGap)
                     .attr("height", cellSize - cellGap)
                     .attr("fill", "white")
@@ -316,11 +431,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         // Add heading text within the SVG
         svg.append("text")
-            .attr("x", legWidth / 2) // Center horizontally
-            .attr("y", 135) // Lift it a bit higher
+            .attr("x", legWidth / 2 - 1)
+            .attr("y", 135)
             .attr("text-anchor", "middle")
             .style("font-size", "16px")
-            .style("font-weight", "normal")
+            .style("font-weight", "lighter")
             .text("Size Class (µm)");
     }
 
