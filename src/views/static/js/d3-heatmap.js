@@ -65,7 +65,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const myVars = Array.from(new Set(data.map(d => d.variable))).reverse();
         const myValues = data.map(d => parseFloat(d.value));
 
-        // // Get the minimum and maximum values
+        // TODO idea: divide the values according to myVars and myGroups elements
+        // TODO.. then fetch all elements according to the current Var (compartment)
+        // TODO.. then either come up with a mathematical way to divide the myGroups
+        // TODO.. values for 4 sections (rows) and figure out how to go to next row
+        // TODO.. or divide myGroups to new x and y (type and size class)
+        // TODO.. and then draw the values according to these x and y since the Vars is already set
+
+        // Get the minimum and maximum values
         const minValue = d3.min(myValues);
         const maxValue = d3.max(myValues);
 
