@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .text(title);
 
         let data = d3.csvParse(csvText);
-        // Labels of row and columns -> unique identifier of the column called 'group' and 'variable'
+        // Labels of row and columns TODO -> unique identifier of the column called 'group'
         const myGroups = Array.from(new Set(data.map(d => d.group)));
         const myVars = Array.from(new Set(data.map(d => d.variable))).reverse();
         const myValues = data.map(d => parseFloat(d.value));
@@ -78,6 +78,92 @@ document.addEventListener('DOMContentLoaded', function () {
             singleWidth = 270 - margin.left - margin.right,
             singleHeight = 290 - margin.top - margin.bottom;
 
+        // Function to get color based on value TODO will be used later when values are set
+        const getColor = value => {
+            if (value === '') {
+                return 'grey'; // Color for empty values
+            } else {
+                return myColor(value); // Scalar color for other values
+            }
+        };
+
+        // Create a tooltip
+        const tooltip = d3.select("#heatmap-container")
+            .append("div")
+            .style("opacity", 0)
+            .attr("class", "tooltip")
+            .style("background-color", "white")
+            .style("border", "solid")
+            .style("border-width", "2px")
+            .style("border-radius", "5px")
+            .style("padding", "5px")
+
+        // Three functions that change the tooltip when the user hovers/moves/leaves a cell
+        const mouseover = function (event, d) {
+            tooltip
+                .style("opacity", 1);
+            d3.select(this)
+                .style("stroke", "#737373") // Set stroke color to a darker grey
+                .style("stroke-width", "1.2px")
+                .style("opacity", 1);  // Make the cell color darker
+        };
+
+        const mousemove = function(event, d) {
+            if (d.value !== "") {
+                // Calculate the position of the tooltip relative to the mouse pointer
+                const tooltipLeft = event.pageX + 10;
+                const tooltipTop = event.pageY - 50;
+
+                // Update the position of the tooltip
+                tooltip
+                    .html("" + d.value)
+                    .style("left", tooltipLeft + "px")
+                    .style("top", tooltipTop + "px")
+                    .style("display", "block");
+            } else {
+                // If d.value is empty, hide the tooltip
+                tooltip.style("display", "none");
+            }
+        };
+
+        const mouseleave = function (event, d) {
+            tooltip
+                .style("opacity", 0);
+            if (this !== selectedCell) { // Only reset stroke for the unselected cells
+                d3.select(this)
+                    .style("stroke", "#737373") // Set stroke color back to white
+                    .style("stroke-width", "0.8px")
+                    .style("opacity", 0.8); // Reset the cell color
+            }
+        };
+
+        let selectedCell = null; // Variable to store the selected cell
+        // Function to handle cell selection
+        const cellClick = function(event, d) {
+            if (d.value !== "") { // For cells that have a value
+                if (selectedCell) { // Unselecting previously selected cell
+                    d3.select(selectedCell)
+                        .style("stroke", "#737373") // Set stroke color back to white
+                        .style("opacity", 0.8); // Reset the cell color
+                }
+                selectedCell = this; // Update selected cell
+                d3.select("#cell-info") // Update cell info
+                    .html("Log mass function = " + d.value);
+                d3.select(this)
+                    .style("stroke", "black") // Set stroke color to black
+                    .style("opacity", 1);  // Make the cell color darker
+                document.getElementById('detailed-view').style.display = 'flex'; // Display detailed view container
+
+            } else { // For empty grey cells
+                d3.select("#cell-info")
+                    .html("");
+                document.getElementById('detailed-view').style.display = 'none'; // Hide the detailed view
+                d3.select(selectedCell)
+                    .style("stroke", "#737373") // Set stroke color back to white
+                    .style("opacity", 0.8); // Reset the cell color
+                selectedCell = null;
+            }
+        };
 
         // Drawing out the compartments
         for (let i = 1; i < 6; i++) {
@@ -138,7 +224,13 @@ document.addEventListener('DOMContentLoaded', function () {
                             .attr("width", singleCellSize - singleCellGap)
                             .attr("height", singleCellSize - singleCellGap)
                             .attr("fill", "white")
-                            .attr("stroke", "black");
+                            .attr("stroke", "#737373")
+                            .style("stroke-width", "0.8px")
+                            .style("opacity", 0.8)
+                            .on("mouseover", mouseover)
+                            .on("mousemove", mousemove)
+                            .on("mouseleave", mouseleave)
+                            .on("click", cellClick); // To select a cell;
                     }
                 }
 
@@ -269,7 +361,13 @@ document.addEventListener('DOMContentLoaded', function () {
                                     .attr("width", singleCellSize - singleCellGap)
                                     .attr("height", singleCellSize - singleCellGap)
                                     .attr("fill", "white")
-                                    .attr("stroke", "black");
+                                    .attr("stroke", "#737373")
+                                    .style("stroke-width", "0.8px")
+                                    .style("opacity", 0.8)
+                                    .on("mouseover", mouseover)
+                                    .on("mousemove", mousemove)
+                                    .on("mouseleave", mouseleave)
+                                    .on("click", cellClick); // To select a cell
                             }
                         }
                     }
@@ -294,15 +392,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const myColor = d3.scaleSequential()
             .interpolator(d3.interpolateViridis)
             .domain([minValue, maxValue])
-
-        // Function to get color based on value
-        const getColor = value => {
-            if (value === '') {
-                return 'grey'; // Color for empty values
-            } else {
-                return myColor(value); // Scalar color for other values
-            }
-        };
 
         // Constants for the legend
         const legendWidth = 17;
@@ -376,7 +465,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Variables the legend matrix
         const cellSize = 19;
         const cellGap = 0.02;
-        var legendMargin = {top: 0, right: 30, bottom: 70, left: 180},
+        var legendMargin = {top: 0, right: 30, bottom: 70, left: 205},
             legWidth = 270 - margin.left - margin.right,
             legHeight = 290 - margin.top - margin.bottom;
 
@@ -399,7 +488,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr("transform", "translate(-7," + (legHeight - 0) + ")")
             .call(d3.axisBottom(x)
                 .tickSize(0));
-        xaxis.selectAll("text").style("font-size", "10px")
+        xaxis.selectAll("text").style("font-size", "13px")
         xaxis.selectAll("text").style("font-weight", "normal");
         xaxis.selectAll("text").attr("transform", "rotate(-90)");
         xaxis.selectAll("text").attr("text-anchor", "end");
@@ -413,7 +502,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const yaxis = svg.append("g")
             .call(d3.axisLeft(y)
                 .tickSize(0));
-        yaxis.selectAll("text").style("font-size", "11px");
+        yaxis.selectAll("text").style("font-size", "14px");
         yaxis.selectAll("text").style("font-weight", "normal");
         yaxis.selectAll("path").style("stroke", "none");
 
@@ -432,7 +521,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Add heading text within the SVG
         svg.append("text")
             .attr("x", legWidth / 2 - 1)
-            .attr("y", 135)
+            .attr("y", 143)
             .attr("text-anchor", "middle")
             .style("font-size", "16px")
             .style("font-weight", "lighter")
@@ -537,6 +626,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     .style("opacity", 1);
                 d3.select(this)
                     .style("stroke", "#737373") // Set stroke color to a darker grey
+                    .style("stroke-width", "1.2px")
                     .style("opacity", 1);  // Make the cell color darker
         };
 
@@ -563,7 +653,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 .style("opacity", 0);
             if (this !== selectedCell) { // Only reset stroke for the unselected cells
                 d3.select(this)
-                    .style("stroke", "white") // Set stroke color back to white
+                    .style("stroke", "#737373") // Set stroke color back to white
+                    .style("stroke-width", "0.8px")
                     .style("opacity", 0.8); // Reset the cell color
             }
         };
@@ -574,7 +665,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (d.value !== "") { // For cells that have a value
                 if (selectedCell) { // Unselecting previously selected cell
                     d3.select(selectedCell)
-                        .style("stroke", "white") // Set stroke color back to white
+                        .style("stroke", "#737373") // Set stroke color back to white
                         .style("opacity", 0.8); // Reset the cell color
                 }
                 selectedCell = this; // Update selected cell
@@ -590,7 +681,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     .html("");
                 document.getElementById('detailed-view').style.display = 'none'; // Hide the detailed view
                 d3.select(selectedCell)
-                    .style("stroke", "white") // Set stroke color back to white
+                    .style("stroke", "#737373") // Set stroke color back to white
                     .style("opacity", 0.8); // Reset the cell color
                 selectedCell = null;
             }
@@ -607,7 +698,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 .attr("margin-bottom", 1.6)
                 .attr("margin-right", 1.6)
             .style("fill", function (d) { return getColor(d.value) })
-            .style("stroke-width", 1) // Reduce stroke width to 1 pixel
+            .style("stroke-width", 0.8) // Reduce stroke width to 1 pixel
+            .style("stroke", "#737373")
                 .style("opacity", 0.8)
             .on("mouseover", mouseover)
             .on("mousemove", mousemove)
