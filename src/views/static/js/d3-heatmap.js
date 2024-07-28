@@ -60,32 +60,43 @@ document.addEventListener('DOMContentLoaded', function () {
             .text(title);
 
         let data = d3.csvParse(csvText);
-        // Labels of row and columns TODO -> unique identifier of the column called 'group'
-        const myGroups = Array.from(new Set(data.map(d => d.group)));
+        const myGroups = Array.from(new Set(data.map(d => d.group))).reverse();
         const myVars = Array.from(new Set(data.map(d => d.variable))).reverse();
         const myValues = data.map(d => parseFloat(d.value));
+        const collections = {}; // For storing data for each compartment separately
 
-        // TODO idea: divide the values according to myVars and myGroups elements
-        // TODO.. then fetch all elements according to the current Var (compartment)
-        // TODO.. then either come up with a mathematical way to divide the myGroups
-        // TODO.. values for 4 sections (rows) and figure out how to go to next row
-        // TODO.. or divide myGroups to new x and y (type and size class)
-        // TODO.. and then draw the values according to these x and y since the Vars is already set
+        // Dividing the data according to myVars elements (compartments)
+        myVars.forEach(variable => {
+            collections[variable] = data.filter(d => d.variable === variable);
+        });
+
+        // Parsing groups from long label to two divided labels for new x and y
+        // e.g 'freeMP + 0.5' -> type: 'freeMP', size: 0.5
+        function parseGroup(group) {
+            const [type, size] = group.split(' + ');
+            return {
+                type: type.trim(),
+                size: parseFloat(size.trim())
+            };
+        }
 
         // Get the minimum and maximum values
         const minValue = d3.min(myValues);
         const maxValue = d3.max(myValues);
 
-        let xNoLabels = [0, 1, 2, 3, 4]
-        let yNoLabels = [0, 1, 2, 3]
-        // Variables compartment matrices
+        // Variables for compartment matrix sizes etc
         const singleCellSize = 19;
-        const singleCellGap = 0.02;
-        var singleMargin = {top: 0, right: 0, bottom: 0, left: 0},
+        const singleCellGap = 0.01;
+        let singleMargin = {top: 0, right: 0, bottom: 0, left: 0},
             singleWidth = 270 - margin.left - margin.right,
             singleHeight = 290 - margin.top - margin.bottom;
 
-        // Function to get color based on value TODO will be used later when values are set
+        // Build color scale
+        const myColor = d3.scaleSequential()
+            .interpolator(d3.interpolateViridis)
+            .domain([minValue, maxValue])
+
+        // Function to get color based on value
         const getColor = value => {
             if (value === '') {
                 return 'grey'; // Color for empty values
@@ -145,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         let selectedCell = null; // Variable to store the selected cell
-        // Function to handle cell selection
+        // Function to handle cell selection TODO not yet functioning properly on new matices
         const cellClick = function(event, d) {
             if (d.value !== "") { // For cells that have a value
                 if (selectedCell) { // Unselecting previously selected cell
@@ -172,77 +183,82 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
 
-        // Drawing out the compartments
+        // Drawing out the compartments TODO need to refactor this scramble-bamble!!!
         for (let i = 1; i < 6; i++) {
             const row = container.append("div")
                 .attr("class", "horiz-area")
                 .style("background-color", "white");
 
+            let currentCompartment;
             if (i === 1) {
-                // Create a container for the title and svg
-                const compartmentContainer = row.append("div")
+                currentCompartment = myVars[0];
+                const compartmentContainer = row.append("div") // Creating a container for the title and svg
                     .attr("class", "compartment air")
                     .attr("id", "compartment-air-container");
 
-                // Append the title
                 compartmentContainer.append("div")
                     .attr("class", "compartment-title")
                     .style("text-align", "center")
-                    .text(`${myVars[0]}`);
+                    .text(`${currentCompartment}`);
 
-                // Create svg for the air compartment matrix and its axes
-                var svg = compartmentContainer.append("svg")
+                // Creating svg for the air compartment matrix and its axes
+                let svg = compartmentContainer.append("svg")
                     .attr("width", singleWidth + singleMargin.top + singleMargin.right)
                     .attr("height", singleHeight + 20 + 10)
                     .append("g")
                     .attr("transform", "translate(" + singleMargin.left + "," + 0 + ")");
 
-                // Build X scales and axis:
-                var x = d3.scaleBand()
+                // Building invisible scales and x axis
+                const xScale = d3.scaleBand()
+                    .domain(Array.from(new Set(myGroups.map(g => parseGroup(g).size))))
                     .range([0, singleWidth])
-                    .domain(xNoLabels)
                     .padding(0.01);
                 const xaxis = svg.append("g")
-                    .attr("transform", "translate(-7," + (singleHeight - 0) + ")")
-                    .call(d3.axisBottom(x)
+                    .attr("transform", "translate(-7," + (singleHeight) + ")")
+                    .call(d3.axisBottom(xScale)
                         .tickSize(0)
                         .tickFormat(""))
                     .selectAll("path, line, text")
                     .style("display", "none");
 
-                // Build Y scales and axis:
-                var y = d3.scaleBand()
-                    .range([singleHeight, 0 ])
-                    .domain(yNoLabels)
+                /// Building invisible scales and y axis
+                var yScale = d3.scaleBand()
+                    .domain(Array.from(new Set(myGroups.map(g => parseGroup(g).type))))
+                    .range([singleHeight, 0])
                     .padding(0.01);
                 const yaxis = svg.append("g")
-                    .call(d3.axisLeft(y)
+                    .call(d3.axisLeft(yScale)
                         .tickSize(0)
                         .tickFormat(""))
                     .selectAll("path, line, text")
                     .style("display", "none");
 
                 // Creating the grid of squares
-                for (let row = 0; row < 4; row++) {
-                    for (let col = 0; col < 5; col++) {
+                let variableData = collections[currentCompartment];
+                variableData.forEach(d => { // Getting all data elements associated to current compartment
+                    const parsedGroup = parseGroup(d.group); // Associating with groups
+                    const x = xScale(parsedGroup.size); // Getting the size of the group element for x axis
+                    const y = yScale(parsedGroup.type); // Getting the type of the group element for y axis
+
+                    if (x !== undefined && y !== undefined) { // Making sure x and y exist
                         svg.append("rect")
-                            .attr("x", x(xNoLabels[col]) + 1)
-                            .attr("y", y(yNoLabels[row]) + 1)
+                            .attr("x", x)
+                            .attr("y", y)
                             .attr("width", singleCellSize - singleCellGap)
                             .attr("height", singleCellSize - singleCellGap)
-                            .attr("fill", "white")
+                            .attr("fill", getColor(d.value))
                             .attr("stroke", "#737373")
                             .style("stroke-width", "0.8px")
                             .style("opacity", 0.8)
                             .on("mouseover", mouseover)
                             .on("mousemove", mousemove)
                             .on("mouseleave", mouseleave)
-                            .on("click", cellClick); // To select a cell;
+                            .on("click", cellClick);  // TODO fix this
                     }
-                }
+                });
 
-            } else {
-                // Create columns within each row
+            } else { // TODO need to refactor this scramble-bamble!!!
+                // Creating columns within each row
                 for (let j = 1; j < 7; j++) {
                     const uniqueNumber = (i - 2) * 6 + j;
                     let compartmentType = "";
@@ -253,61 +269,77 @@ document.addEventListener('DOMContentLoaded', function () {
                         compartmentType = "compartment agricultural";
                         uniqueCompartment = `compartment-${uniqueNumber}`;
                         if (uniqueNumber === 1) {
-                            compTitle = myVars[2];
+                            currentCompartment = myVars[2];
+                            compTitle = currentCompartment;
                         } else {
-                            compTitle = myVars[1];
+                            currentCompartment = myVars[1]
+                            compTitle = currentCompartment;
                         }
                     } else if (uniqueNumber === 2 || uniqueNumber === 8) { // Urban
                         compartmentType = "compartment urban";
                         uniqueCompartment = `compartment-${uniqueNumber}`;
                         if (uniqueNumber === 2) {
-                            compTitle = myVars[6];
+                            currentCompartment = myVars[6];
+                            compTitle = currentCompartment;
                         } else {
-                            compTitle = myVars[5];
+                            currentCompartment = myVars[5];
+                            compTitle = currentCompartment;
                         }
                     } else if (uniqueNumber === 3 || uniqueNumber === 9) { // Background
                         compartmentType = "compartment background";
                         uniqueCompartment = `compartment-${uniqueNumber}`;
                         if (uniqueNumber === 3) {
-                            compTitle = myVars[4];
+                            currentCompartment = myVars[4];
+                            compTitle = currentCompartment;
                         } else {
-                            compTitle = myVars[3];
+                            currentCompartment = myVars[3];
+                            compTitle = currentCompartment;
                         }
                     } else if (uniqueNumber === 4 || uniqueNumber === 10) { // Fresh Water
                         compartmentType = "compartment freshwater";
                         uniqueCompartment = `compartment-${uniqueNumber}`;
                         if (uniqueNumber === 4) {
-                            compTitle = myVars[11];
+                            currentCompartment = myVars[11];
+                            compTitle = currentCompartment;
                         } else {
-                            compTitle = myVars[10];
+                            currentCompartment = myVars[10];
+                            compTitle = currentCompartment;
                         }
                     } else if (uniqueNumber === 5 || uniqueNumber === 11) { // Coast
                         compartmentType = "compartment coastal";
                         uniqueCompartment = `compartment-${uniqueNumber}`;
                         if (uniqueNumber === 5) {
-                            compTitle = myVars[13];
+                            currentCompartment = myVars[13];
+                            compTitle = currentCompartment;
                         } else {
-                            compTitle = myVars[12];
+                            currentCompartment = myVars[12];
+                            compTitle = currentCompartment;
                         }
                     } else if (uniqueNumber === 6 || uniqueNumber === 12 || uniqueNumber === 18) { // Ocean
                         compartmentType = "compartment ocean";
                         uniqueCompartment = `compartment-${uniqueNumber}`;
                         if (uniqueNumber === 6) {
-                            compTitle = myVars[16];
+                            currentCompartment = myVars[16];
+                            compTitle = currentCompartment;
                         } else if (uniqueNumber === 12) {
-                            compTitle = myVars[15];
+                            currentCompartment = myVars[15];
+                            compTitle = currentCompartment;
                         } else {
-                            compTitle = myVars[14];
+                            currentCompartment = myVars[14];
+                            compTitle = currentCompartment;
                         }
                     } else if (uniqueNumber === 16 || uniqueNumber === 17 || uniqueNumber === 24) { // Sediment
                         compartmentType = "compartment sediment";
                         uniqueCompartment = `compartment-${uniqueNumber}`;
                         if (uniqueNumber === 16) {
-                            compTitle = myVars[9];
+                            currentCompartment = myVars[9];
+                            compTitle = currentCompartment;
                         } else if (uniqueNumber === 17) {
-                            compTitle = myVars[7];
+                            currentCompartment = myVars[7];
+                            compTitle = currentCompartment;
                         } else {
-                            compTitle = myVars[8];
+                            currentCompartment = myVars[8];
+                            compTitle = currentCompartment;
                         }
                     } else { // Legend or empty
                         uniqueCompartment = `compartment-${uniqueNumber}`;
@@ -326,7 +358,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     if (compartmentType !== "compartment empty" && compartmentType !== "new-legend-container" && compartmentType !== "nothing") {
                         // Creating svg for the compartment matrix and its axes
-                        var svg = d3.select(`#${uniqueCompartment}`)
+                        let svg = d3.select(`#${uniqueCompartment}`)
                             .append("svg")
                             .attr("width", singleWidth + singleMargin.left + singleMargin.right)
                             .attr("height", singleHeight + singleMargin.top + singleMargin.bottom)
@@ -334,49 +366,54 @@ document.addEventListener('DOMContentLoaded', function () {
                             .attr("transform",
                                 "translate(" + singleMargin.left + "," + singleMargin.top + ")");
 
-                        // Build X scales and axis:
-                        var x = d3.scaleBand()
+                        // Building invisible scales and x axis
+                        const xScale = d3.scaleBand()
+                            .domain(Array.from(new Set(myGroups.map(g => parseGroup(g).size))))
                             .range([0, singleWidth])
-                            .domain(xNoLabels)
                             .padding(0.01);
                         const xaxis = svg.append("g")
-                            .attr("transform", "translate(-7," + (singleHeight - 0) + ")")
-                            .call(d3.axisBottom(x)
+                            .attr("transform", "translate(-7," + (singleHeight) + ")")
+                            .call(d3.axisBottom(xScale)
                                 .tickSize(0)
                                 .tickFormat(""))
                             .selectAll("path, line, text")
                             .style("display", "none");
 
-                        // Build Y scales and axis:
-                        var y = d3.scaleBand()
-                            .range([singleHeight, 0 ])
-                            .domain(yNoLabels)
+                        // Building invisible scales and y axis
+                        let yScale = d3.scaleBand()
+                            .domain(Array.from(new Set(myGroups.map(g => parseGroup(g).type))))
+                            .range([singleHeight, 0])
                             .padding(0.01);
                         const yaxis = svg.append("g")
-                            .call(d3.axisLeft(y)
+                            .call(d3.axisLeft(yScale)
                                 .tickSize(0)
                                 .tickFormat(""))
                             .selectAll("path, line, text")
                             .style("display", "none");
 
                         // Creating the grid of squares
-                        for (let row = 0; row < 4; row++) {
-                            for (let col = 0; col < 5; col++) {
+                        let variableData = collections[currentCompartment];
+                        variableData.forEach(d => { // Getting all data elements associated to current compartment
+                            const parsedGroup = parseGroup(d.group); // Associating with groups
+                            const x = xScale(parsedGroup.size); // Getting the size of the group element for x axis
+                            const y = yScale(parsedGroup.type); // Getting the type of the group element for y axis
+
+                            if (x !== undefined && y !== undefined) { // Making sure x and y exist
                                 svg.append("rect")
-                                    .attr("x", x(xNoLabels[col]) + 1)
-                                    .attr("y", y(yNoLabels[row]) + 1)
+                                    .attr("x", x)
+                                    .attr("y", y)
                                     .attr("width", singleCellSize - singleCellGap)
                                     .attr("height", singleCellSize - singleCellGap)
-                                    .attr("fill", "white")
+                                    .attr("fill", getColor(d.value))
                                     .attr("stroke", "#737373")
                                     .style("stroke-width", "0.8px")
                                     .style("opacity", 0.8)
                                     .on("mouseover", mouseover)
                                     .on("mousemove", mousemove)
                                     .on("mouseleave", mouseleave)
-                                    .on("click", cellClick); // To select a cell
+                                    .on("click", cellClick);  // TODO fix this
                             }
-                        }
+                        });
                     }
                 }
             }
@@ -394,11 +431,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         newLegendContainer.append("h5")
             .text(`Fraction of plastic mass/particle number:`);
-
-        // Build color scale
-        const myColor = d3.scaleSequential()
-            .interpolator(d3.interpolateViridis)
-            .domain([minValue, maxValue])
 
         // Constants for the legend
         const legendWidth = 17;
@@ -467,17 +499,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 .tickFormat(d => `10\u207B${Math.abs(d)}`));
 
         // Labels for x and y axis
-        var xAxisLabels = [5000, 500, 50, 5, 0.5]
-        var yAxisLabels = ["Biofouled and Heteoaggregated", "Biofouled", "Heteoaggregated", "Free Microplastic"]
+        let xAxisLabels = [5000, 500, 50, 5, 0.5]
+        let yAxisLabels = ["Biofouled and Heteoaggregated", "Biofouled", "Heteoaggregated", "Free Microplastic"]
         // Variables the legend matrix
         const cellSize = 19;
         const cellGap = 0.02;
-        var legendMargin = {top: 0, right: 30, bottom: 70, left: 205},
+        let legendMargin = {top: 0, right: 30, bottom: 70, left: 205},
             legWidth = 270 - margin.left - margin.right,
             legHeight = 290 - margin.top - margin.bottom;
 
         // Creating svg for the legend matrix and its axes
-        var svg = d3.select("#new-legend")
+        let svg = d3.select("#new-legend")
             .append("svg")
             .attr("width", legWidth + legendMargin.left + legendMargin.right)
             .attr("height", legHeight + legendMargin.top + legendMargin.bottom)
@@ -487,7 +519,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
         // Build X scales and axis:
-        var x = d3.scaleBand()
+        let x = d3.scaleBand()
             .range([0, legWidth])
             .domain(xAxisLabels)
             .padding(0.01);

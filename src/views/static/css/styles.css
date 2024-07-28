@@ -224,28 +224,52 @@ h3 {
 .air {
     width: 100%;
     margin-top: 20px;
-    background-color: #D8F1F1;
+    border-color: #D8F1F1;
+    /*text-shadow: 5px 5px 5px #D8F1F1;*/
+    border-width: medium;
+    /*background-color: #E5FFFF;*/
 }
 .agricultural {
-    background-color: #EDD5B8;
+    border-color: #EDD5B8;
+    /*text-shadow: 5px 5px 5px #EDD5B8;*/
+    border-width: medium;
+    /*background-color: #FFE5C6;*/
 }
 .urban {
-    background-color: #CFCFCF;
+    border-color: #CFCFCF;
+    /*text-shadow: 5px 5px 5px #CFCFCF;*/
+    border-width: medium;
+    /*background-color: #F2F2F2;*/
 }
 .background {
-    background-color: #A1AC78;
+    border-color: #A1AC78;
+    /*text-shadow: 5px 5px 5px #A1AC78;*/
+    border-width: medium;
+    /*background-color: #E5F5AB;*/
 }
 .freshwater {
-    background-color: #BED4E3;
+    border-color: #BED4E3;
+    /*text-shadow: 5px 5px 5px #BED4E3;*/
+    border-width: medium;
+    /*background-color: #D5EEFF;*/
 }
 .coastal {
-    background-color: #9DD9DF;
+    border-color: #9DD9DF;
+    /*text-shadow: 5px 5px 5px #9DD9DF;*/
+    border-width: medium;
+    /*background-color: #CDFFFF;*/
 }
 .ocean {
-    background-color: #979DEB;
+    border-color: #979DEB;
+    /*text-shadow: 5px 5px 5px #979DEB;*/
+    border-width: medium;
+    /*background-color: #C3CCFF;*/
 }
 .sediment {
-    background-color: #D7C4A5;
+    border-color: #D7C4A5;
+    /*text-shadow: 5px 5px 5px #D7C4A5;*/
+    border-width: medium;
+    /*background-color: #FFFCE5;*/
 }
 .empty {
     border: solid 2px white;
