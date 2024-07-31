@@ -1,4 +1,4 @@
-var utopia_model_results = null;
+let utopia_model_results = null;
 
 document.addEventListener('DOMContentLoaded', function () {
     // Select the "Run" button
@@ -86,11 +86,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const maxValue = d3.max(myValues);
 
         // Variables for compartment matrix sizes etc
-        const singleCellSize = 19;
+        const singleCellSize = 21;
         const singleCellGap = 0.01;
         let singleMargin = {top: 0, right: 0, bottom: 0, left: 0},
-            singleWidth = 270 - margin.left - margin.right,
-            singleHeight = 290 - margin.top - margin.bottom;
+            singleWidth = 280 - margin.left - margin.right,
+            singleHeight = 300 - margin.top - margin.bottom;
 
         // Build color scale
         const myColor = d3.scaleSequential()
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Function to get color based on value
         const getColor = value => {
             if (value === '') {
-                return 'grey'; // Color for empty values
+                return '#D4D4D4'; // Color for empty values
             } else {
                 return myColor(value); // Scalar color for other values
             }
@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     .attr("class", "white-background");
 
                 let svg = svgWrapper.append("svg")
-                    .attr("width", (singleCellSize + singleCellGap) * 5.8395)
+                    .attr("width", (singleCellSize + singleCellGap) * 5.829)
                     .attr("height", (singleCellSize + singleCellGap) * 4.56)
                     .append("svg")
                     .attr("transform",
