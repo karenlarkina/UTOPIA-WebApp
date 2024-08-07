@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Building the new heatmaps with respect to compartments
-    let assembleCompHeatMap = function(title, csvText) {
+    let assembleCompHeatMap = function(title, csvText, mode) {
         // Remove any existing heatmap
         d3.select('#heatmap-container').selectAll('*').remove();
         // Set the dimensions and margins of the graph
@@ -162,17 +162,23 @@ document.addEventListener('DOMContentLoaded', function () {
                         .style("opacity", 0.8); // Reset the cell color
                 }
                 selectedCell = this; // Update selected cell
-                d3.select("#cell-info") // Update cell info
-                    .html("Log mass function = " + Number(d.value).toFixed(2));
+                d3.select(`#cell-info-${mode}`) // Update cell info
+                    .html(`Log ${mode} function = ` + Number(d.value).toFixed(2));
                 d3.select(this)
                     .style("stroke", "black") // Set stroke color to black
                     .style("opacity", 1);  // Make the cell color darker
-                document.getElementById('detailed-view').style.display = 'flex'; // Display detailed view container
+                // Hide all information containers
+                document.getElementById(`detailed-view-mass`).style.display = 'none';
+                document.getElementById(`detailed-view-number`).style.display = 'none';
+
+                document.getElementById(`detailed-view-${mode}`).style.display = 'flex'; // Display current view container
 
             } else { // For empty grey cells
                 d3.select("#cell-info")
                     .html("");
-                document.getElementById('detailed-view').style.display = 'none'; // Hide the detailed view
+                // Hide all information containers
+                document.getElementById(`detailed-view-mass`).style.display = 'none';
+                document.getElementById(`detailed-view-number`).style.display = 'none';
                 d3.select(selectedCell)
                     .style("stroke", "white") // Set stroke color back to white
                     .style("opacity", 0.8); // Reset the cell color
@@ -546,7 +552,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(model_results => {
                 utopia_model_results = model_results; //store values from backend for assembling all visualizations
-                assembleCompHeatMap('New Mass Fraction Distribution Heatmap' , utopia_model_results.mass_fraction_distribution_heatmap);
+                assembleCompHeatMap('Mass Fraction Distribution Heatmap' , utopia_model_results.mass_fraction_distribution_heatmap, "mass");
             })
             .catch(error => {
                 console.error('There was a problem with the POST request:', error);
@@ -613,19 +619,25 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Views actions
-    let mass_fraction_distribution_btn = document.getElementById('mass_fraction_distribution_btn')
-    let number_fraction_distribution_btn = document.getElementById('number_fraction_distribution_btn')
     let comp_mass_fraction_distribution_btn = document.getElementById('comp_mass_fraction_distribution_btn')
     let comp_number_fraction_distribution_btn = document.getElementById('comp_number_fraction_distribution_btn')
 
     comp_mass_fraction_distribution_btn.addEventListener('click', function() {
         if(utopia_model_results !== null){
-            assembleCompHeatMap('Mass Fraction Distribution Heatmap' , utopia_model_results.mass_fraction_distribution_heatmap);
+            // Removing selection from the other
+            comp_number_fraction_distribution_btn.classList.remove('active');
+            // Highlighting selection on the navbar
+            comp_mass_fraction_distribution_btn.classList.add('active');
+            assembleCompHeatMap('Mass Fraction Distribution Heatmap' , utopia_model_results.mass_fraction_distribution_heatmap, "mass");
         }
     });
     comp_number_fraction_distribution_btn.addEventListener('click', function() {
         if(utopia_model_results !== null){
-            assembleCompHeatMap('Number Fraction Distribution Heatmap' , utopia_model_results.number_fraction_distribution_heatmap);
+            // Removing selection from the other
+            comp_mass_fraction_distribution_btn.classList.remove('active');
+            // Highlighting selection on the navbar
+            comp_number_fraction_distribution_btn.classList.add('active');
+            assembleCompHeatMap('Number Fraction Distribution Heatmap' , utopia_model_results.number_fraction_distribution_heatmap, "number");
         }
     });
 });
