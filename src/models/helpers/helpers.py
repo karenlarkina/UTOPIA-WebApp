@@ -109,7 +109,9 @@ def num_to_mass(number, volume_m3, density_kg_m3):
     return mass_g
 
 
-def extract_inflows_outflows(flows_dict_mass, comp, MP_form, MP_size):
+def extract_inflows_outflows_residenceTime_persistence(
+    Results_extended, flows_dict_mass, comp, MP_form, MP_size
+):
 
     # function to extract the input and output flows of the system (cell selection)
 
@@ -146,4 +148,26 @@ def extract_inflows_outflows(flows_dict_mass, comp, MP_form, MP_size):
         {"Outflows": list_outflows, "Rate_g_s": list_outflow_val, "%": outflow_p}
     )
 
-    return pd_inputFlows, pd_outflows
+    # Calculate Residence time in seconds
+
+    # Extract mass at steady state for selection:
+    mass_steady_state = Results_extended[
+        (Results_extended["Compartment"] == comp)
+        & (Results_extended["MP_Form"] == MP_form)
+        & (Results_extended["Size_Fraction_um"] == MP_size)
+    ]["mass_g"].values[0]
+
+    residence_time_s = mass_steady_state / sum(pd_outflows["Rate_g_s"])
+
+    ### NOTE!?: We account for all outflows as we define residence time as the time the particle remains in the same form and size in the defined compartment?
+
+    # Calculate Persistence in seconds
+
+    persistence_s = (
+        mass_steady_state
+        / pd_outflows[(pd_outflows["Outflows"] == "k_discorporation")][
+            "Rate_g_s"
+        ].values[0]
+    )
+
+    return pd_inputFlows, pd_outflows, residence_time_s, persistence_s
