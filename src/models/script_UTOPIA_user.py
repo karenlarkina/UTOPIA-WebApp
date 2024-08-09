@@ -384,6 +384,11 @@ def execute_utopia_model(input_obj):
 
     Results_extended, mf_shorted, nf_shorted = estimate_fractions(Results)
 
+    ### TO DO ###
+
+    # Extract % of total mass and % of total particle number from Results_extended dataframe (above) based on cell selection. Example: cell selection of the 5000 um FreeMP in the Ocean_Surface_Water compartment
+    # % of total mass= Results_extended[(Results_extended['Compartment'] == "Ocean_Surface_Water") & (Results_extended['MP_Form'] == 'freeMP')& (Results_extended['Size_Fraction_um'] == 5000)]["mass_fraction"].values[0]*100
+
     # Organise results in dictionary for plotting
 
     Results_comp_dict = extract_by_comp(
@@ -447,7 +452,7 @@ def execute_utopia_model(input_obj):
 
     # Estimate mass flows due to the different particle fate process (transfer between compartments, elimination and transformation processes)
 
-    # Estimate outflows
+    # Estimate outflows in mass (g/s) amd number/second
     (tables_outputFlows, tables_outputFlows_number) = estimate_outFlows(
         system_particle_object_list, dict_comp
     )
@@ -458,11 +463,12 @@ def execute_utopia_model(input_obj):
     )
 
     # Decode index in input and output flow tables
-    flows_dict = dict()
-    flows_dict["input_flows"] = {}
-    flows_dict["output_flows"] = {}
+    flows_dict_mass = dict()
+    flows_dict_mass["input_flows"] = {}
+    flows_dict_mass["output_flows"] = {}
+
     # Decode index in input and output flow tables
-    for comp in tables_outputFlows:
+    for comp in tables_outputFlows.keys():
         df1 = tables_outputFlows[comp].copy()
         MP_size_df1 = []
         MP_form_df1 = []
@@ -472,7 +478,7 @@ def execute_utopia_model(input_obj):
 
         df1.insert(0, "MP_size", MP_size_df1)
         df1.insert(1, "MP_form", MP_form_df1)
-        flows_dict["output_flows"][comp] = df1
+        flows_dict_mass["output_flows"][comp] = df1
 
     for comp in tables_inputFlows:
         df2 = tables_inputFlows[comp].copy()
@@ -483,7 +489,19 @@ def execute_utopia_model(input_obj):
             MP_form_df2.append(MP_form_dict_reverse[y[1:2]])
         df2.insert(0, "MP_size", MP_size_df2)
         df2.insert(1, "MP_form", MP_form_df2)
-        flows_dict["input_flows"][comp] = df2
+        flows_dict_mass["input_flows"][comp] = df2
+
+    ### TO DO ###
+
+    # Extract input and output flows for cell selection and calculater residence time and persistence.
+
+    # Example cell selection:
+    # Example cell selection: 'MP_size' == 5000 and 'MP_form' == 'freeMP' and Compartment == 'Ocean_Surface_Water':
+
+    # To extract the input and output flows and calculate residence time and persistence I have creted a function to populate the information table and have added it to the helpers.py file.Applied to the example above:
+
+    # input_flows_selection, output_flows_selection, residence_time_s, persistence_s = extract_inflows_outflows_residenceTime_persistence(Results_extended,flows_dict_mass, comp='Ocean_Surface_Water', MP_form='freeMP', MP_size= 5000)
+
     ## Compartment mass balance
 
     comp_mass_balance = {}

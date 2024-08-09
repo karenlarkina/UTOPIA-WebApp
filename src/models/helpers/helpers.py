@@ -107,3 +107,67 @@ def mass_to_num(mass_g, volume_m3, density_kg_m3):
 def num_to_mass(number, volume_m3, density_kg_m3):
     mass_g = number * volume_m3 * density_kg_m3 * 1000
     return mass_g
+
+
+def extract_inflows_outflows_residenceTime_persistence(
+    Results_extended, flows_dict_mass, comp, MP_form, MP_size
+):
+
+    # function to extract the input and output flows of the system (cell selection)
+
+    # extract inflows
+    df_i = flows_dict_mass["input_flows"][comp]
+    df_ii = df_i.loc[(df_i["MP_form"] == MP_form) & (df_i["MP_size"] == MP_size)]
+    df_iii = df_ii.drop(["MP_size", "MP_form"], axis=1)
+    list_iflows = [k for k in df_iii]
+    list_inflow_val = [sum(df_iii[col]) for col in list_iflows]
+    inflow_p = [round((v / sum(list_inflow_val)) * 100, 4) for v in list_inflow_val]
+
+    pd_inputFlows = pd.DataFrame(
+        {"Inflows": list_iflows, "Rate_g_s": list_inflow_val, "%": inflow_p}
+    )
+
+    # extract outflows
+    df_o = flows_dict_mass["output_flows"][comp]
+    df_oo = df_o.loc[(df_o["MP_form"] == MP_form) & (df_o["MP_size"] == MP_size)]
+    df_oo.reset_index(drop=True, inplace=True)
+    df_ooo = df_oo.drop(["MP_size", "MP_form"], axis=1)
+
+    outflow_val = [
+        sum(df_ooo[ko]) if type(df_ooo[ko][0]) != list else sum(df_ooo[ko][0])
+        for ko in df_ooo
+    ]
+    df_ooo.loc[0] = outflow_val
+    list_outflows = [ko for ko in df_ooo.columns if (df_ooo[ko] != 0).any()]
+    list_outflow_val = [
+        value for column in df_ooo.columns for value in df_ooo[column] if value != 0
+    ]
+    outflow_p = [round((v / sum(list_outflow_val)) * 100, 4) for v in list_outflow_val]
+
+    pd_outflows = pd.DataFrame(
+        {"Outflows": list_outflows, "Rate_g_s": list_outflow_val, "%": outflow_p}
+    )
+
+    # Calculate Residence time in seconds
+
+    # Extract mass at steady state for selection:
+    mass_steady_state = Results_extended[
+        (Results_extended["Compartment"] == comp)
+        & (Results_extended["MP_Form"] == MP_form)
+        & (Results_extended["Size_Fraction_um"] == MP_size)
+    ]["mass_g"].values[0]
+
+    residence_time_s = mass_steady_state / sum(pd_outflows["Rate_g_s"])
+
+    ### NOTE!?: We account for all outflows as we define residence time as the time the particle remains in the same form and size in the defined compartment?
+
+    # Calculate Persistence in seconds
+
+    persistence_s = (
+        mass_steady_state
+        / pd_outflows[(pd_outflows["Outflows"] == "k_discorporation")][
+            "Rate_g_s"
+        ].values[0]
+    )
+
+    return pd_inputFlows, pd_outflows, residence_time_s, persistence_s
