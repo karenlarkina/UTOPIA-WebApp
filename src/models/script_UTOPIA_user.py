@@ -493,11 +493,14 @@ def execute_utopia_model(input_obj):
 
     ### TO DO ###
 
-    # Extract input and output flows for cell selection from flows_dict_mass. Example cell selection: 'MP_size' == 5000 and 'MP_form' == 'freeMP' and Compartment == 'Ocean_Surface_Water':
+    # Extract input and output flows for cell selection and calculater residence time and persistence.
 
-    # To extract the input and output flows I have creted a function to populate the information table and have added it to the helpers.py file.Applied to the example above:
+    # Example cell selection:
+    # Example cell selection: 'MP_size' == 5000 and 'MP_form' == 'freeMP' and Compartment == 'Ocean_Surface_Water':
 
-    # input_flows_selection, output_flows_selection = extract_inflows_outflows(flows_dict_mass,comp,MP_form,MP_size)
+    # To extract the input and output flows and calculate residence time and persistence I have creted a function to populate the information table and have added it to the helpers.py file.Applied to the example above:
+
+    # input_flows_selection, output_flows_selection, residence_time_s, persistence_s = extract_inflows_outflows_residenceTime_persistence(Results_extended,flows_dict_mass, comp='Ocean_Surface_Water', MP_form='freeMP', MP_size= 5000)
 
     ## Compartment mass balance
 
