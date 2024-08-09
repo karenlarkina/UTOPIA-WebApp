@@ -327,14 +327,6 @@ def Exposure_indicators_calculation(
     )
 
 
-import os
-from datetime import datetime
-import pandas as pd
-import numpy as np
-from functions.model_run import *
-from functions.generate_MPinputs_table import *
-
-
 def calculate_CTD(Pov_mass_years, Results_extended, dict_comp, Pov_num_years, CDT_comp):
     """Characteristic travel distance (CDT) (m)"""
 
