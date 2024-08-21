@@ -12,6 +12,7 @@ def create_inputsTable_UTOPIA(
     thalf_deg_d_dict,
     alpha_hetr_dict,
     t_frag_gen_FreeSurfaceWater,
+    save_op,
 ):
     compNames = model_lists["compartmentNames_list"]
     mpFormsLabels = ["freeMP", "heterMP", "biofMP", "heterBiofMP"]
@@ -145,10 +146,10 @@ def create_inputsTable_UTOPIA(
         | (dataFrame_inputs["Compartment"] == "Bulk_Freshwater")
         & (dataFrame_inputs["MPform"] == "freeMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
-        | (dataFrame_inputs["Compartment"] == "Urban_Soil_Surface")
+        | (dataFrame_inputs["Compartment"] == "Beaches_Soil_Surface")
         & (dataFrame_inputs["MPform"] == "freeMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
-        | (dataFrame_inputs["Compartment"] == "Agricultural_Soil_Surface")
+        | (dataFrame_inputs["Compartment"] == "Impacted_Soil_Surface")
         & (dataFrame_inputs["MPform"] == "freeMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
         | (dataFrame_inputs["Compartment"] == "Background_Soil_Surface")
@@ -173,10 +174,10 @@ def create_inputsTable_UTOPIA(
         | (dataFrame_inputs["Compartment"] == "Bulk_Freshwater")
         & (dataFrame_inputs["MPform"] == "biofMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
-        | (dataFrame_inputs["Compartment"] == "Urban_Soil_Surface")
+        | (dataFrame_inputs["Compartment"] == "Beaches_Soil_Surface")
         & (dataFrame_inputs["MPform"] == "biofMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
-        | (dataFrame_inputs["Compartment"] == "Agricultural_Soil_Surface")
+        | (dataFrame_inputs["Compartment"] == "Impacted_Soil_Surface")
         & (dataFrame_inputs["MPform"] == "biofMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
         | (dataFrame_inputs["Compartment"] == "Background_Soil_Surface")
@@ -200,10 +201,10 @@ def create_inputsTable_UTOPIA(
         | (dataFrame_inputs["Compartment"] == "Bulk_Freshwater")
         & (dataFrame_inputs["MPform"] == "heterMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
-        | (dataFrame_inputs["Compartment"] == "Urban_Soil_Surface")
+        | (dataFrame_inputs["Compartment"] == "Beaches_Soil_Surface")
         & (dataFrame_inputs["MPform"] == "heterMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
-        | (dataFrame_inputs["Compartment"] == "Agricultural_Soil_Surface")
+        | (dataFrame_inputs["Compartment"] == "Impacted_Soil_Surface")
         & (dataFrame_inputs["MPform"] == "heterMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
         | (dataFrame_inputs["Compartment"] == "Background_Soil_Surface")
@@ -227,13 +228,13 @@ def create_inputsTable_UTOPIA(
         | (dataFrame_inputs["Compartment"] == "Bulk_Freshwater")
         & (dataFrame_inputs["MPform"] == "heterBiofMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
-        | (dataFrame_inputs["Compartment"] == "Urban_Soil_Surface")
+        | (dataFrame_inputs["Compartment"] == "Beaches_Soil_Surface")
         & (dataFrame_inputs["MPform"] == "heterBiofMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
         | (dataFrame_inputs["Compartment"] == "Agricultural_Soil_Surface")
         & (dataFrame_inputs["MPform"] == "heterBiofMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
-        | (dataFrame_inputs["Compartment"] == "Background_Soil_Surface")
+        | (dataFrame_inputs["Compartment"] == "Impacted_Soil_Surface")
         & (dataFrame_inputs["MPform"] == "heterBiofMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
     )
@@ -254,13 +255,13 @@ def create_inputsTable_UTOPIA(
         | (dataFrame_inputs["Compartment"] == "Sediment_Coast")
         & (dataFrame_inputs["MPform"] == "freeMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
-        | (dataFrame_inputs["Compartment"] == "Urban_Soil")
+        | (dataFrame_inputs["Compartment"] == "Beaches_Deep_Soil")
         & (dataFrame_inputs["MPform"] == "freeMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
         | (dataFrame_inputs["Compartment"] == "Background_Soil")
         & (dataFrame_inputs["MPform"] == "freeMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
-        | (dataFrame_inputs["Compartment"] == "Agricultural_Soil")
+        | (dataFrame_inputs["Compartment"] == "Impacted_Soil")
         & (dataFrame_inputs["MPform"] == "freeMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
     )
@@ -278,13 +279,13 @@ def create_inputsTable_UTOPIA(
         | (dataFrame_inputs["Compartment"] == "Sediment_Coast")
         & (dataFrame_inputs["MPform"] == "biofMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
-        | (dataFrame_inputs["Compartment"] == "Urban_Soil")
+        | (dataFrame_inputs["Compartment"] == "Beaches_Deep_Soil")
         & (dataFrame_inputs["MPform"] == "biofMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
         | (dataFrame_inputs["Compartment"] == "Background_Soil")
         & (dataFrame_inputs["MPform"] == "biofMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
-        | (dataFrame_inputs["Compartment"] == "Agricultural_Soil")
+        | (dataFrame_inputs["Compartment"] == "Impacted_Soil")
         & (dataFrame_inputs["MPform"] == "biofMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
     )
@@ -302,13 +303,13 @@ def create_inputsTable_UTOPIA(
         | (dataFrame_inputs["Compartment"] == "Sediment_Coast")
         & (dataFrame_inputs["MPform"] == "heterMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
-        | (dataFrame_inputs["Compartment"] == "Urban_Soil")
+        | (dataFrame_inputs["Compartment"] == "Beaches_Deep_Soil")
         & (dataFrame_inputs["MPform"] == "heterMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
         | (dataFrame_inputs["Compartment"] == "Background_Soil")
         & (dataFrame_inputs["MPform"] == "heterMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
-        | (dataFrame_inputs["Compartment"] == "Agricultural_Soil")
+        | (dataFrame_inputs["Compartment"] == "Impacted_Soil")
         & (dataFrame_inputs["MPform"] == "heterMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
     )
@@ -326,13 +327,13 @@ def create_inputsTable_UTOPIA(
         | (dataFrame_inputs["Compartment"] == "Sediment_Coast")
         & (dataFrame_inputs["MPform"] == "heterBiofMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
-        | (dataFrame_inputs["Compartment"] == "Urban_Soil")
+        | (dataFrame_inputs["Compartment"] == "Beaches_Deep_Soil")
         & (dataFrame_inputs["MPform"] == "heterBiofMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
         | (dataFrame_inputs["Compartment"] == "Background_Soil")
         & (dataFrame_inputs["MPform"] == "heterBiofMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
-        | (dataFrame_inputs["Compartment"] == "Agricultural_Soil")
+        | (dataFrame_inputs["Compartment"] == "Impacted_Soil")
         & (dataFrame_inputs["MPform"] == "heterBiofMP")
         & (dataFrame_inputs["sizeBin"] == "mp5")
     )
@@ -446,73 +447,10 @@ def create_inputsTable_UTOPIA(
 
     # Output dataFrame_inputs as csv file
 
-    dataFrame_inputs.to_csv(inputs_path + "/processInputs_table.csv", index=False)
+    if save_op == "save":
+
+        dataFrame_inputs.to_csv(inputs_path + "\processInputs_table.csv", index=False)
+    else:
+        pass
 
     return dataFrame_inputs
-
-
-"""List of references for the parameterization of the environmental compartments characteristics"""
-
-# def create_compartment_inputsTable():
-
-#     compList = [
-#         "Ocean_Surface_Water",
-#         "Ocean_Mixed_Water",
-#         "Ocean_Column_Water",
-#         "Coast_Surface_Water",
-#         "Coast_Column_Water",
-#         "Surface_Freshwater",
-#         "Bulk_Freshwater",
-#         "Sediment_Freshwater",
-#         "Sediment_Ocean",
-#         "Sediment_Coast",
-#         "Urban_Soil_Surface",
-#         "Urban_Soil",
-#         "Background_Soil_Surface",
-#         "Background_Soil",
-#         "Agricultural_Soil_Surface",
-#         "Agricultural_Soil",
-#         "Air",
-#     ]
-
-#     earth_SA_m2 = 5.10e14
-#     land_SA_m2 = earth_SA_m2 * 0.29
-#     water_SA_m2 = earth_SA_m2 * 0.71
-#     """Total Surface Area of the earth and water and land percentages taken form OECD tool"""
-
-#     freshWater_SA_m2 = water_SA_m2 * 0.025
-#     oceanSeaWater_SA_m2 = water_SA_m2 * 0.975
-#     """"""
-
-#     coastWater_SA_m2 = oceanSeaWater_SA_m2 * 0.025
-#     oceanWater_SA_m2 = oceanSeaWater_SA_m2 * 0.975
-
-#     agri_land_SA_m2 = (
-#         land_SA_m2 * 0.38
-#     )  # Ref: FAO 2020. Land use in agriculture by the numbers (https://www.fao.org/sustainability/news/detail/en/c/1274219/)
-#     urban_land_SA_m2 = (
-#         land_SA_m2 * 0.02
-#     )  # Liu, Z., He, C., Zhou, Y. and Wu, J., 2014. How much of the world’s land has been urbanized, really? A hierarchical framework for avoiding confusion. Landscape Ecology, 29, pp.763-771.
-#     background_land_SA_m2 = land_SA_m2 * 0.60
-
-#     flow_velocity_ocean_m_s = 0.002  # Ref: from The OECD Pov and LRTP Screening Tool (Version 2.2). F. Wegmann et al(2009), Environmental Modeling & Software 24, 228-237.
-
-#     freshWater_discharge_km3_yr = 37288  # The river-based estimate of global continental discharge presented here is 37 288 ± 662 km3 yr−1. Ref: Dai, A. and Trenberth, K. (2002). Estimates of Freshwater Discharge from Continents: Latitudinal and Seasonal Variations. Journal of Hydrometeorology 3(6) pp. 660-687.
-
-# Freshwater velocity: 0.1 m/s per second is the velocity in the middle of the Hgulström curve (what Hidrologists use for representing an average river)
-
-#     depth_coastSurface_water_m = 0.1
-#     continental_shell_depth_m = 50
-#     continental_shell_width_m = 60000
-
-#     waterFlow_surface_freshWater_m3_s = (
-#         freshWater_discharge_km3_yr * 1e9 / (60 * 60 * 24 * 365)
-#     )
-#     waterFlow_coastColumn_water_m3_s = (
-#         (coastWater_SA_m2 / continental_shell_width_m) * continental_shell_depth_m
-#     ) * flow_velocity_ocean_m_s
-#     waterFlow_coastSurface_water_m3_s = (
-#         (coastWater_SA_m2 / continental_shell_width_m) * depth_coastSurface_water_m
-#     ) * flow_velocity_ocean_m_s
-#     waterFlow_oceanSurface_water_m3_s = waterFlow_coastSurface_water_m3_s
-#     waterFlow_oceanMixed_water_m3_s = waterFlow_coastColumn_water_m3_s

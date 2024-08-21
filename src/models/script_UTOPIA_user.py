@@ -212,6 +212,7 @@ def execute_utopia_model(input_obj):
         thalf_deg_d_dict,
         alpha_hetr_dict,
         t_frag_gen_FreeSurfaceWater,
+        save_op="notSave",
     )
 
     """Revisit create inputs table function...assumptions to be discussed and parameters to be added"""
@@ -265,12 +266,12 @@ def execute_utopia_model(input_obj):
         "Sediment_Freshwater": 0,
         "Sediment_Ocean": 0,
         "Sediment_Coast": 0,
-        "Urban_Soil_Surface": 0,
-        "Urban_Soil": 0,
+        "Beaches_Soil_Surface": 0,
+        "Beaches_Deep_Soil": 0,
         "Background_Soil_Surface": 0,
         "Background_Soil": 0,
-        "Agricultural_Soil_Surface": 0,
-        "Agricultural_Soil": 0,
+        "Impacted_Soil_Surface": 0,
+        "Impacted_Soil": 0,
         "Air": 0,
     }
 
@@ -298,7 +299,7 @@ def execute_utopia_model(input_obj):
     """Estimate rate constants per particle"""
 
     for particle in system_particle_object_list:
-        generate_rateConstants(particle, spm, dict_comp, fsd)
+        generate_rateConstants(particle, spm, dict_comp, fsd, process_inputs_df)
 
     ## create rate constants table:
     RC_df = create_rateConstants_table(system_particle_object_list)
@@ -384,7 +385,9 @@ def execute_utopia_model(input_obj):
 
     Results_extended, mf_shorted, nf_shorted = estimate_fractions(Results)
 
-    ### TO DO ###
+    ### TO DO dy Prado ###
+
+    # Provide here a dataframe with all the results to display in the webb app outputs visualization
 
     # Extract % of total mass and % of total particle number from Results_extended dataframe (above) based on cell selection. Example: cell selection of the 5000 um FreeMP in the Ocean_Surface_Water compartment
     # % of total mass= Results_extended[(Results_extended['Compartment'] == "Ocean_Surface_Water") & (Results_extended['MP_Form'] == 'freeMP')& (Results_extended['Size_Fraction_um'] == 5000)]["mass_fraction"].values[0]*100
@@ -596,6 +599,7 @@ def execute_utopia_model(input_obj):
     emiss_fract_fig = plot_emission_fractions(emission_fractions_mass_data, emiss_comp)
 
     # Overall persistance (Pov) and Overall residence time (Tov) in years:
+    print_output = "True"
 
     (
         Pov_mass_years,
@@ -611,6 +615,7 @@ def execute_utopia_model(input_obj):
         size_dict,
         dict_comp,
         system_particle_object_list,
+        print_output,
     )
 
     # Caracteristic travel distance (CDT) (m):
@@ -640,12 +645,12 @@ def execute_utopia_model(input_obj):
             "Sediment_Freshwater": 0,
             "Sediment_Ocean": 0,
             "Sediment_Coast": 0,
-            "Urban_Soil_Surface": 0,
-            "Urban_Soil": 0,
+            "Beaches_Soil_Surface": 0,
+            "Beaches_Deep_Soil": 0,
             "Background_Soil_Surface": 0,
             "Background_Soil": 0,
-            "Agricultural_Soil_Surface": 0,
-            "Agricultural_Soil": 0,
+            "Impacted_Soil_Surface": 0,
+            "Impacted_Soil": 0,
             "Air": 0,
         }
         q_mass_g_s_dict_CTD[CDT_comp] = input_flow_g_s
