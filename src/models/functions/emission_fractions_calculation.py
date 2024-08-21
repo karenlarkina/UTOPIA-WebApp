@@ -291,7 +291,7 @@ def plot_emission_fractions(emission_fractions_data, emiss_comp):
     plt.legend(loc="center left", bbox_to_anchor=(1, 0.5), fontsize=14)
     plt.tight_layout()
     fig = plt.gcf()
-    plt.show()
+    # plt.show()
     return fig
 
 
@@ -306,7 +306,7 @@ def plot_emission_fractions_multi(emission_fractions_data_list, emiss_comp_list)
         "φ2_Ocean_Surface_Water": "blue",
         "φ2_Ocean_Column_Water": "green",
         "φ2_Sediment_Ocean": "orange",
-        "φ2_Background_Soil_Surface": "purple",
+        "φ2_Beaches_Soil_Surface": "purple",
     }
 
     fig, axs = plt.subplots(
@@ -328,7 +328,7 @@ def plot_emission_fractions_multi(emission_fractions_data_list, emiss_comp_list)
                 "φ2_Ocean_Surface_Water",
                 "φ2_Ocean_Column_Water",
                 "φ2_Sediment_Ocean",
-                "φ2_Background_Soil_Surface",
+                "φ2_Beaches_Soil_Surface",
             ],
         }
         df = pd.DataFrame(data)
@@ -350,7 +350,7 @@ def plot_emission_fractions_multi(emission_fractions_data_list, emiss_comp_list)
         axs[idx].legend(loc="lower center", bbox_to_anchor=(0.5, -0.3), ncol=3)
 
     plt.tight_layout()
-    plt.show()
+    # plt.show()
 
 
 # Example usage:
