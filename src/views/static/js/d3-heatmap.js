@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Function to get color based on value
         const getColor = value => {
             if (value === '') {
-                return '#D4D4D4'; // Color for empty values
+                return '#EDEDED'; // Color for empty values
             } else {
                 return myColor(value); // Scalar color for other values
             }
@@ -322,8 +322,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     let uniqueCompartment = "";
                     let compTitle = "";
 
-                    if (uniqueNumber === 1 || uniqueNumber === 7) { // Agricultural
-                        compartmentType = "compartment agricultural";
+                    if (uniqueNumber === 1 || uniqueNumber === 7) { // Impacted soil
+                        compartmentType = "compartment impacted";
                         uniqueCompartment = `compartment-${uniqueNumber}`;
                         if (uniqueNumber === 1) {
                             currentCompartment = myVars[2];
@@ -332,34 +332,35 @@ document.addEventListener('DOMContentLoaded', function () {
                             currentCompartment = myVars[1]
                             compTitle = currentCompartment;
                         }
-                    } else if (uniqueNumber === 2 || uniqueNumber === 8) { // Urban
-                        compartmentType = "compartment urban";
-                        uniqueCompartment = `compartment-${uniqueNumber}`;
-                        if (uniqueNumber === 2) {
-                            currentCompartment = myVars[6];
-                            compTitle = currentCompartment;
-                        } else {
-                            currentCompartment = myVars[5];
-                            compTitle = currentCompartment;
-                        }
-                    } else if (uniqueNumber === 3 || uniqueNumber === 9) { // Background
+                    } else if (uniqueNumber === 2 || uniqueNumber === 8) { // Background
                         compartmentType = "compartment background";
                         uniqueCompartment = `compartment-${uniqueNumber}`;
-                        if (uniqueNumber === 3) {
+                        if (uniqueNumber === 2) {
                             currentCompartment = myVars[4];
                             compTitle = currentCompartment;
                         } else {
                             currentCompartment = myVars[3];
                             compTitle = currentCompartment;
                         }
-                    } else if (uniqueNumber === 4 || uniqueNumber === 10) { // Fresh Water
+                    } else if (uniqueNumber === 3 || uniqueNumber === 9) { // Fresh Water
                         compartmentType = "compartment freshwater";
                         uniqueCompartment = `compartment-${uniqueNumber}`;
-                        if (uniqueNumber === 4) {
+                        if (uniqueNumber === 3) {
                             currentCompartment = myVars[11];
                             compTitle = currentCompartment;
                         } else {
                             currentCompartment = myVars[10];
+                            compTitle = currentCompartment;
+                        }
+                    } else if (uniqueNumber === 4 || uniqueNumber === 10) { // Beach
+                        compartmentType = "compartment beach";
+                        uniqueCompartment = `compartment-${uniqueNumber}`;
+                        // old urban => beach
+                        if (uniqueNumber === 4) {
+                            currentCompartment = myVars[6];
+                            compTitle = currentCompartment;
+                        } else {
+                            currentCompartment = myVars[5];
                             compTitle = currentCompartment;
                         }
                     } else if (uniqueNumber === 5 || uniqueNumber === 11) { // Coast
@@ -385,10 +386,10 @@ document.addEventListener('DOMContentLoaded', function () {
                             currentCompartment = myVars[14];
                             compTitle = currentCompartment;
                         }
-                    } else if (uniqueNumber === 16 || uniqueNumber === 17 || uniqueNumber === 24) { // Sediment
+                    } else if (uniqueNumber === 14 || uniqueNumber === 17 || uniqueNumber === 24) { // Sediment
                         compartmentType = "compartment sediment";
                         uniqueCompartment = `compartment-${uniqueNumber}`;
-                        if (uniqueNumber === 16) {
+                        if (uniqueNumber === 14) {
                             currentCompartment = myVars[9];
                             compTitle = currentCompartment;
                         } else if (uniqueNumber === 17) {
@@ -402,7 +403,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         uniqueCompartment = `compartment-${uniqueNumber}`;
                         if (uniqueNumber === 13) {
                             compartmentType = "new-legend-container";
-                        } else if (uniqueNumber === 14 || uniqueNumber === 15) {
+                        } else if (uniqueNumber === 15) {
                             compartmentType = "nothing";
                         } else {
                             compartmentType = "compartment empty";
@@ -411,7 +412,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     row.append("div")
                         .attr("class", `${compartmentType}`)
                         .attr("id", `${uniqueCompartment}`)
-                        .text(`${compTitle.replaceAll("_", " ")}`);
+                        .text(`${compTitle.replaceAll("_", " ")}`)
+                        .style("font-geight", "normal");
 
                     let compartmentContainer = d3.select(`#${uniqueCompartment}`);
                     createHeatmap(compartmentContainer, compartmentType, currentCompartment)
@@ -426,11 +428,15 @@ document.addEventListener('DOMContentLoaded', function () {
         const newLegendContainer = cont13.append("div")
             .attr("class", "new-legend-container");
 
-        newLegendContainer.append("h5")
-                .text(`Legend`);
+        newLegendContainer.append("h6")
+            .text(`Fraction of total plastic`)
+            .style("font-size", '15px')
+            .style("text-align", "center");
 
-        newLegendContainer.append("h5")
-            .text(`Fraction of plastic mass/particle number:`);
+        newLegendContainer.append("h6")
+            .text(`mass/particle number`)
+            .style("font-size", '15px')
+            .style("text-align", "center");
 
         // Constants for the legend
         const legendWidth = 17;
@@ -441,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const newLegendSvg = newLegendContainer.append("div")
             .attr("id", "new-legend")
             .append("svg")
-            .attr("transform", `translate(420, -35)`)
+            .attr("transform", `translate(280, -35)`)
             .attr("width", legendWidth + 50)  // Additional space for axis
             .attr("height", legendHeight);
 
@@ -484,7 +490,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr("width", legendWidth)
             .attr("height", legendHeight - 10)
             .attr("stroke", "black")
-            .style("stroke-width", 0.9)
+            .style("stroke-width", 0.8)
             .style("fill", "url(#linear-gradient)")
             .style("opacity", 0.8);
 
@@ -504,15 +510,17 @@ document.addEventListener('DOMContentLoaded', function () {
         // Variables the legend matrix
         const cellSize = 19;
         const cellGap = 0.02;
-        let legendMargin = {top: 0, right: 30, bottom: 70, left: 205},
+        let legendMargin = {top: 0, right: 30, bottom: 70, left: 90},
             legWidth = 270 - margin.left - margin.right,
             legHeight = 290 - margin.top - margin.bottom;
 
         // Creating svg for the legend matrix and its axes
         let svg = d3.select("#new-legend")
             .append("svg")
-            .attr("width", legWidth + legendMargin.left + legendMargin.right)
+            .attr("width", 250)
             .attr("height", legHeight + legendMargin.top + legendMargin.bottom)
+            .attr("transform",
+                "translate(" + -30 + "," + -20 + ")")
             .append("g")
             .attr("transform",
                 "translate(" + legendMargin.left + "," + legendMargin.top + ")");
@@ -523,10 +531,10 @@ document.addEventListener('DOMContentLoaded', function () {
             .domain(xAxisLabels)
             .padding(0.01);
         const xaxis = svg.append("g")
-            .attr("transform", "translate(-7," + (legHeight - 0) + ")")
+            .attr("transform", "translate(-20," + (legHeight) + ")")
             .call(d3.axisBottom(x)
                 .tickSize(0));
-        xaxis.selectAll("text").style("font-size", "13px")
+        xaxis.selectAll("text").style("font-size", "11px")
         xaxis.selectAll("text").style("font-weight", "normal");
         xaxis.selectAll("text").attr("transform", "rotate(-90)");
         xaxis.selectAll("text").attr("text-anchor", "end");
@@ -540,7 +548,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const yaxis = svg.append("g")
             .call(d3.axisLeft(y)
                 .tickSize(0));
-        yaxis.selectAll("text").style("font-size", "15px");
+        yaxis.selectAll("text").style("font-size", "11px");
         yaxis.selectAll("text").style("font-weight", "normal");
         yaxis.selectAll("path").style("stroke", "none");
 
@@ -553,6 +561,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     .attr("width", cellSize - cellGap)
                     .attr("height", cellSize - cellGap)
                     .attr("fill", "white")
+                    .attr("stroke-width", 0.5)
                     .attr("stroke", "black");
             }
         }
@@ -561,7 +570,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr("x", legWidth / 2 - 1)
             .attr("y", 143)
             .attr("text-anchor", "middle")
-            .style("font-size", "16px")
+            .style("font-size", "12px")
             .style("font-weight", "lighter")
             .text("Size Class (µm)");
     }

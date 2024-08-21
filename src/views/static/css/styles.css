@@ -211,46 +211,49 @@ h3 {
     justify-content: center;
     align-items: center;
     font-size: small;
+    font-weight: normal;
+    font-family: "Times New Roman";
 }
 .nothing {
     width: 0px;
     height: 0px;
+}
+.empty {
+    border: solid 1px white;
+    margin-left: -5px;
 }
 .air {
     width: 100%;
     margin-top: 20px;
     background-color: #D8F1F1;
 }
-.agricultural {
-    background-color: #EDD5B8;
+.impacted {
+    background-color: #DCD4C9;
 }
-.urban {
-    background-color: #CFCFCF;
+.beach {
+    background-color: #F3EF92;
 }
 .background {
-    background-color: #A1AC78;
+    background-color: #DEEBE1;
 }
 .freshwater {
-    background-color: #BED4E3;
+    background-color: #BDD4E3;
 }
 .coastal {
     background-color: #9DD9DF;
 }
 .ocean {
-    background-color: #979DEB;
+    background-color: #989EEC;
 }
 .sediment {
-    background-color: #D7C4A5;
+    background-color: #D8C4A5;
 }
-.empty {
-    border: solid 2px white;
-    border-radius:3px;
-}
+
 .new-legend-container {
     grid-column: span 2;
     border: solid 2px white;
     border-radius: 3px;
-    width: 488px;
+    width: 330px;
     height: 240px;
     text-align: left;
     align-items: start;
@@ -306,4 +309,5 @@ legend-text {
 #compartment-24 {
     position: relative;
     top: -115px;
+    left: 1px;
 }
