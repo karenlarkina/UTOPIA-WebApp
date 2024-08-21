@@ -1,0 +1,29 @@
+@script_UTOPIA_user
+# TODO @njit
+# TODO from numba import njit  <- READ ABOUT IT
+# can speed up loops by a LOT
+# can specify datatypes (in C)
+# parallel = true
+# fastmath = ...
+
+
+# TODO also look into numpy
+# numpy is running high-performance C code instead of python directly
+# looping in python is faster in constants, use tuples
+# using a numpy array where datatypes can be specified
+
+Testing on line 500
+    # TODO get information for all cells and also return that collection of info alongside the mass and number heatmaps data
+    input_flows_selection, output_flows_selection, residence_time_s, persistence_s = extract_inflows_outflows_residenceTime_persistence(Results_extended, flows_dict_mass, comp='Background_Soil_Surface', MP_form='freeMP', MP_size= 5000)
+
+    # TODO
+    for i, j in input_flows_selection.items():
+        print(f"\nInput key: {i}, Value: {j}")
+
+    for i, j in output_flows_selection.items():
+        print(f"\nOutput key: {i}, Value: {j}")
+
+    # TODO What is this exactly
+    print("Res time:", residence_time_s)
+
+    print("Per sth:", persistence_s)
