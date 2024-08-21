@@ -195,14 +195,14 @@
                                 <div class="inner-detail-container" id="model-run-input"></div>
                             </div>
                         </div>
-                        <div id="detailed-view-mass" class="detailed-views">
+                        <div id="detailed-view-cell" class="detailed-views">
                             <!-- Detailed information container -->
                             <div class="detailed-info-column" id="detailed-info-column1">
                                 <div class="inner-detail-container-general">
-                                    <div id="cell-info-mass"></div>
+                                    <div id="cell-info-percentage"></div>
                                     <div class="general-info">% of total mass = __% </div>
-                                    <div class="general-info">Residence time = mass_ss/sum(output_flows) </div>
-                                    <div class="general-info">Persistence = mass_ss/discorporation_flow</div>
+                                    <div id="residence-value"></div>
+                                    <div id="persistence-value"></div>
                                 </div>
                                 <div class="inner-detail-container" style="border-top: 1px solid black;">
                                     <div class="param-container">
@@ -218,8 +218,8 @@
                                 <div class="inner-detail-container">
                                     <div class="param-container">
                                         <div class="param-value-left">Settling</div>
-                                        <div class="param-value" id="single-sett-inflow-rate">float</div>
-                                        <div class="param-value" id="single-sett-inflow-total">float</div>
+                                        <div class="param-value" id="single-sett-inflow-rate">x.x</div>
+                                        <div class="param-value" id="single-sett-inflow-total">x.x</div>
                                         <div class="param-value" id="single-sett-inflow-pc">x %</div>
                                     </div>
                                 </div>
@@ -240,49 +240,23 @@
                                 </div>
                             </div>
                         </div>
-                        <div id="detailed-view-number" class="detailed-views">
+                        <div id="detailed-view-compartment" class="detailed-views">
                             <!-- Detailed information container -->
-                            <div class="detailed-info-column" id="detailed-info-column1">
+                            <div class="detailed-info-column">
                                 <div class="inner-detail-container-general">
-                                    <div id="cell-info-number"></div>
-                                    <div class="general-info">% of total mass = __% </div>
-                                    <div class="general-info">Residence time = mass_ss/sum(output_flows) </div>
-                                    <div class="general-info">Persistence = mass_ss/discorporation_flow</div>
+                                    <div id="cell-info-compartment"></div>
                                 </div>
-                                <div class="inner-detail-container" style="border-top: 1px solid black;">
-                                    <div class="param-container">
-                                        <div class="param-name"></div>
-                                        <div class="param-name">Rate (g/s)</div>
-                                        <div class="param-name">Total</div>
-                                        <div class="param-name">%</div>
-                                    </div>
-                                </div>
-                                <div class="detail-container">
-                                    <t class="detailed-title">Inflows</t>
-                                </div>
-                                <div class="inner-detail-container">
-                                    <div class="param-container">
-                                        <div class="param-value-left">Settling</div>
-                                        <div class="param-value" id="single-sett-inflow-rate">float</div>
-                                        <div class="param-value" id="single-sett-inflow-total">float</div>
-                                        <div class="param-value" id="single-sett-inflow-pc">x %</div>
-                                    </div>
-                                </div>
-                                <div class="detail-container">
-                                    <t class="detailed-title">Outflows</t>
-                                </div>
-                                <div class="inner-detail-container">
-                                    <t class="text-field">Discorporation</t>
-                                </div>
-                                <div class="inner-detail-container">
-                                    <t class="text-field">Fragmentation</t>
-                                </div>
-                                <div class="inner-detail-container">
-                                    <t class="text-field">Sediment resuspension</t>
-                                </div>
-                                <div class="inner-detail-container">
-                                    <t class="text-field">Burial</t>
-                                </div>
+<!--                                <div class="inner-detail-container" style="border-top: 1px solid black;">-->
+<!--                                    <div class="param-container">-->
+<!--                                        <div class="param-name"></div>-->
+<!--                                        <div class="param-name">Rate (g/s)</div>-->
+<!--                                        <div class="param-name">Total</div>-->
+<!--                                        <div class="param-name">%</div>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                                <div class="detail-container">-->
+<!--                                    <t class="detailed-title">Inflows</t>-->
+<!--                                </div>-->
                             </div>
                         </div>
                     </div>

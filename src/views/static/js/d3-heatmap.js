@@ -116,10 +116,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const mouseover = function (event, d) {
             tooltip
                 .style("opacity", 1);
-            d3.select(this)
-                .style("stroke", "#737373") // Set stroke color to a darker grey
-                .style("stroke-width", "1.2px")
-                .style("opacity", 1);  // Make the cell color darker
+            if (this !== selectedCell) { // to ensure that the selected cell still appears selected
+                d3.select(this)
+                    .style("stroke", "#737373") // Set stroke color to a darker grey
+                    .style("stroke-width", "1.2px")
+                    .style("opacity", 1);  // Make the cell color darker
+            }
         };
 
         const mousemove = function(event, d) {
@@ -154,31 +156,42 @@ document.addEventListener('DOMContentLoaded', function () {
         let selectedCell = null; // Variable to store the selected cell
         // Function to handle cell selection
         const cellClick = function(event, d) {
+            event.stopPropagation(); // Disallowing cpompartment selection to take place
 
             if (d.value !== "") { // For cells that have a value
+                if (selectedCompartment) { // unselecting previously selected compartment
+                    document.getElementById(`detailed-view-compartment`).style.display = 'none';
+                    d3.select(selectedCompartment)
+                        .style("border", "solid 1px #000");
+                    selectedCompartment = null;
+                }
                 if (selectedCell) { // Unselecting previously selected cell
                     d3.select(selectedCell)
                         .style("stroke", "white") // Set stroke color back to white
                         .style("opacity", 0.8); // Reset the cell color
                 }
                 selectedCell = this; // Update selected cell
-                d3.select(`#cell-info-${mode}`) // Update cell info
+                d3.select(`#cell-info-percentage`) // Update cell info
                     .html(`Log ${mode} function = ` + Number(d.value).toFixed(2));
+                d3.select(`#residence-value`) // Update cell info
+                    .html(`Residence time = ${Number(d.value).toFixed(2)}/sum(output_flows)`);
+                d3.select(`#persistence-value`) // Update cell info
+                    .html(`Persistence = ${Number(d.value).toFixed(2)}/discorporation_flow`);
                 d3.select(this)
                     .style("stroke", "black") // Set stroke color to black
                     .style("opacity", 1);  // Make the cell color darker
                 // Hide all information containers
-                document.getElementById(`detailed-view-mass`).style.display = 'none';
-                document.getElementById(`detailed-view-number`).style.display = 'none';
-
-                document.getElementById(`detailed-view-${mode}`).style.display = 'flex'; // Display current view container
+                document.getElementById(`detailed-view-cell`).style.display = 'none';
+                document.getElementById(`detailed-view-compartment`).style.display = 'none';
+                // Display current view container
+                document.getElementById(`detailed-view-cell`).style.display = 'flex';
 
             } else { // For empty grey cells
+                document.getElementById(`detailed-view-compartment`).style.display = 'none';
                 d3.select("#cell-info")
                     .html("");
                 // Hide all information containers
-                document.getElementById(`detailed-view-mass`).style.display = 'none';
-                document.getElementById(`detailed-view-number`).style.display = 'none';
+                document.getElementById(`detailed-view-cell`).style.display = 'none';
                 d3.select(selectedCell)
                     .style("stroke", "white") // Set stroke color back to white
                     .style("opacity", 0.8); // Reset the cell color
@@ -186,9 +199,42 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
 
+        // Handling compartment selection
+        let selectedCompartment = null;
+        const compartmentClick = function(event) {
+            const clickedClass = d3.select(this).attr("class");
+            console.log(`clicked on ${clickedClass}`);
+
+            if (selectedCell) { // Unselecting previously selected cell
+                document.getElementById(`detailed-view-cell`).style.display = 'none';
+                d3.select(selectedCell)
+                    .style("stroke", "white") // Set stroke color back to white
+                    .style("stroke-width", "0.8"); // Reset the cell color
+            }
+            if (selectedCompartment) { // Unselecting previously selected compartment
+                d3.select(selectedCompartment)
+                    .style("border", "solid 1px #000"); // Reset the compartment border
+            }
+
+            selectedCompartment = this; // Update selected compartment
+            d3.select(`#cell-info-compartment`) // Update compartment info
+                .html(`The ${clickedClass} is selected`);
+            d3.select(selectedCompartment)
+                .style("border", "solid 2px #000"); // Change the border to appear sleected
+
+            // Hide all information containers
+            document.getElementById(`detailed-view-cell`).style.display = 'none';
+            document.getElementById(`detailed-view-compartment`).style.display = 'none';
+            // Display current view container
+            document.getElementById(`detailed-view-compartment`).style.display = 'flex';
+        };
+
         // Function to create a heatmap for a given compartment
         function createHeatmap(container, compartmentType, variable) {
             if (compartmentType !== "compartment empty" && compartmentType !== "new-legend-container" && compartmentType !== "nothing") {
+                container.style("cursor", "pointer")
+                    .on("click", compartmentClick);
+
                 const svgWrapper = container.append("div")
                     .attr("class", "white-background");
 
@@ -236,6 +282,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     .attr("height", singleCellSize - singleCellGap)
                     .attr("fill", d => getColor(d.value))
                     .attr("stroke", "white")
+                    .attr("z-index", "9") // lifting up the cells
                     .style("stroke-width", "0.8px")
                     .style("opacity", 0.8)
                     .on("mouseover", mouseover)
@@ -256,7 +303,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 currentCompartment = myVars[0];
                 const compartmentContainer = row.append("div") // Creating a container for the title and svg
                     .attr("class", "compartment air")
-                    .attr("id", "compartment-air-container");
+                    .attr("id", "compartment-air-container")
+                    .style("cursor", "pointer")
+                    .on("click", compartmentClick);
 
                 compartmentContainer.append("div")
                     .attr("class", "compartment-title")
