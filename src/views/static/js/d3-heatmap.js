@@ -153,10 +153,57 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
 
+        function getMPForm(shortForm) {
+            let formLabels = ["biofouled and heteoaggregated", "biofouled", "heteoaggregated", "free microplastic"]
+            let longForm = "";
+            shortForm = shortForm.replaceAll(" ", "")
+
+            switch (shortForm) {
+                case 'heterBiofMP':
+                    longForm = formLabels[0]
+                    break;
+                case 'biofMP':
+                    longForm = formLabels[1]
+                    break;
+                case 'heterMP':
+                    longForm = formLabels[2]
+                    break;
+                default:
+                    longForm = formLabels[3]
+            }
+            return longForm;
+        }
+
+        function blurCompartments(currentCompartment) { // TODO need to fix the unblurrign of selected cell's compartment
+            const selectedElement = d3.select(selectedCompartment);
+            unblurCompartments();
+
+            d3.selectAll('.compartment')
+                .each(function() {
+                    const element = d3.select(this);
+
+                    if (!element.classed("empty") && !element.classed("new-legend-container") && !element.classed("nothing")) {
+                        if (this !== selectedElement.node()) {
+                            element.classed('blurry', true);
+                        }
+                    }
+                });
+            selectedElement.classed('blurry', false);
+        }
+
+        function unblurCompartments() {
+            // TODO debuging printout
+            console.log("UNBLURRING ALL")
+            d3.selectAll('.compartment')
+                .classed('blurry', false);
+        }
+
         let selectedCell = null; // Variable to store the selected cell
         // Function to handle cell selection
         const cellClick = function(event, d) {
             event.stopPropagation(); // Disallowing cpompartment selection to take place
+
+            unblurCompartments();
 
             if (d.value !== "") { // For cells that have a value
                 if (selectedCompartment) { // unselecting previously selected compartment
@@ -170,13 +217,25 @@ document.addEventListener('DOMContentLoaded', function () {
                         .style("stroke", "white") // Set stroke color back to white
                         .style("opacity", 0.8); // Reset the cell color
                 }
+
                 selectedCell = this; // Update selected cell
+                const selection = d3.select(selectedCell);
+                const cellCompartment = selection.attr("data-compartment").replaceAll("compartment ", "") + " compartment"
+                const cellMPForm = selection.attr('part-type').toString();
+
+                // TODO debugging blurring, need to fix this part here
+                console.log(`This is the compartment type: ${d3.select(selectedCell).attr("data-compartment")}`);
+                // blurCompartments(d3.select(selectedCell).attr("data-compartment"));
+
                 d3.select(`#cell-info-percentage`) // Update cell info
                     .html(`Log ${mode} function = ` + Number(d.value).toFixed(2));
                 d3.select(`#residence-value`) // Update cell info
                     .html(`Residence time = ${Number(d.value).toFixed(2)}/sum(output_flows)`);
                 d3.select(`#persistence-value`) // Update cell info
                     .html(`Persistence = ${Number(d.value).toFixed(2)}/discorporation_flow`);
+                d3.select('#cell-title')
+                    .html(`${selection.attr('size-bin')} µm ${getMPForm(cellMPForm)} particles in the ${cellCompartment}`)
+
                 d3.select(this)
                     .style("stroke", "black") // Set stroke color to black
                     .style("opacity", 1);  // Make the cell color darker
@@ -207,6 +266,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Handling compartment selection
         let selectedCompartment = null;
         const compartmentClick = function(event) {
+            unblurCompartments();
             const clickedClass = d3.select(this).attr("class");
             console.log(`clicked on ${clickedClass}`);
 
@@ -222,6 +282,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             selectedCompartment = this; // Update selected compartment
+            blurCompartments(selectedCompartment);
             d3.select(`#cell-info-compartment`) // Update compartment info
                 .html(`The ${clickedClass} is selected`);
             d3.select(selectedCompartment)
@@ -294,7 +355,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     .on("mousemove", mousemove)
                     .on("mouseleave", mouseleave)
                     .on("click", cellClick)
-                    .attr('data-value', d => d.value);
+                    .attr('data-value', d => d.value)
+                    .attr('data-compartment', compartmentType)
+                    .attr('size-bin', d => parseGroup(d.group).size)
+                    .attr('part-type', d => parseGroup(d.group).type);
             }
         }
 

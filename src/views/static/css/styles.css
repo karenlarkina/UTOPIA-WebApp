@@ -13,7 +13,7 @@ h3 {
     margin-bottom: 1rem;
     margin-left: 1rem !important;
 }
-/*background-color: #E5FFFF;*/
+
 .toggle_container{
     margin-top: -1px;
     border: 1px solid black;
@@ -55,10 +55,7 @@ h3 {
     margin-left: 15px;
     padding: 10px;
 }
-#legend-container {
-    margin-left: 10px;
-    padding: 10px;
-}
+
 .info-containers { /* Vertical container holding the information fields. */
     display: flex;
     flex-direction: column;
@@ -66,13 +63,15 @@ h3 {
     align-items: flex-start;
     width: 52rem;
 }
+
 #model-run-container {
     display: flex;
     width: 100%;
-    height: 149px;
     border: 1px solid black;
     margin-left: 10px;
+    padding: 10px;
 }
+
 #model-run-input {
     display: flex;
     width: 100%;
@@ -82,6 +81,7 @@ h3 {
     white-space: pre-wrap;
     margin-top: 10px;
     margin-bottom: 10px;
+
 }
 .text-center {
     text-align: left;
@@ -111,6 +111,7 @@ h3 {
     padding-bottom: 10px;
     padding-top: 10px;
 }
+
 .detailed-views {
     display: none;
     width: 100%;
@@ -119,14 +120,25 @@ h3 {
     margin-left: 10px;
     box-sizing: border-box;
 }
+
 .detailed-info-column {
     display: flex;
     width: 100%;
     flex-direction: column;
 }
+#cell-title {
+    background-color: #FFF2CC;
+    border:  2px solid #E98B4B;
+    font-weight: bold;
+    margin-top: -12px;
+    margin-left: -1px;
+    margin-right: -1px;
+    padding: 10px;
+}
 #detailed-info-column1 {
     display: flex;
 }
+
 .detail-container {
     display: flex;
     height: 100%;
@@ -165,6 +177,7 @@ h3 {
 .text-field-input {
     padding-top: 10px;
 }
+
 /* Loading animation */
 .spinner { /* Style for the loading animation */
     position: fixed;
@@ -191,18 +204,20 @@ h3 {
 }
 
 /* New heatmap */
-.horiz-area {
+.horiz-area { /* rows where compartments are placed */
     display: flex;
     width: 1000px;
     margin-bottom: 5px;
     gap: 5px;
 }
-.white-background {
+
+.white-background { /* background for the heatmaps so cell colors stand out */
     background-color: white;
     align-items: center;
     display: inline-block;
     margin-bottom: 10px;
 }
+
 .compartment {
     border: solid 1px #000;
     border-radius: 2px;
@@ -214,14 +229,23 @@ h3 {
     font-weight: normal;
     font-family: "Times New Roman";
 }
-.nothing {
+
+.blurry { /* Blur effect for the background when loading */
+    filter: blur(2px);
+}
+
+.nothing { /* containers under the stretched legend container */
     width: 0px;
     height: 0px;
 }
-.empty {
-    border: solid 1px white;
+.empty { /* containers between the sediment containers */
+    border: solid 1px transparent;
+    border-radius:3px;
+    color: transparent;
+    position: relative;
     margin-left: -5px;
 }
+
 .air {
     width: 100%;
     margin-top: 20px;
@@ -234,9 +258,9 @@ h3 {
     background-color: #F3EF92;
 }
 .background {
-    /*background-color: #DEEBE1;*/
-    /*background-color: #CAEBCA;*/
-    background-color: #BDDBBD;
+    /*background-color: #DEEBE1;*/ /* color from first compartmentalised heatmap reference image */
+    /*background-color: #CAEBCA;*/ /* color from the updated compartments reference image */
+    background-color: #BDDBBD;  /* darker version of the new updated compartments reference image */
 }
 .freshwater {
     background-color: #BDD4E3;
@@ -265,52 +289,10 @@ h3 {
 legend-text {
     font-size: medium;
 }
-.new-legend-matrix {
-    grid-column: span 2;
-    border: solid 2px white;
-    border-radius: 3px;
-    width: 490px;
-    height: 240px;
-    text-align: left;
-    align-items: start;
-}
-#compartment-19 {
-    border: solid 2px transparent;
-    border-radius:3px;
-    color: transparent;
-    position: relative;
-    top: -125px;
-}
-#compartment-20 {
-    border: solid 2px transparent;
-    border-radius:3px;
-    color: transparent;
-    position: relative;
-    top: -125px;
-}
-#compartment-21 {
-    border: solid 2px transparent;
-    border-radius:3px;
-    color: transparent;
-    position: relative;
-    top: -125px;
-}
-#compartment-22 {
-    border: solid 2px transparent;
-    border-radius:3px;
-    color: transparent;
-    position: relative;
-    top: -125px;
-}
-#compartment-23 {
-    border: solid 2px transparent;
-    border-radius:3px;
-    color: transparent;
-    position: relative;
-    top: -125px;
-}
-#compartment-24 {
+
+#compartment-24 { /* special case for ocean sediment position */
     position: relative;
     top: -115px;
-    left: 2px;
+    left: 0px;
+    margin-left: 20px;
 }
