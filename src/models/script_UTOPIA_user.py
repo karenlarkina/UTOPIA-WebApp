@@ -305,10 +305,6 @@ def execute_utopia_model(input_obj):
     RC_df = create_rateConstants_table(system_particle_object_list)
     df4 = RC_df.fillna(0)
 
-    # Plot rate constants
-
-    """(FIX RC for wet deposition, now its given as a list of rate constants per surface compartment only for dry deposition and wet depossition is turned off)This needs to be fixed also for the matrix of interactions and estimation of flows"""
-
     """Build Matrix of interactions"""
 
     interactions_df = fillInteractions_fun_OOP(
@@ -385,13 +381,6 @@ def execute_utopia_model(input_obj):
 
     Results_extended, mf_shorted, nf_shorted = estimate_fractions(Results)
 
-    ### TO DO dy Prado ###
-
-    # Provide here a dataframe with all the results to display in the webb app outputs visualization
-
-    # Extract % of total mass and % of total particle number from Results_extended dataframe (above) based on cell selection. Example: cell selection of the 5000 um FreeMP in the Ocean_Surface_Water compartment
-    # % of total mass= Results_extended[(Results_extended['Compartment'] == "Ocean_Surface_Water") & (Results_extended['MP_Form'] == 'freeMP')& (Results_extended['Size_Fraction_um'] == 5000)]["mass_fraction"].values[0]*100
-
     # Organise results in dictionary for plotting
 
     Results_comp_dict = extract_by_comp(
@@ -465,45 +454,19 @@ def execute_utopia_model(input_obj):
         tables_outputFlows, tables_outputFlows_number, dict_comp, surfComp_list
     )
 
-    # Decode index in input and output flow tables
-    flows_dict_mass = dict()
-    flows_dict_mass["input_flows"] = {}
-    flows_dict_mass["output_flows"] = {}
+    # Create flow dictionaries
 
     # Decode index in input and output flow tables
-    for comp in tables_outputFlows.keys():
-        df1 = tables_outputFlows[comp].copy()
-        MP_size_df1 = []
-        MP_form_df1 = []
-        for x in df1.index:
-            MP_size_df1.append(size_dict[x[0]])
-            MP_form_df1.append(MP_form_dict_reverse[x[1:2]])
+    flows_dict_mass = generate_flows_dict(
+        tables_outputFlows, tables_inputFlows, size_dict, MP_form_dict_reverse
+    )
 
-        df1.insert(0, "MP_size", MP_size_df1)
-        df1.insert(1, "MP_form", MP_form_df1)
-        flows_dict_mass["output_flows"][comp] = df1
-
-    for comp in tables_inputFlows:
-        df2 = tables_inputFlows[comp].copy()
-        MP_size_df2 = []
-        MP_form_df2 = []
-        for y in df2.index:
-            MP_size_df2.append(size_dict[y[0]])
-            MP_form_df2.append(MP_form_dict_reverse[y[1:2]])
-        df2.insert(0, "MP_size", MP_size_df2)
-        df2.insert(1, "MP_form", MP_form_df2)
-        flows_dict_mass["input_flows"][comp] = df2
-
-    ### TO DO ###
-
-    # Extract input and output flows for cell selection and calculater residence time and persistence.
-
-    # Example cell selection:
-    # Example cell selection: 'MP_size' == 5000 and 'MP_form' == 'freeMP' and Compartment == 'Ocean_Surface_Water':
-
-    # To extract the input and output flows and calculate residence time and persistence I have creted a function to populate the information table and have added it to the helpers.py file.Applied to the example above:
-
-    # input_flows_selection, output_flows_selection, residence_time_s, persistence_s = extract_inflows_outflows_residenceTime_persistence(Results_extended,flows_dict_mass, comp='Ocean_Surface_Water', MP_form='freeMP', MP_size= 5000)
+    flows_dict_num = generate_flows_dict(
+        tables_outputFlows_number,
+        tables_inputFlows_num,
+        size_dict,
+        MP_form_dict_reverse,
+    )
 
     ## Compartment mass balance
 
@@ -550,6 +513,62 @@ def execute_utopia_model(input_obj):
     heatmap_number_fraction_df = plot_fractionDistribution_heatmap(
         Results_extended, fraction="number_fraction"
     )
+
+    """ Add iput and output flows dict to results extended dataframe"""
+
+    Results_extended = addFlows_to_results_df(
+        Results_extended, flows_dict_mass, flows_dict_num
+    )
+
+    Results_extended["Total_inflows_g_s"] = [
+        sum(Results_extended.iloc[i].inflows_g_s.values())
+        for i in range(len(Results_extended))
+    ]
+
+    Results_extended["Total_outflows_g_s"] = [
+        sum(Results_extended.iloc[i].outflows_g_s.values())
+        for i in range(len(Results_extended))
+    ]
+
+    Results_extended["Total_inflows_num_s"] = [
+        sum(Results_extended.iloc[i].inflows_num_s.values())
+        for i in range(len(Results_extended))
+    ]
+
+    Results_extended["Total_outflows_num_s"] = [
+        sum(Results_extended.iloc[i].outflows_num_s.values())
+        for i in range(len(Results_extended))
+    ]
+
+    """ Add persistence and residence time to results extended dataframe"""
+
+    Results_extended = calculate_persistence_residence_time(Results_extended)
+
+    ### TO DO ###
+
+    # Now the Results_extended dataframe contains all the information needed for the output heatmap visualization: (for the cell selection) VIEW 3
+
+    # ['Compartment', 'MP_Form', 'Size_Fraction_um',
+    # 'mass_g',
+    # 'number_of_particles',
+    # 'concentration_g_m3',
+    # 'concentration_num_m3',
+    # 'mass_fraction', --> multiply by 100 to obtain %of total mass
+    # 'number_fraction', --> multiply by 100 to obtain %of total particle number
+    # 'inflows_g_s',
+    # 'inflows_num_s',
+    # 'outflows_g_s',
+    # 'outflows_num_s',
+    # 'Total_inflows_g_s',
+    # 'Total_outflows_g_s',
+    # 'Total_inflows_num_s',
+    # 'Total_outflows_num_s',
+    # 'Residence_time_mass_years',
+    # 'Residence_time_num_years',
+    # 'Persistence_time_mass_years',
+    # 'Persistence_time_num_years']
+
+    # % of the inflows and outflows can be obtained by dividing the input froms from the inputflows dictionaries by the total inputflow column. ## I can add as an extra column in form of a dictionary of needed
 
     """ Estimate exposure indicators """
 
@@ -710,5 +729,14 @@ def execute_utopia_model(input_obj):
         round(CTD_df["CTD_particle_number_km"].max(), 1),
         " km",
     )
+
+    ### TO DO ###
+
+    # Te values of overall TOV POV and CTD for the overall view (VIEW 1) come from here
+
+    # Overall persistence (Pov): Pov_mass_years or Pov_num_years
+    # Overall residence time (Tov): Tov_mass_years or Tov_num_years
+    # Table of Overall residence time and persistence by size fraction: Pov_size_dict_sec and Tov_size_dict_sec
+    # Characteristic travel distance (CTD): CTD_df["CTD_mass_km"].max() or CTD_df["CTD_particle_number_km"].max()
 
     return heatmap_mass_fraction_df, heatmap_number_fraction_df
