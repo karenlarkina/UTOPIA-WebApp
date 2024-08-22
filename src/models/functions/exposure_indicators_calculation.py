@@ -418,3 +418,79 @@ def calculate_CTD(Pov_mass_years, Results_extended, dict_comp, Pov_num_years, CD
     # )
 
     return (CTD_mass_m / 1000, CTD_number_m / 1000)
+
+
+def calculate_persistence_residence_time(Results_extended):
+    ## Calculation of persistence and residence time for a single particle type in the system (defined compartment, mp size and form)
+
+    ## Residence time (Tov) in years
+
+    # For the calculation of the residence time take on account all the flows that transform or transport the particle of study
+
+    residence_times_mass = []
+    residence_time_number = []
+    for i in range(len(Results_extended)):
+        if Results_extended.iloc[i].mass_g == 0:
+            residence_times_mass.append(0)
+        else:
+            residence_times_mass.append(
+                Results_extended.iloc[i].mass_g
+                / sum(Results_extended.iloc[i].outflows_g_s.values())
+            )
+        if Results_extended.iloc[i].number_of_particles == 0:
+            residence_time_number.append(0)
+        else:
+            residence_time_number.append(
+                Results_extended.iloc[i].number_of_particles
+                / sum(Results_extended.iloc[i].outflows_num_s.values())
+            )
+
+    Results_extended["Residence_time_mass_years"] = residence_times_mass
+    Results_extended["Residence_time_num_years"] = residence_time_number
+
+    ## Persistence time (Pov) in years
+
+    # When estimating the persistence of the particle we only take into account its discorporation
+
+    persistence_mass = []
+    persistence_number = []
+
+    for i in range(len(Results_extended)):
+        if Results_extended.iloc[i].mass_g == 0:
+            persistence_mass.append(0)
+        else:
+            if Results_extended.iloc[i].Size_Fraction_um == 0.5:
+                persistence_mass.append(
+                    Results_extended.iloc[i].mass_g
+                    / (
+                        Results_extended.iloc[i].outflows_g_s["k_fragmentation"]
+                        + Results_extended.iloc[i].outflows_g_s["k_discorporation"]
+                    )
+                )
+            else:
+                persistence_mass.append(
+                    Results_extended.iloc[i].mass_g
+                    / Results_extended.iloc[i].outflows_g_s["k_discorporation"]
+                )
+
+        if Results_extended.iloc[i].number_of_particles == 0:
+            persistence_number.append(0)
+        else:
+            if Results_extended.iloc[i].Size_Fraction_um == 0.5:
+                persistence_number.append(
+                    Results_extended.iloc[i].number_of_particles
+                    / (
+                        Results_extended.iloc[i].outflows_num_s["k_fragmentation"]
+                        + Results_extended.iloc[i].outflows_num_s["k_discorporation"]
+                    )
+                )
+            else:
+                persistence_number.append(
+                    Results_extended.iloc[i].number_of_particles
+                    / Results_extended.iloc[i].outflows_num_s["k_discorporation"]
+                )
+
+    Results_extended["Persistence_time_mass_years"] = persistence_mass
+    Results_extended["Persistence_time_num_years"] = persistence_number
+
+    return Results_extended
