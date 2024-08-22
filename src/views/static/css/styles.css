@@ -234,7 +234,9 @@ h3 {
     background-color: #F3EF92;
 }
 .background {
-    background-color: #DEEBE1;
+    /*background-color: #DEEBE1;*/
+    /*background-color: #CAEBCA;*/
+    background-color: #BDDBBD;
 }
 .freshwater {
     background-color: #BDD4E3;
@@ -253,11 +255,12 @@ h3 {
     grid-column: span 2;
     border: solid 2px white;
     border-radius: 3px;
-    width: 330px;
+    width: 356px;
     height: 240px;
     text-align: left;
     align-items: start;
     z-index: 10;
+    margin-left: -15px;
 }
 legend-text {
     font-size: medium;
@@ -309,5 +312,5 @@ legend-text {
 #compartment-24 {
     position: relative;
     top: -115px;
-    left: 1px;
+    left: 2px;
 }

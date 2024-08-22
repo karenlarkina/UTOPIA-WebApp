@@ -196,6 +196,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     .style("stroke", "white") // Set stroke color back to white
                     .style("opacity", 0.8); // Reset the cell color
                 selectedCell = null;
+
+                if (selectedCompartment) { // Unselecting previously selected compartment
+                    d3.select(selectedCompartment)
+                        .style("border", "solid 1px #000"); // Reset the compartment border
+                }
             }
         };
 
@@ -318,97 +323,115 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Creating columns within each row
                 for (let j = 1; j < 7; j++) {
                     const uniqueNumber = (i - 2) * 6 + j;
-                    let compartmentType = "";
+                    let compartmentType = "compartment ";
                     let uniqueCompartment = "";
                     let compTitle = "";
 
-                    if (uniqueNumber === 1 || uniqueNumber === 7) { // Impacted soil
-                        compartmentType = "compartment impacted";
-                        uniqueCompartment = `compartment-${uniqueNumber}`;
-                        if (uniqueNumber === 1) {
-                            currentCompartment = myVars[2];
-                            compTitle = currentCompartment;
-                        } else {
-                            currentCompartment = myVars[1]
-                            compTitle = currentCompartment;
-                        }
-                    } else if (uniqueNumber === 2 || uniqueNumber === 8) { // Background
-                        compartmentType = "compartment background";
-                        uniqueCompartment = `compartment-${uniqueNumber}`;
-                        if (uniqueNumber === 2) {
-                            currentCompartment = myVars[4];
-                            compTitle = currentCompartment;
-                        } else {
-                            currentCompartment = myVars[3];
-                            compTitle = currentCompartment;
-                        }
-                    } else if (uniqueNumber === 3 || uniqueNumber === 9) { // Fresh Water
-                        compartmentType = "compartment freshwater";
-                        uniqueCompartment = `compartment-${uniqueNumber}`;
-                        if (uniqueNumber === 3) {
-                            currentCompartment = myVars[11];
-                            compTitle = currentCompartment;
-                        } else {
-                            currentCompartment = myVars[10];
-                            compTitle = currentCompartment;
-                        }
-                    } else if (uniqueNumber === 4 || uniqueNumber === 10) { // Beach
-                        compartmentType = "compartment beach";
-                        uniqueCompartment = `compartment-${uniqueNumber}`;
-                        // old urban => beach
-                        if (uniqueNumber === 4) {
-                            currentCompartment = myVars[6];
-                            compTitle = currentCompartment;
-                        } else {
-                            currentCompartment = myVars[5];
-                            compTitle = currentCompartment;
-                        }
-                    } else if (uniqueNumber === 5 || uniqueNumber === 11) { // Coast
-                        compartmentType = "compartment coastal";
-                        uniqueCompartment = `compartment-${uniqueNumber}`;
-                        if (uniqueNumber === 5) {
-                            currentCompartment = myVars[13];
-                            compTitle = currentCompartment;
-                        } else {
-                            currentCompartment = myVars[12];
-                            compTitle = currentCompartment;
-                        }
-                    } else if (uniqueNumber === 6 || uniqueNumber === 12 || uniqueNumber === 18) { // Ocean
-                        compartmentType = "compartment ocean";
-                        uniqueCompartment = `compartment-${uniqueNumber}`;
-                        if (uniqueNumber === 6) {
-                            currentCompartment = myVars[16];
-                            compTitle = currentCompartment;
-                        } else if (uniqueNumber === 12) {
-                            currentCompartment = myVars[15];
-                            compTitle = currentCompartment;
-                        } else {
-                            currentCompartment = myVars[14];
-                            compTitle = currentCompartment;
-                        }
-                    } else if (uniqueNumber === 14 || uniqueNumber === 17 || uniqueNumber === 24) { // Sediment
-                        compartmentType = "compartment sediment";
-                        uniqueCompartment = `compartment-${uniqueNumber}`;
-                        if (uniqueNumber === 14) {
-                            currentCompartment = myVars[9];
-                            compTitle = currentCompartment;
-                        } else if (uniqueNumber === 17) {
-                            currentCompartment = myVars[7];
-                            compTitle = currentCompartment;
-                        } else {
-                            currentCompartment = myVars[8];
-                            compTitle = currentCompartment;
-                        }
-                    } else { // Legend or empty
-                        uniqueCompartment = `compartment-${uniqueNumber}`;
-                        if (uniqueNumber === 13) {
-                            compartmentType = "new-legend-container";
-                        } else if (uniqueNumber === 15) {
-                            compartmentType = "nothing";
-                        } else {
-                            compartmentType = "compartment empty";
-                        }
+                    switch (uniqueNumber) {
+                        case 1: // Impacted soil
+                        case 7:
+                            uniqueCompartment = `compartment-${uniqueNumber}`;
+                            if (uniqueNumber === 1) {
+                                currentCompartment = myVars[2];
+                                compTitle = currentCompartment;
+                            } else {
+                                currentCompartment = myVars[1];
+                                compTitle = currentCompartment;
+                            }
+                            break;
+
+                        case 2: // Background Soil
+                        case 8:
+                            uniqueCompartment = `compartment-${uniqueNumber}`;
+                            if (uniqueNumber === 2) {
+                                currentCompartment = myVars[4];
+                                compTitle = currentCompartment;
+                            } else {
+                                currentCompartment = myVars[3];
+                                compTitle = currentCompartment;
+                            }
+                            break;
+
+                        case 3: // Freshwater
+                        case 9:
+                            uniqueCompartment = `compartment-${uniqueNumber}`;
+                            if (uniqueNumber === 3) {
+                                currentCompartment = myVars[11];
+                                compTitle = "Freshwater Surface";
+                            } else {
+                                currentCompartment = myVars[10];
+                                compTitle = "Freshwater";
+                            }
+                            break;
+
+                        case 4: // Beach
+                        case 10:
+                            uniqueCompartment = `compartment-${uniqueNumber}`;
+                            if (uniqueNumber === 4) {
+                                currentCompartment = myVars[6];
+                                compTitle = "Beach Surface";
+                            } else {
+                                currentCompartment = myVars[5];
+                                compTitle = "Beach Subsurface";
+                            }
+                            break;
+
+                        case 5: // Coastal Water
+                        case 11:
+                            uniqueCompartment = `compartment-${uniqueNumber}`;
+                            if (uniqueNumber === 5) {
+                                currentCompartment = myVars[13];
+                                compTitle = "Coastal Water Surface";
+                            } else {
+                                currentCompartment = myVars[12];
+                                compTitle = "Coastal Water";
+                            }
+                            break;
+
+                        case 6: // Ocean
+                        case 12:
+                        case 18:
+                            uniqueCompartment = `compartment-${uniqueNumber}`;
+                            if (uniqueNumber === 6) {
+                                currentCompartment = myVars[16];
+                                compTitle = "Ocean Surface";
+                            } else if (uniqueNumber === 12) {
+                                currentCompartment = myVars[15];
+                                compTitle = "Mixed Ocean";
+                            } else {
+                                currentCompartment = myVars[14];
+                                compTitle = "Deep Ocean";
+                            }
+                            break;
+
+                        case 14: // Freshwater Sediment
+                        case 17: // Coastal Water Sediment
+                        case 24: // Ocean Sediment
+                            uniqueCompartment = `compartment-${uniqueNumber}`;
+                            if (uniqueNumber === 14) {
+                                currentCompartment = myVars[9];
+                                compTitle = "Freshwater Sediment";
+                            } else if (uniqueNumber === 17) {
+                                currentCompartment = myVars[7];
+                                compTitle = "Coastal Water Sediment";
+                            } else {
+                                currentCompartment = myVars[8];
+                                compTitle = "Ocean Sediment";
+                            }
+                            break;
+
+                        default:
+                            uniqueCompartment = `compartment-${uniqueNumber}`;
+                            if (uniqueNumber === 13) {
+                                compartmentType = "new-legend-container";
+                            } else if (uniqueNumber === 15) {
+                                compartmentType = "nothing";
+                            } else {
+                                compartmentType = "compartment empty";
+                            }
+                            break;
                     }
+                    compartmentType += compTitle.replaceAll("_", " ").toLowerCase()
                     row.append("div")
                         .attr("class", `${compartmentType}`)
                         .attr("id", `${uniqueCompartment}`)
@@ -430,13 +453,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
         newLegendContainer.append("h6")
             .text(`Fraction of total plastic`)
-            .style("font-size", '15px')
+            .style("font-size", '16px')
             .style("text-align", "center");
 
-        newLegendContainer.append("h6")
-            .text(`mass/particle number`)
-            .style("font-size", '15px')
-            .style("text-align", "center");
+        if (mode === "mass") {
+            newLegendContainer.append("h6")
+                .text(`mass`)
+                .style("font-size", '16px')
+                .style("text-align", "center");
+        } else {
+            newLegendContainer.append("h6")
+                .text(`particle number`)
+                .style("font-size", '16px')
+                .style("text-align", "center");
+        }
 
         // Constants for the legend
         const legendWidth = 17;
@@ -447,7 +477,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const newLegendSvg = newLegendContainer.append("div")
             .attr("id", "new-legend")
             .append("svg")
-            .attr("transform", `translate(280, -35)`)
+            .attr("transform", `translate(290, -35)`)
             .attr("width", legendWidth + 50)  // Additional space for axis
             .attr("height", legendHeight);
 
@@ -495,29 +525,32 @@ document.addEventListener('DOMContentLoaded', function () {
             .style("opacity", 0.8);
 
         // Add the scale for the legend
+        const superscripts = "⁰¹²³⁴⁵⁶⁷⁸⁹";
         newLegendSvg.append("g")
-            .attr("transform", `translate(${legendWidth}, 5)`)
-            .attr("height", legendHeight - 15)
+            .attr("transform", `translate(${legendWidth}, 6)`)
+            .attr("height", legendHeight - 10)
             .style("stroke-width", 0.0)
+            .style("font-size", '15px')
+            .style("font-weight", 'normal')
             .call(d3.axisRight(legendScale)
                 .tickValues([-10, -1])
                 .tickSize(0)  // No visible ticks
-                .tickFormat(d => `10\u207B${Math.abs(d)}`));
+                .tickFormat(d => `10\u207B${Math.abs(d).toString().split('').map(digit => superscripts[digit]).join('')}`));
 
         // Labels for x- and y-axis
         let xAxisLabels = [5000, 500, 50, 5, 0.5]
-        let yAxisLabels = ["Biofouled and Heteoaggregated", "Biofouled", "Heteoaggregated", "Free Microplastic"]
+        let yAxisLabels = ["Biofouled & Heteoagg.", "Biofouled", "Heteoaggregated", "Free Microplastic"]
         // Variables the legend matrix
         const cellSize = 19;
         const cellGap = 0.02;
-        let legendMargin = {top: 0, right: 30, bottom: 70, left: 90},
+        let legendMargin = {top: 0, right: 30, bottom: 70, left: 110},
             legWidth = 270 - margin.left - margin.right,
             legHeight = 290 - margin.top - margin.bottom;
 
         // Creating svg for the legend matrix and its axes
         let svg = d3.select("#new-legend")
             .append("svg")
-            .attr("width", 250)
+            .attr("width", 255)
             .attr("height", legHeight + legendMargin.top + legendMargin.bottom)
             .attr("transform",
                 "translate(" + -30 + "," + -20 + ")")
@@ -531,7 +564,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .domain(xAxisLabels)
             .padding(0.01);
         const xaxis = svg.append("g")
-            .attr("transform", "translate(-20," + (legHeight) + ")")
+            .attr("transform", "translate(-6," + (legHeight) + ")")
             .call(d3.axisBottom(x)
                 .tickSize(0));
         xaxis.selectAll("text").style("font-size", "11px")
@@ -570,7 +603,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr("x", legWidth / 2 - 1)
             .attr("y", 143)
             .attr("text-anchor", "middle")
-            .style("font-size", "12px")
+            .style("font-size", "14px")
             .style("font-weight", "lighter")
             .text("Size Class (µm)");
     }
