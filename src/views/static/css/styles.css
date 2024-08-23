@@ -133,7 +133,7 @@ h3 {
     margin-top: -12px;
     margin-left: -1px;
     margin-right: -1px;
-    padding: 10px;
+    padding: 7px;
 }
 #detailed-info-column1 {
     display: flex;
@@ -215,12 +215,12 @@ h3 {
     background-color: white;
     align-items: center;
     display: inline-block;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .compartment {
     border: solid 1px #000;
-    border-radius: 2px;
+    border-radius: 5px;
     height: 125px;
     width: 100%;
     justify-content: center;

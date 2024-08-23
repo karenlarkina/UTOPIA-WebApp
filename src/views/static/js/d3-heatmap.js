@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Building the new heatmaps with respect to compartments
-    let assembleCompHeatMap = function(title, csvText, mode) {
+    let assembleCompHeatMap = function(title, csvText, mode, csvExtended) {
         // Remove any existing heatmap
         d3.select('#heatmap-container').selectAll('*').remove();
         // Set the dimensions and margins of the graph
@@ -362,6 +362,325 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        // // TODO experimenting with extended data -> getting compartments, and drawing cells but with NaN values
+        // let extendedData = d3.csvParse(csvExtended);
+        // const myMpForm = Array.from(new Set(extendedData.map(d => d.MP_Form))).reverse();
+        // const mySizeFrac = Array.from(new Set(extendedData.map(d => d.Size_Fraction_um))).reverse();
+        // const myCompartments = Array.from(new Set(extendedData.map(d => d.Compartment))).reverse();
+        //
+        // let newValues = null;
+        // let valueVar = null;
+        //
+        // if (mode === "mass") {
+        //     newValues = extendedData.map(d => parseFloat(d.mass_g));
+        //     valueVar = 'mass_g';
+        // } else {
+        //     newValues = extendedData.map(d => parseFloat(d.number_of_particles));
+        //     valueVar = 'number_of_particles';
+        // }
+        //
+        // const newCollections = {}; // For storing data for each compartment separately
+        //
+        // // Dividing the data according to myVars elements (compartments)
+        // myCompartments.forEach(variable => {
+        //     newCollections[variable] = extendedData.filter(d => d.Compartment === variable);
+        // });
+        //
+        // // Parsing groups from long label to two divided labels for new x and y
+        // // e.g 'freeMP + 0.5' -> type: 'freeMP', size: 0.5
+        // function parseGroup(group) {
+        //     const [type, size] = group.split(' + ');
+        //     return {
+        //         type: type.trim(),
+        //         size: parseFloat(size.trim())
+        //     };
+        // }
+        //
+        // // Get the minimum and maximum values
+        // const minValue = d3.min(newValues);
+        // const maxValue = d3.max(newValues);
+        //
+        // // Variables for compartment matrix sizes etc
+        // const singleCellSize = 21;
+        // const singleCellGap = 0.01;
+        // let singleMargin = {top: 0, right: 0, bottom: 0, left: 0},
+        //     singleWidth = 280 - margin.left - margin.right,
+        //     singleHeight = 300 - margin.top - margin.bottom;
+        //
+        // // Build color scale
+        // const myColor = d3.scaleSequential()
+        //     .interpolator(d3.interpolateViridis)
+        //     .domain([minValue, maxValue])
+        //
+        // // Function to get color based on value
+        // const getColor = value => {
+        //     if (value === '') {
+        //         return '#EDEDED'; // Color for empty values
+        //     } else {
+        //         return myColor(value); // Scalar color for other values
+        //     }
+        // };
+        //
+        // // Create a tooltip
+        // const tooltip = d3.select("#heatmap-container")
+        //     .append("div")
+        //     .style("opacity", 0)
+        //     .attr("class", "tooltip");
+        //
+        // // Three functions that change the tooltip when the user hovers/moves/leaves a cell
+        // const mouseover = function (event, d) {
+        //     tooltip
+        //         .style("opacity", 1);
+        //     if (this !== selectedCell) { // to ensure that the selected cell still appears selected
+        //         d3.select(this)
+        //             .style("stroke", "#737373") // Set stroke color to a darker grey
+        //             .style("stroke-width", "1.2px")
+        //             .style("opacity", 1);  // Make the cell color darker
+        //     }
+        // };
+        //
+        // const mousemove = function(event, d) {
+        //     if (d.value !== "") {
+        //         // Calculate the position of the tooltip relative to the mouse pointer
+        //         const tooltipLeft = event.pageX + 10;
+        //         const tooltipTop = event.pageY - 50;
+        //
+        //         // Update the position of the tooltip
+        //         tooltip
+        //             .html("" + Number(d.value).toFixed(2))
+        //             .style("left", tooltipLeft + "px")
+        //             .style("top", tooltipTop + "px")
+        //             .style("display", "block");
+        //     } else {
+        //         // If d.value is empty, hide the tooltip
+        //         tooltip.style("display", "none");
+        //     }
+        // };
+        //
+        // const mouseleave = function (event, d) {
+        //     tooltip
+        //         .style("opacity", 0);
+        //     if (this !== selectedCell) { // Only reset stroke for the unselected cells
+        //         d3.select(this)
+        //             .style("stroke", "white") // Set stroke color back to white
+        //             .style("stroke-width", "0.8px")
+        //             .style("opacity", 0.8); // Reset the cell color
+        //     }
+        // };
+        //
+        // function getMPForm(shortForm) {
+        //     let formLabels = ["biofouled and heteoaggregated", "biofouled", "heteoaggregated", "free microplastic"]
+        //     let longForm = "";
+        //     shortForm = shortForm.replaceAll(" ", "")
+        //
+        //     switch (shortForm) {
+        //         case 'heterBiofMP':
+        //             longForm = formLabels[0]
+        //             break;
+        //         case 'biofMP':
+        //             longForm = formLabels[1]
+        //             break;
+        //         case 'heterMP':
+        //             longForm = formLabels[2]
+        //             break;
+        //         default:
+        //             longForm = formLabels[3]
+        //     }
+        //     return longForm;
+        // }
+        //
+        // function blurCompartments(currentCompartment) { // TODO need to fix the unblurrign of selected cell's compartment
+        //     const selectedElement = d3.select(currentCompartment);
+        //     unblurCompartments();
+        //
+        //     d3.selectAll('.compartment')
+        //         .each(function() {
+        //             const element = d3.select(this);
+        //
+        //             if (!element.classed("empty") && !element.classed("new-legend-container") && !element.classed("nothing")) {
+        //                 if (this !== selectedElement.node()) {
+        //                     element.classed('blurry', true);
+        //                 }
+        //             }
+        //         });
+        //     selectedElement.classed('blurry', false);
+        // }
+        //
+        // function unblurCompartments() {
+        //     // TODO debuging printout
+        //     console.log("UNBLURRING ALL")
+        //     d3.selectAll('.compartment')
+        //         .classed('blurry', false);
+        // }
+        //
+        // let selectedCell = null; // Variable to store the selected cell
+        // // Function to handle cell selection
+        // const cellClick = function(event, d) {
+        //     event.stopPropagation(); // Disallowing cpompartment selection to take place
+        //
+        //     unblurCompartments();
+        //
+        //     if (d.value !== "") { // For cells that have a value
+        //         if (selectedCompartment) { // unselecting previously selected compartment
+        //             document.getElementById(`detailed-view-compartment`).style.display = 'none';
+        //             d3.select(selectedCompartment)
+        //                 .style("border", "solid 1px #000");
+        //             selectedCompartment = null;
+        //         }
+        //         if (selectedCell) { // Unselecting previously selected cell
+        //             d3.select(selectedCell)
+        //                 .style("stroke", "white") // Set stroke color back to white
+        //                 .style("opacity", 0.8); // Reset the cell color
+        //         }
+        //
+        //         selectedCell = this; // Update selected cell
+        //         const selection = d3.select(selectedCell);
+        //         const cellCompartmentName = selection.attr("data-compartment").replaceAll("compartment ", "") + " compartment"
+        //         const cellCompartment = d3.select(`.${selection.attr("data-compartment")}`);
+        //         const cellMPForm = selection.attr('part-type').toString();
+        //
+        //         // TODO debugging blurring, need to fix this part here
+        //         // console.log(`This is the compartment type: ${cellCompartment.attr("class")}`);
+        //         // blurCompartments(cellCompartment);
+        //
+        //         d3.select(`#cell-info-percentage`) // Update cell info
+        //             .html(`Log ${mode} function = ` + Number(d.value).toFixed(2));
+        //         d3.select(`#residence-value`) // Update cell info
+        //             .html(`Residence time = ${Number(d.value).toFixed(2)}/sum(output_flows)`);
+        //         d3.select(`#persistence-value`) // Update cell info
+        //             .html(`Persistence = ${Number(d.value).toFixed(2)}/discorporation_flow`);
+        //         d3.select('#cell-title')
+        //             .html(`${selection.attr('size-bin')} µm ${getMPForm(cellMPForm)} particles in the ${cellCompartmentName}`)
+        //
+        //         d3.select(this)
+        //             .style("stroke", "black") // Set stroke color to black
+        //             .style("stroke-width", "2.5px")
+        //             .style("opacity", 1);  // Make the cell color darker
+        //         // Hide all information containers
+        //         document.getElementById(`detailed-view-cell`).style.display = 'none';
+        //         document.getElementById(`detailed-view-compartment`).style.display = 'none';
+        //         // Display current view container
+        //         document.getElementById(`detailed-view-cell`).style.display = 'flex';
+        //
+        //     } else { // For empty grey cells
+        //         document.getElementById(`detailed-view-compartment`).style.display = 'none';
+        //         d3.select("#cell-info")
+        //             .html("");
+        //         // Hide all information containers
+        //         document.getElementById(`detailed-view-cell`).style.display = 'none';
+        //         d3.select(selectedCell)
+        //             .style("stroke", "white") // Set stroke color back to white
+        //             .style("opacity", 0.8); // Reset the cell color
+        //         selectedCell = null;
+        //
+        //         if (selectedCompartment) { // Unselecting previously selected compartment
+        //             d3.select(selectedCompartment)
+        //                 .style("border", "solid 1px #000"); // Reset the compartment border
+        //         }
+        //     }
+        // };
+        //
+        // // Handling compartment selection
+        // let selectedCompartment = null;
+        // const compartmentClick = function(event) {
+        //     unblurCompartments();
+        //     const clickedClass = d3.select(this).attr("class");
+        //     console.log(`clicked on ${clickedClass}`);
+        //
+        //     if (selectedCell) { // Unselecting previously selected cell
+        //         document.getElementById(`detailed-view-cell`).style.display = 'none';
+        //         d3.select(selectedCell)
+        //             .style("stroke", "white") // Set stroke color back to white
+        //             .style("stroke-width", "0.8"); // Reset the cell color
+        //     }
+        //     if (selectedCompartment) { // Unselecting previously selected compartment
+        //         d3.select(selectedCompartment)
+        //             .style("border", "solid 1px #000"); // Reset the compartment border
+        //     }
+        //
+        //     selectedCompartment = this; // Update selected compartment
+        //     console.log(`selectedCompartment class: ${d3.select(selectedCompartment).attr("class")}`)
+        //     blurCompartments(selectedCompartment);
+        //
+        //     d3.select(`#cell-info-compartment`) // Update compartment info
+        //         .html(`The ${clickedClass} is selected`);
+        //     d3.select(selectedCompartment)
+        //         .style("border", "solid 3px #000"); // Change the border to appear sleected
+        //
+        //     // Hide all information containers
+        //     document.getElementById(`detailed-view-cell`).style.display = 'none';
+        //     document.getElementById(`detailed-view-compartment`).style.display = 'none';
+        //     // Display current view container
+        //     document.getElementById(`detailed-view-compartment`).style.display = 'flex';
+        // };
+        //
+        // // Function to create a heatmap for a given compartment
+        // function createHeatmap(container, compartmentType, variable) {
+        //     if (compartmentType !== "compartment empty" && compartmentType !== "new-legend-container" && compartmentType !== "nothing") {
+        //         container.style("cursor", "pointer")
+        //             .on("click", compartmentClick);
+        //
+        //         const svgWrapper = container.append("div")
+        //             .attr("class", "white-background");
+        //
+        //         let svg = svgWrapper.append("svg")
+        //             .attr("width", (singleCellSize + singleCellGap) * 5.829)
+        //             .attr("height", (singleCellSize + singleCellGap) * 4.56)
+        //             .append("svg")
+        //             .attr("transform",
+        //                 "translate(" + singleMargin.left + "," + singleMargin.top + ")");
+        //
+        //         const xScale = d3.scaleBand()
+        //             .domain(Array.from(mySizeFrac))
+        //             .range([0, singleWidth])
+        //             .padding(0.01);
+        //         svg.append("g")
+        //             .attr("transform", "translate(-7," + (singleHeight) + ")")
+        //             .call(d3.axisBottom(xScale)
+        //                 .tickSize(0)
+        //                 .tickFormat(""))
+        //             .selectAll("path, line, text")
+        //             .style("display", "none");
+        //
+        //         const yScale = d3.scaleBand()
+        //             .domain(Array.from(myMpForm))
+        //             .range([singleHeight, 0])
+        //             .padding(0.01);
+        //         svg.append("g")
+        //             .call(d3.axisLeft(yScale)
+        //                 .tickSize(0)
+        //                 .tickFormat(""))
+        //             .selectAll("path, line, text")
+        //             .style("display", "none");
+        //
+        //         // Getting the data for a given variable/myVars element (compartment)
+        //         let variableData = newCollections[variable];
+        //
+        //         // Select all squares and bind data to rect elements
+        //         const rects = svg.selectAll("rect")
+        //             .data(variableData, d => d.MP_Form + ':' + d.Size_Fraction_um + ':' + d.variable); // <- this is ?
+        //
+        //         rects.join("rect")
+        //             .attr("x", d => xScale(d.Size_Fraction_um))
+        //             .attr("y", d => yScale(d.MP_Form))
+        //             .attr("width", singleCellSize - singleCellGap)
+        //             .attr("height", singleCellSize - singleCellGap)
+        //             .attr("fill", d => getColor(d[valueVar]))
+        //             .attr("stroke", "white")
+        //             .attr("z-index", "9") // lifting up the cells
+        //             .style("stroke-width", "0.8px")
+        //             .style("opacity", 0.8)
+        //             .on("mouseover", mouseover)
+        //             .on("mousemove", mousemove)
+        //             .on("mouseleave", mouseleave)
+        //             .on("click", cellClick)
+        //             .attr('data-value', d => d[valueVar])
+        //             .attr('data-compartment', compartmentType)
+        //             .attr('size-bin', d => d.Size_Fraction_um)
+        //             .attr('part-type', d => d.MP_Form);
+        //     }
+        // }
+
         // Drawing out the compartments TODO need to refactor this scramble-bamble!!!
         for (let i = 1; i < 6; i++) {
             const row = container.append("div")
@@ -676,6 +995,9 @@ document.addEventListener('DOMContentLoaded', function () {
     runButton.addEventListener('click', function() {
         document.getElementById('loading-spinner').style.display = 'block'; // Loading animation
         document.getElementById('main-content').classList.add('blur'); // Blurring the background
+        // Hide all information containers
+        document.getElementById(`detailed-view-cell`).style.display = 'none';
+        document.getElementById(`detailed-view-compartment`).style.display = 'none';
         // Collect all variable values to be sent to the backend
         let inputData = extractVariablesFromClientSide();
         // Make HTTP post and get result
@@ -707,7 +1029,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(model_results => {
                 utopia_model_results = model_results; //store values from backend for assembling all visualizations
-                assembleCompHeatMap('Mass Fraction Distribution Heatmap' , utopia_model_results.mass_fraction_distribution_heatmap, "mass");
+                assembleCompHeatMap('Mass Fraction Distribution Heatmap' , utopia_model_results.mass_fraction_distribution_heatmap, "mass", utopia_model_results.extended_csv_table);
             })
             .catch(error => {
                 console.error('There was a problem with the POST request:', error);
@@ -779,20 +1101,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
     comp_mass_fraction_distribution_btn.addEventListener('click', function() {
         if(utopia_model_results !== null){
+            // Hide all information containers
+            document.getElementById(`detailed-view-cell`).style.display = 'none';
+            document.getElementById(`detailed-view-compartment`).style.display = 'none';
             // Removing selection from the other
             comp_number_fraction_distribution_btn.classList.remove('active');
             // Highlighting selection on the navbar
             comp_mass_fraction_distribution_btn.classList.add('active');
-            assembleCompHeatMap('Mass Fraction Distribution Heatmap' , utopia_model_results.mass_fraction_distribution_heatmap, "mass");
+            assembleCompHeatMap('Mass Fraction Distribution Heatmap' , utopia_model_results.mass_fraction_distribution_heatmap, "mass", utopia_model_results.extended_csv_table);
         }
     });
     comp_number_fraction_distribution_btn.addEventListener('click', function() {
         if(utopia_model_results !== null){
+            // Hide all information containers
+            document.getElementById(`detailed-view-cell`).style.display = 'none';
+            document.getElementById(`detailed-view-compartment`).style.display = 'none';
             // Removing selection from the other
             comp_mass_fraction_distribution_btn.classList.remove('active');
             // Highlighting selection on the navbar
             comp_number_fraction_distribution_btn.classList.add('active');
-            assembleCompHeatMap('Number Fraction Distribution Heatmap' , utopia_model_results.number_fraction_distribution_heatmap, "number");
+            assembleCompHeatMap('Number Fraction Distribution Heatmap' , utopia_model_results.number_fraction_distribution_heatmap, "number", utopia_model_results.extended_csv_table);
         }
     });
 });
