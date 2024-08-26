@@ -153,6 +153,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
 
+        // Function to get the long name of the MP form to present in the cell selection title
         function getMPForm(shortForm) {
             let formLabels = ["biofouled and heteoaggregated", "biofouled", "heteoaggregated", "free microplastic"]
             let longForm = "";
@@ -174,26 +175,24 @@ document.addEventListener('DOMContentLoaded', function () {
             return longForm;
         }
 
-        function blurCompartments(currentCompartment) { // TODO need to fix the unblurrign of selected cell's compartment
-            const selectedElement = d3.select(selectedCompartment);
-            unblurCompartments();
+        // Function to blur all the unselected compartments
+        function blurCompartments(currentCompartment) {
+            const selectedElement = d3.select(currentCompartment);
+            unblurCompartments(); // first unblurring all compartments
 
-            d3.selectAll('.compartment')
+            d3.selectAll('.compartment') // iterating over all compartments and selecting the compartment
                 .each(function() {
                     const element = d3.select(this);
-
+                    // blurring only actual compartments, leaving out the legend, empty and nothing compartnents
                     if (!element.classed("empty") && !element.classed("new-legend-container") && !element.classed("nothing")) {
-                        if (this !== selectedElement.node()) {
-                            element.classed('blurry', true);
-                        }
+                        element.classed('blurry', true);
                     }
                 });
-            selectedElement.classed('blurry', false);
+            selectedElement.node().classed('blurry', false); // unblurring the selected element compartment
         }
 
+        // Function to unblur all compartments
         function unblurCompartments() {
-            // TODO debuging printout
-            console.log("UNBLURRING ALL")
             d3.selectAll('.compartment')
                 .classed('blurry', false);
         }
@@ -202,7 +201,6 @@ document.addEventListener('DOMContentLoaded', function () {
         // Function to handle cell selection
         const cellClick = function(event, d) {
             event.stopPropagation(); // Disallowing cpompartment selection to take place
-
             unblurCompartments();
 
             if (d.value !== "") { // For cells that have a value
@@ -222,13 +220,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 const selection = d3.select(selectedCell);
                 const cellCompartment = selection.attr("data-compartment").replaceAll("compartment ", "") + " compartment"
                 const cellMPForm = selection.attr('part-type').toString();
-
-                // TODO debugging blurring, need to fix this part here
-                console.log(`This is the compartment type: ${d3.select(selectedCell).attr("data-compartment")}`);
-                // blurCompartments(d3.select(selectedCell).attr("data-compartment"));
+                const compName = d3.select(selectedCell).attr("data-compartment").replaceAll(" ", "-");
+                const selectedComp = (d3.select(`#${compName}`));
+                blurCompartments(selectedComp);
 
                 d3.select(`#cell-info-percentage`) // Update cell info
                     .html(`Log ${mode} function = ` + Number(d.value).toFixed(2));
+                d3.select(`#total-percent`) // Update cell info
+                    .html(`% of total ${mode} = __%`);
                 d3.select(`#residence-value`) // Update cell info
                     .html(`Residence time = ${Number(d.value).toFixed(2)}/sum(output_flows)`);
                 d3.select(`#persistence-value`) // Update cell info
@@ -238,6 +237,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 d3.select(this)
                     .style("stroke", "black") // Set stroke color to black
+                    .style("stroke-width", "2.5px")
                     .style("opacity", 1);  // Make the cell color darker
                 // Hide all information containers
                 document.getElementById(`detailed-view-cell`).style.display = 'none';
@@ -268,7 +268,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const compartmentClick = function(event) {
             unblurCompartments();
             const clickedClass = d3.select(this).attr("class");
-            console.log(`clicked on ${clickedClass}`);
 
             if (selectedCell) { // Unselecting previously selected cell
                 document.getElementById(`detailed-view-cell`).style.display = 'none';
@@ -282,11 +281,13 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             selectedCompartment = this; // Update selected compartment
-            blurCompartments(selectedCompartment);
+            blurCompartments(d3.select(selectedCompartment));
             d3.select(`#cell-info-compartment`) // Update compartment info
                 .html(`The ${clickedClass} is selected`);
             d3.select(selectedCompartment)
-                .style("border", "solid 2px #000"); // Change the border to appear sleected
+                .style("border", "solid 3px #000"); // Change the border to appear sleected
+            d3.select('#compartment-title')
+                .html(`${d3.select(selectedCompartment).attr('comp-title')} Compartment`)
 
             // Hide all information containers
             document.getElementById(`detailed-view-cell`).style.display = 'none';
@@ -691,8 +692,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 currentCompartment = myVars[0];
                 const compartmentContainer = row.append("div") // Creating a container for the title and svg
                     .attr("class", "compartment air")
-                    .attr("id", "compartment-air-container")
+                    .attr("id", "compartment-air")
                     .style("cursor", "pointer")
+                    .attr("comp-title", `${currentCompartment}`)
                     .on("click", compartmentClick);
 
                 compartmentContainer.append("div")
@@ -713,7 +715,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     switch (uniqueNumber) {
                         case 1: // Impacted soil
                         case 7:
-                            uniqueCompartment = `compartment-${uniqueNumber}`;
                             if (uniqueNumber === 1) {
                                 currentCompartment = myVars[2];
                                 compTitle = currentCompartment;
@@ -721,11 +722,11 @@ document.addEventListener('DOMContentLoaded', function () {
                                 currentCompartment = myVars[1];
                                 compTitle = currentCompartment;
                             }
+                            uniqueCompartment = `compartment-${compTitle.toLowerCase().replaceAll("_", "-")}`;
                             break;
 
                         case 2: // Background Soil
                         case 8:
-                            uniqueCompartment = `compartment-${uniqueNumber}`;
                             if (uniqueNumber === 2) {
                                 currentCompartment = myVars[4];
                                 compTitle = currentCompartment;
@@ -733,11 +734,11 @@ document.addEventListener('DOMContentLoaded', function () {
                                 currentCompartment = myVars[3];
                                 compTitle = currentCompartment;
                             }
+                            uniqueCompartment = `compartment-${compTitle.toLowerCase().replaceAll("_", "-")}`;
                             break;
 
                         case 3: // Freshwater
                         case 9:
-                            uniqueCompartment = `compartment-${uniqueNumber}`;
                             if (uniqueNumber === 3) {
                                 currentCompartment = myVars[11];
                                 compTitle = "Freshwater Surface";
@@ -745,11 +746,11 @@ document.addEventListener('DOMContentLoaded', function () {
                                 currentCompartment = myVars[10];
                                 compTitle = "Freshwater";
                             }
+                            uniqueCompartment = `compartment-${compTitle.toLowerCase().replaceAll(" ", "-")}`;
                             break;
 
                         case 4: // Beach
                         case 10:
-                            uniqueCompartment = `compartment-${uniqueNumber}`;
                             if (uniqueNumber === 4) {
                                 currentCompartment = myVars[6];
                                 compTitle = "Beach Surface";
@@ -757,11 +758,11 @@ document.addEventListener('DOMContentLoaded', function () {
                                 currentCompartment = myVars[5];
                                 compTitle = "Beach Subsurface";
                             }
+                            uniqueCompartment = `compartment-${compTitle.toLowerCase().replaceAll(" ", "-")}`;
                             break;
 
                         case 5: // Coastal Water
                         case 11:
-                            uniqueCompartment = `compartment-${uniqueNumber}`;
                             if (uniqueNumber === 5) {
                                 currentCompartment = myVars[13];
                                 compTitle = "Coastal Water Surface";
@@ -769,12 +770,12 @@ document.addEventListener('DOMContentLoaded', function () {
                                 currentCompartment = myVars[12];
                                 compTitle = "Coastal Water";
                             }
+                            uniqueCompartment = `compartment-${compTitle.toLowerCase().replaceAll(" ", "-")}`;
                             break;
 
                         case 6: // Ocean
                         case 12:
                         case 18:
-                            uniqueCompartment = `compartment-${uniqueNumber}`;
                             if (uniqueNumber === 6) {
                                 currentCompartment = myVars[16];
                                 compTitle = "Ocean Surface";
@@ -785,12 +786,12 @@ document.addEventListener('DOMContentLoaded', function () {
                                 currentCompartment = myVars[14];
                                 compTitle = "Deep Ocean";
                             }
+                            uniqueCompartment = `compartment-${compTitle.toLowerCase().replaceAll(" ", "-")}`;
                             break;
 
                         case 14: // Freshwater Sediment
                         case 17: // Coastal Water Sediment
                         case 24: // Ocean Sediment
-                            uniqueCompartment = `compartment-${uniqueNumber}`;
                             if (uniqueNumber === 14) {
                                 currentCompartment = myVars[9];
                                 compTitle = "Freshwater Sediment";
@@ -801,6 +802,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 currentCompartment = myVars[8];
                                 compTitle = "Ocean Sediment";
                             }
+                            uniqueCompartment = `compartment-${compTitle.toLowerCase().replaceAll(" ", "-")}`;
                             break;
 
                         default:
@@ -818,6 +820,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     row.append("div")
                         .attr("class", `${compartmentType}`)
                         .attr("id", `${uniqueCompartment}`)
+                        .attr("comp-title", compTitle)
                         .text(`${compTitle.replaceAll("_", " ")}`)
                         .style("font-geight", "normal");
 

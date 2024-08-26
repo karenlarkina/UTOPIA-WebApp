@@ -126,7 +126,7 @@ h3 {
     width: 100%;
     flex-direction: column;
 }
-#cell-title {
+.selection-title {
     background-color: #FFF2CC;
     border:  2px solid #E98B4B;
     font-weight: bold;
@@ -290,7 +290,7 @@ legend-text {
     font-size: medium;
 }
 
-#compartment-24 { /* special case for ocean sediment position */
+#compartment-ocean-sediment { /* special case for ocean sediment position */
     position: relative;
     top: -115px;
     left: 0px;
