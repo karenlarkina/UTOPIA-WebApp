@@ -231,7 +231,7 @@ h3 {
 }
 
 .blurry { /* Blur effect for the background when loading */
-    filter: blur(2px);
+    filter: blur(2px) saturate(40%);
 }
 
 .nothing { /* containers under the stretched legend container */

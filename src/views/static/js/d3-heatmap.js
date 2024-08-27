@@ -1,4 +1,6 @@
 let utopia_model_results = null;
+let selectedCell = null;
+let selectedCompartment = null;
 
 document.addEventListener('DOMContentLoaded', function () {
     // Select the "Run" button
@@ -30,6 +32,31 @@ document.addEventListener('DOMContentLoaded', function () {
         return JSON.stringify(utopiaObject)
     }
 
+    // Function to unselect all selected elements (cell/compartment), hide selection info and unblur all
+    function unselectEverything() {
+        document.getElementById(`detailed-view-cell`).style.display = 'none';
+        document.getElementById(`detailed-view-compartment`).style.display = 'none';
+        if (selectedCell !== null || selectedCompartment !== null) {
+            unblurCompartments();
+            if (selectedCompartment) { // unselecting previously selected compartment
+                d3.select(selectedCompartment)
+                    .style("border", "solid 1px #000");
+                selectedCompartment = null;
+            }
+            if (selectedCell) { // Unselecting previously selected cell
+                d3.select(selectedCell)
+                    .style("stroke", "white") // Set stroke color back to white
+                    .style("opacity", 0.8); // Reset the cell color
+            }
+        }
+    }
+
+    // Function to unblur all compartments
+    function unblurCompartments() {
+        d3.selectAll('.compartment')
+            .classed('blurry', false);
+    }
+
     // Building the new heatmaps with respect to compartments
     let assembleCompHeatMap = function(title, csvText, mode, csvExtended) {
         // Remove any existing heatmap
@@ -48,7 +75,8 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr("width", width + 160)
             .attr("height", heatmapContainerHeight)
             .append("g")
-            .attr("transform", `translate(${margin.left}, ${margin.top})`);
+            .attr("transform", `translate(${margin.left}, ${margin.top})`)
+            .on("click", unselectEverything); // closing info and unselecting when clicked outside of compartments
 
         // Update the text size of the title
         container.append("text")
@@ -191,31 +219,13 @@ document.addEventListener('DOMContentLoaded', function () {
             selectedElement.node().classed('blurry', false); // unblurring the selected element compartment
         }
 
-        // Function to unblur all compartments
-        function unblurCompartments() {
-            d3.selectAll('.compartment')
-                .classed('blurry', false);
-        }
 
-        let selectedCell = null; // Variable to store the selected cell
         // Function to handle cell selection
         const cellClick = function(event, d) {
             event.stopPropagation(); // Disallowing cpompartment selection to take place
-            unblurCompartments();
+            unselectEverything();
 
             if (d.value !== "") { // For cells that have a value
-                if (selectedCompartment) { // unselecting previously selected compartment
-                    document.getElementById(`detailed-view-compartment`).style.display = 'none';
-                    d3.select(selectedCompartment)
-                        .style("border", "solid 1px #000");
-                    selectedCompartment = null;
-                }
-                if (selectedCell) { // Unselecting previously selected cell
-                    d3.select(selectedCell)
-                        .style("stroke", "white") // Set stroke color back to white
-                        .style("opacity", 0.8); // Reset the cell color
-                }
-
                 selectedCell = this; // Update selected cell
                 const selection = d3.select(selectedCell);
                 const cellCompartment = selection.attr("data-compartment").replaceAll("compartment ", "") + " compartment"
@@ -264,21 +274,10 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         // Handling compartment selection
-        let selectedCompartment = null;
         const compartmentClick = function(event) {
-            unblurCompartments();
+            event.stopPropagation();
+            unselectEverything();
             const clickedClass = d3.select(this).attr("class");
-
-            if (selectedCell) { // Unselecting previously selected cell
-                document.getElementById(`detailed-view-cell`).style.display = 'none';
-                d3.select(selectedCell)
-                    .style("stroke", "white") // Set stroke color back to white
-                    .style("stroke-width", "0.8"); // Reset the cell color
-            }
-            if (selectedCompartment) { // Unselecting previously selected compartment
-                d3.select(selectedCompartment)
-                    .style("border", "solid 1px #000"); // Reset the compartment border
-            }
 
             selectedCompartment = this; // Update selected compartment
             blurCompartments(d3.select(selectedCompartment));
@@ -999,8 +998,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('loading-spinner').style.display = 'block'; // Loading animation
         document.getElementById('main-content').classList.add('blur'); // Blurring the background
         // Hide all information containers
-        document.getElementById(`detailed-view-cell`).style.display = 'none';
-        document.getElementById(`detailed-view-compartment`).style.display = 'none';
+        unselectEverything();
         // Collect all variable values to be sent to the backend
         let inputData = extractVariablesFromClientSide();
         // Make HTTP post and get result
@@ -1063,28 +1061,37 @@ document.addEventListener('DOMContentLoaded', function () {
                 let element = parsedInput[Object.keys(parsedInput)[index]][inputFieldName];
                 if (i === 1) { // Check to make Emission Scenario MP form field presentable
                     let cleanName = "";
-                    if (element === "freeMP") {
-                        cleanName = "Free";
-                    } else if (element === "heterMP") {
-                        cleanName = "Heter"; // heteroaggregated
-                    } else if (element === "biofMP") {
-                        cleanName = "Biof"; // biofouled
-                    } else {
-                        cleanName = "HeterBiof"; // heteroaggregted and biofouled
-                    }
+                    switch (element) {
+                        case "freeMP":
+                            cleanName = "Free"; // free microplastics
+                            break
+                        case "heterMP":
+                            cleanName = "Heter"; // heteroaggregated
+                            break
+                        case "biofMP":
+                            cleanName = "Biof"; // biofouled
+                            break
+                        default:
+                            cleanName = "HeterBiof"; // heteroaggregted and biofouled
+                        }
                     fieldValueArray.push(cleanName);
                 } else if (i === 2) { // Check to make Emission Scenario size bin field presentable
                     let numValue = 0;
-                    if (element === "a") {
-                        numValue = "0.5μm";
-                    } else if (element === "b") {
-                        numValue = "5μm";
-                    } else if (element === "c") {
-                        numValue = "50μm";
-                    } else if (element === "d") {
-                        numValue = "500μm";
-                    } else {
-                        numValue = "5mm";
+                    switch (element) {
+                        case "a":
+                            numValue = "0.5μm";
+                            break
+                        case "b":
+                            numValue = "5μm";
+                            break
+                        case "c":
+                            numValue = "50μm";
+                            break
+                        case "d":
+                            numValue = "500μm";
+                            break
+                        default:
+                            numValue = "5mm";
                     }
                     fieldValueArray.push(numValue);
                 } else { // Adding the element name, replacing _ with spaces where needed
@@ -1105,8 +1112,7 @@ document.addEventListener('DOMContentLoaded', function () {
     comp_mass_fraction_distribution_btn.addEventListener('click', function() {
         if(utopia_model_results !== null){
             // Hide all information containers
-            document.getElementById(`detailed-view-cell`).style.display = 'none';
-            document.getElementById(`detailed-view-compartment`).style.display = 'none';
+            unselectEverything();
             // Removing selection from the other
             comp_number_fraction_distribution_btn.classList.remove('active');
             // Highlighting selection on the navbar
@@ -1117,8 +1123,7 @@ document.addEventListener('DOMContentLoaded', function () {
     comp_number_fraction_distribution_btn.addEventListener('click', function() {
         if(utopia_model_results !== null){
             // Hide all information containers
-            document.getElementById(`detailed-view-cell`).style.display = 'none';
-            document.getElementById(`detailed-view-compartment`).style.display = 'none';
+            unselectEverything();
             // Removing selection from the other
             comp_mass_fraction_distribution_btn.classList.remove('active');
             // Highlighting selection on the navbar
