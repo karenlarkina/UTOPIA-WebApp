@@ -1,5 +1,6 @@
 import os
 import csv
+import numpy as np
 from src.models.script_UTOPIA_user import execute_utopia_model
 
 # Function to read CSV files from a folder
@@ -50,9 +51,10 @@ def convert_format_python_to_d3(df):
 
 # Function to convert the extended results dataframe to d3 svg
 def convert_python_table_format_to_d3(df):
-
+    # Reset index to convert MultiIndex to columns
     df.reset_index(inplace=True)
 
+    # Melt the DataFrame
     melted_df = df.melt(id_vars=['Compartment', 'MP_Form', 'Size_Fraction_um',
                                   'mass_g',
                                   'number_of_particles',
@@ -73,20 +75,31 @@ def convert_python_table_format_to_d3(df):
                                   'Persistence_time_mass_years',
                                   'Persistence_time_num_years'], var_name='variable', value_name='value')
 
-    # Concatenate 'MP_Form' and 'Size_Fraction_um' to form the 'variable'
+    # Concatenate 'MP_Form' and 'Size_Fraction_um' to form the 'group' and 'Compartment' to 'variable'
     melted_df['group'] = melted_df['MP_Form'] + ' + ' + melted_df['Size_Fraction_um'].astype(str)
     melted_df['variable'] = melted_df['Compartment'].astype(str)
 
     # Drop unnecessary columns
     melted_df.drop(columns=['MP_Form', 'Size_Fraction_um', 'Compartment'], inplace=True)
 
+    # Apply log transformation to 'mass_g' and 'number_of_particles' to normalize data
+    for col in ['mass_fraction', 'number_fraction']:
+        melted_df[col] = np.log10(melted_df[col])
+
+        # Replace -inf values with NaN
+        melted_df[col].replace(-np.inf, np.nan, inplace=True)
+
+        # Set the lower limit and replace values below it with 0
+        lower_limit = -14  # Example lower limit
+        melted_df[col] = melted_df[col].apply(lambda x: np.NaN if x < lower_limit else x)
+
     melted_df = melted_df[['variable', 'group',
                            'mass_g',
                            'number_of_particles',
                            'concentration_g_m3',
                            'concentration_num_m3',
-                           'mass_fraction', # --> multiply by 100 to obtain %of total mass
-                           'number_fraction', # --> multiply by 100 to obtain %of total particle number
+                           'mass_fraction',  # --> multiply by 100 to obtain %of total mass
+                           'number_fraction',  # --> multiply by 100 to obtain %of total particle number
                            'inflows_g_s',
                            'inflows_num_s',
                            'outflows_g_s',
@@ -100,21 +113,7 @@ def convert_python_table_format_to_d3(df):
                            'Persistence_time_mass_years',
                            'Persistence_time_num_years']]
 
-    # Converting into a csv string
-    csv_df = melted_df.to_csv(index=False)
-
-    print("\n\nNUMBER OF EXTENDED ELEMENTS:\n", len(csv_df))
-
-    # Calculate a quarter of the number of rows
-    quarter_rows = len(melted_df) // 4
-
-    # Select the first quarter of the DataFrame
-    quarter_df = melted_df.iloc[:quarter_rows]
-
-    # Print the quarter DataFrame
-    print(quarter_df)
-
-    return csv_df
+    return melted_df.to_csv(index=True)
 
 
 def run_utopia(input_obj):

@@ -207,8 +207,8 @@ h3 {
 .horiz-area { /* rows where compartments are placed */
     display: flex;
     width: 1000px;
-    margin-bottom: 5px;
-    gap: 5px;
+    margin-bottom: 10px;
+    gap: 10px;
 }
 
 .white-background { /* background for the heatmaps so cell colors stand out */
@@ -220,7 +220,7 @@ h3 {
 
 .compartment {
     border: solid 1px #000;
-    border-radius: 5px;
+    border-radius: 3px;
     height: 125px;
     width: 100%;
     justify-content: center;
@@ -231,7 +231,8 @@ h3 {
 }
 
 .blurry { /* Blur effect for the background when loading */
-    filter: blur(2px) saturate(40%);
+    filter: blur(2px);
+    opacity: 0.4;
 }
 
 .nothing { /* containers under the stretched legend container */

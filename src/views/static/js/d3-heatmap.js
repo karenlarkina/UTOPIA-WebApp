@@ -88,28 +88,39 @@ document.addEventListener('DOMContentLoaded', function () {
             .style("margin-bottom", "30px")
             .text(title);
 
-        let data = d3.csvParse(csvText);
-        const myGroups = Array.from(new Set(data.map(d => d.group))).reverse();
-        const myVars = Array.from(new Set(data.map(d => d.variable))).reverse();
-        const myValues = data.map(d => parseFloat(d.value));
-
-        // // TODO experimenting with extended data -> getting compartments, and drawing cells but with NaN values
-        // // =======================extended=data========================================
-        // let data = d3.csvParse(csvExtended);
+        // Old system using separate csv files for mass and number fraction heatmaps
+        // let data = d3.csvParse(csvText);
         // const myGroups = Array.from(new Set(data.map(d => d.group))).reverse();
         // const myVars = Array.from(new Set(data.map(d => d.variable))).reverse();
-        //
-        // let myValues = null;
-        // let valueVar = null;
-        //
-        // if (mode === "mass") {
-        //     myValues = data.map(d => parseFloat(d.mass_g));
-        //     valueVar = 'mass_g';
-        // } else {
-        //     myValues = data.map(d => parseFloat(d.number_of_particles));
-        //     valueVar = 'number_of_particles';
-        // }
-        // // =======================extended=data========================================
+        // const myValues = data.map(d => parseFloat(d.value));
+
+        // ========================NEW=IN=USE===extended=data=======================
+        let data = d3.csvParse(csvExtended);
+        const myGroups = Array.from(new Set(data.map(d => d.group))).reverse();
+        const myVars = Array.from(new Set(data.map(d => d.variable))).reverse();
+
+        let myValues = null;
+        // let detailedInfoItems = new Map(); // can be used to store and fetch different properties
+        // Column labels for fetching different properties for selected cell (different for mass and particle number)
+        let fraction = null;
+        let cellResidence = null;
+        let cellPersistence = null;
+
+        // Getting the values depending on mode and storing appropriate column labels
+        if (mode === "mass") {
+            myValues = data.map(d => parseFloat(d.mass_fraction));
+            fraction = 'mass_fraction';
+            cellResidence = 'Residence_time_mass_years';
+            cellPersistence = 'Persistence_time_mass_years';
+            // detailedInfoItems.set("fraction", 'mass_fraction');
+        } else {
+            myValues = data.map(d => parseFloat(d.number_fraction));
+            fraction = 'number_fraction';
+            cellResidence = 'Residence_time_num_years';
+            cellPersistence = 'Persistence_time_num_years';
+            // detailedInfoItems.set("fraction", 'number_fraction');
+        }
+        // =======================extended=data========================================
 
         const collections = {}; // For storing data for each compartment separately
         // Dividing the data according to myVars elements (compartments)
@@ -145,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Function to get color based on value
         const getColor = value => {
-            if (value === '') {
+            if (value === '' || value === 0 || Number.isNaN(value)) {
                 return '#EDEDED'; // Color for empty values
             } else {
                 return myColor(value); // Scalar color for other values
@@ -160,6 +171,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Three functions that change the tooltip when the user hovers/moves/leaves a cell
         const mouseover = function (event, d) {
+            // if (d[fractionType] !== "" && d[fractionType] !== 0 && d[fractionType] !== "0" && !Number.isNaN(d[fractionType])) {
+            //    // when hovering over no visual effect should be shown for empty cells
+            // }
             tooltip
                 .style("opacity", 1);
             if (this !== selectedCell) { // to ensure that the selected cell still appears selected
@@ -171,15 +185,15 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         const mousemove = function(event, d) {
-            if (d.value !== "") {
+            if (d[fraction] !== "" && d[fraction] !== 0 && d[fraction] !== "0" && !Number.isNaN(d[fraction])) { // <--adjusted for extended data
                 // Calculate the position of the tooltip relative to the mouse pointer
                 const tooltipLeft = event.pageX + 10;
                 const tooltipTop = event.pageY - 50;
 
                 // Update the position of the tooltip
                 tooltip
-                    .html("" + Number(d.value).toFixed(2)) // <--------------- with old heatmaps data
-                    // .html("" + Number(d[valueVar]).toFixed(2)) // <--------------- with extended data
+                    // .html("" + Number(d.value).toFixed(2)) // <--------------- with old heatmaps data
+                    .html("" + Number(d[fraction]).toFixed(2)) // <--------------- with extended data
                     .style("left", tooltipLeft + "px")
                     .style("top", tooltipTop + "px")
                     .style("display", "block");
@@ -244,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function () {
             event.stopPropagation(); // Disallowing cpompartment selection to take place
             unselectEverything();
 
-            if (d.value !== "") { // For cells that have a value
+            if (d[fraction] !== "" && d[fraction] !== 0 && d[fraction] !== "0" && !Number.isNaN(d[fraction])) { // For cells that have a value // <--adjusted for extended data
                 selectedCell = this; // Update selected cell
                 const selection = d3.select(selectedCell);
                 const cellCompartment = selection.attr("data-compartment").replaceAll("compartment ", "") + " compartment"
@@ -253,19 +267,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 const selectedComp = (d3.select(`#${compName}`));
                 blurCompartments(selectedComp);
 
-                const cellValue = Number(d.value).toFixed(2); // <--------------- with old heatmaps data
-                // const cellValue = Number(d[valueVar]).toFixed(2); // <--------------- with extended data
-
-                d3.select(`#cell-info-percentage`) // Update cell info
-                    .html(`Log ${mode} function = ` + cellValue);
-                d3.select(`#total-percent`) // Update cell info
-                    .html(`% of total ${mode} = __%`);
-                d3.select(`#residence-value`) // Update cell info
-                    .html(`Residence time = ${cellValue}/sum(output_flows)`);
-                d3.select(`#persistence-value`) // Update cell info
-                    .html(`Persistence = ${cellValue}/discorporation_flow`);
+                // populating the title
                 d3.select('#cell-title')
-                    .html(`${selection.attr('size-bin')} µm ${getMPForm(cellMPForm)} particles in the ${cellCompartment}`)
+                    .html(`${selection.attr('size-bin')} µm ${getMPForm(cellMPForm)} particles in the ${cellCompartment}`); // <--adjusted for extended data
+
+                // const cellValue = Number(d.value).toFixed(2); // <--------------- with old heatmaps data
+                // const cellValue = Number(d[fraction]).toFixed(2); // <--------------- with extended data
+
+                // populating the detailed information fields
+                d3.select(`#cell-info-percentage`) // Update cell info
+                    .html(`Log ${mode} function = ` + Number(d[fraction]).toFixed(2)); // <--adjusted for extended data
+                d3.select(`#total-percent`) // Update cell info
+                    .html(`% of total ${mode} = ${Number(selection.attr('total-percent')).toFixed(2)}%`); // <--adjusted for extended data
+                d3.select(`#residence-value`) // Update cell info
+                    .html(`Residence time = ${Number(selection.attr('residence')).toFixed(2)} years`); // <--adjusted for extended data
+                d3.select(`#persistence-value`) // Update cell info
+                    .html(`Persistence = ${Number(selection.attr('persistance')).toFixed(2)} years`); // <--adjusted for extended data
 
                 d3.select(this)
                     .style("stroke", "black") // Set stroke color to black
@@ -362,8 +379,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     .attr("y", d => yScale(parseGroup(d.group).type)) // parsing the II part of myGroup element
                     .attr("width", singleCellSize - singleCellGap)
                     .attr("height", singleCellSize - singleCellGap)
-                    .attr("fill", d => getColor(d.value)) // <--------------- with old heatmaps data
-                    // .attr("fill", d => getColor(d[valueVar])) // <--------------- with extended data
+                    // .attr("fill", d => getColor(d.value)) // <--------------- with old heatmaps data
+                    .attr("fill", d => getColor(parseFloat(d[fraction]))) // <--------------- with extended data
+                    // TODO this is illogical when multiplied by 100
+                    .attr("total-percent", d => (Number(d[fraction] * 100))) // <--------------- with extended data
+                    .attr("residence", d => parseFloat(d[cellResidence])) // <--------------- with extended data
+                    .attr("persistance", d => parseFloat(d[cellPersistence])) // <--------------- with extended data
                     .attr("stroke", "white")
                     .attr("z-index", "9") // lifting up the cells
                     .style("stroke-width", "0.8px")
@@ -372,8 +393,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     .on("mousemove", mousemove)
                     .on("mouseleave", mouseleave)
                     .on("click", cellClick)
-                    .attr('data-value', d => d.value) // <--------------- with old heatmaps data
-                    // .attr('data-value', d => d[valueVar]) // <--------------- with extended data
+                    // .attr('data-value', d => d.value) // <--------------- with old heatmaps data
+                    .attr('data-value', d => parseFloat(d[fraction])) // <--------------- with extended data
                     .attr('data-compartment', compartmentType)
                     .attr('size-bin', d => parseGroup(d.group).size)
                     .attr('part-type', d => parseGroup(d.group).type);
