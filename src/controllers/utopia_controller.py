@@ -73,7 +73,14 @@ def convert_python_table_format_to_d3(df):
                                   'Persistence_time_mass_years',
                                   'Persistence_time_num_years'], var_name='variable', value_name='value')
 
-    melted_df = melted_df[['Compartment', 'MP_Form', 'Size_Fraction_um',
+    # Concatenate 'MP_Form' and 'Size_Fraction_um' to form the 'variable'
+    melted_df['group'] = melted_df['MP_Form'] + ' + ' + melted_df['Size_Fraction_um'].astype(str)
+    melted_df['variable'] = melted_df['Compartment'].astype(str)
+
+    # Drop unnecessary columns
+    melted_df.drop(columns=['MP_Form', 'Size_Fraction_um', 'Compartment'], inplace=True)
+
+    melted_df = melted_df[['variable', 'group',
                            'mass_g',
                            'number_of_particles',
                            'concentration_g_m3',
@@ -96,7 +103,16 @@ def convert_python_table_format_to_d3(df):
     # Converting into a csv string
     csv_df = melted_df.to_csv(index=False)
 
-    # print("\n\nNUMBER OF EXTENDED ELEMENTS:\n", len(csv_df))
+    print("\n\nNUMBER OF EXTENDED ELEMENTS:\n", len(csv_df))
+
+    # Calculate a quarter of the number of rows
+    quarter_rows = len(melted_df) // 4
+
+    # Select the first quarter of the DataFrame
+    quarter_df = melted_df.iloc[:quarter_rows]
+
+    # Print the quarter DataFrame
+    print(quarter_df)
 
     return csv_df
 
