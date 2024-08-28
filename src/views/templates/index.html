@@ -191,7 +191,7 @@
                         <div id="model-run-container">
                             <div class="detailed-info-column" >
                                 <!-- Model Run information container -->
-                                <t class="detailed-title" style="margin-left: 20px">Model Run:</t>
+                                <t class="detailed-title">Model Run:</t>
                                 <div class="inner-detail-container" id="model-run-input"></div>
                             </div>
                         </div>
@@ -201,43 +201,38 @@
                                 <div id="cell-title"  class="selection-title">Something something</div>
                                 <div class="inner-detail-container-general">
                                     <div id="cell-info-percentage"></div>
-                                    <div id="total-percent">% of total mass = __% </div>
+                                    <div id="total-percent"></div>
                                     <div id="residence-value"></div>
                                     <div id="persistence-value"></div>
                                 </div>
                                 <div class="inner-detail-container" style="border-top: 1px solid black;">
                                     <div class="param-container">
-                                        <div class="param-name"></div>
-                                        <div class="param-name">Rate (g/s)</div>
-                                        <div class="param-name">Total</div>
-                                        <div class="param-name">%</div>
+                                        <div class="param-value-left bold"></div>
+                                        <div class="param-value bold">Rate (g/s)</div>
+                                        <div class="param-value bold">Total</div>
+                                        <div class="param-value bold">%</div>
                                     </div>
                                 </div>
                                 <div class="detail-container">
-                                    <t class="detailed-title">Inflows</t>
-                                </div>
-                                <div class="inner-detail-container">
                                     <div class="param-container">
-                                        <div class="param-value-left">Settling</div>
-                                        <div class="param-value" id="single-sett-inflow-rate">x.x</div>
-                                        <div class="param-value" id="single-sett-inflow-total">x.x</div>
-                                        <div class="param-value" id="single-sett-inflow-pc">x %</div>
+                                        <div class="param-value-left bold">Inflows</div>
+                                        <div class="param-value"></div>
+                                        <div class="param-value bold" id="total-inflow"></div>
+                                        <div class="param-value"></div>
                                     </div>
                                 </div>
+                                <div class="inner-detail-container" id="inflows-container">
+                                </div>
                                 <div class="detail-container">
-                                    <t class="detailed-title">Outflows</t>
+                                    <div class="param-container">
+                                        <div class="param-value-left bold">Outflows</div>
+                                        <div class="param-value"></div>
+                                        <div class="param-value bold" id="total-outflow"></div>
+                                        <div class="param-value"></div>
+                                    </div>
+
                                 </div>
-                                <div class="inner-detail-container">
-                                    <t class="text-field">Discorporation</t>
-                                </div>
-                                <div class="inner-detail-container">
-                                    <t class="text-field">Fragmentation</t>
-                                </div>
-                                <div class="inner-detail-container">
-                                    <t class="text-field">Sediment resuspension</t>
-                                </div>
-                                <div class="inner-detail-container">
-                                    <t class="text-field">Burial</t>
+                                <div class="inner-detail-container" id="outflows-container">
                                 </div>
                             </div>
                         </div>

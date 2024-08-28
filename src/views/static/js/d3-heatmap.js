@@ -46,7 +46,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (selectedCell) { // Unselecting previously selected cell
                 d3.select(selectedCell)
                     .style("stroke", "white") // Set stroke color back to white
-                    .style("opacity", 0.8); // Reset the cell color
+                    .style("stroke-width", "0.8px")
+                    .style("opacity", 0.7); // Reset the cell color
             }
         }
     }
@@ -59,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Building the new heatmaps with respect to compartments
     let assembleCompHeatMap = function(title, csvText, mode, csvExtended) {
-        d3.select('#master-column').on("click", unselectEverything); // closing info and unselecting when clicked outside of compartments
+        // d3.select('#master-column').on("click", unselectEverything); // closing info and unselecting when clicked outside of compartments
         // Remove any existing heatmap
         d3.select('#heatmap-container').selectAll('*').remove();
         // Set the dimensions and margins of the graph
@@ -75,6 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const container = d3.select("#heatmap-container")
             .attr("width", width + 160)
             .attr("height", heatmapContainerHeight)
+            .on("click", unselectEverything) // closing info column only when ckicked in heatmap area to let user copy info column elements
             .append("g")
             .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
@@ -103,21 +105,36 @@ document.addEventListener('DOMContentLoaded', function () {
         // let detailedInfoItems = new Map(); // can be used to store and fetch different properties
         // Column labels for fetching different properties for selected cell (different for mass and particle number)
         let fraction = null;
+        let originFraction = null;
         let cellResidence = null;
         let cellPersistence = null;
+        let totalInflow = null;
+        let inflows = null;
+        let totalOutflow = null;
+        let outflows = null;
 
         // Getting the values depending on mode and storing appropriate column labels
         if (mode === "mass") {
-            myValues = data.map(d => parseFloat(d.mass_fraction));
-            fraction = 'mass_fraction';
+            myValues = data.map(d => parseFloat(d.mass));
+            fraction = 'mass';
+            originFraction = 'mass_fraction';
             cellResidence = 'Residence_time_mass_years';
             cellPersistence = 'Persistence_time_mass_years';
+            totalInflow = 'Total_inflows_g_s';
+            inflows = 'inflows_g_s';
+            totalOutflow = 'Total_outflows_g_s';
+            outflows = 'outflows_g_s';
             // detailedInfoItems.set("fraction", 'mass_fraction');
         } else {
-            myValues = data.map(d => parseFloat(d.number_fraction));
-            fraction = 'number_fraction';
+            myValues = data.map(d => parseFloat(d.number));
+            fraction = 'number';
+            originFraction = 'number_fraction';
             cellResidence = 'Residence_time_num_years';
             cellPersistence = 'Persistence_time_num_years';
+            totalInflow = 'Total_inflows_num_s';
+            inflows = 'inflows_num_s';
+            totalOutflow = 'Total_outflows_num_s';
+            outflows = 'outflows_num_s';
             // detailedInfoItems.set("fraction", 'number_fraction');
         }
         // =======================extended=data========================================
@@ -210,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 d3.select(this)
                     .style("stroke", "white") // Set stroke color back to white
                     .style("stroke-width", "0.8px")
-                    .style("opacity", 0.8); // Reset the cell color
+                    .style("opacity", 0.7); // Reset the cell color
             }
         };
 
@@ -252,6 +269,44 @@ document.addEventListener('DOMContentLoaded', function () {
             selectedElement.node().classed('blurry', false); // unblurring the selected element compartment
         }
 
+        // Function to add flows information to given d3 flow element
+        function addFlowEntries(container, flowName, value, flowPercentage) {
+            let flowValue = Number(value).toFixed(4);
+            if (flowValue <= 0) {
+                flowValue = 0;
+            }
+            let percentage = Number(flowPercentage).toFixed(1);
+            if (percentage <= 0) {
+                percentage = 0;
+            }
+            container.append("div")
+                .attr("class", "small-param-value-left")
+                .text(`${flowName.charAt(0).toUpperCase()}${flowName.slice(1)}`);
+            container.append("div")
+                .attr("class", "small-param-value")
+                .text(`${flowValue}`);
+            container.append("div")
+                .attr("class", "small-param-value");
+            container.append("div")
+                .attr("class", "small-param-value")
+                .text(`${percentage}`);
+        }
+
+        // Function to add an empty placeholder entry to flows table for cells with now inflows-outflows
+        function addEmptyFlowEntry(container) {
+            container.append("div")
+                .attr("class", "small-param-value-left")
+                .text(`-`);
+            container.append("div")
+                .attr("class", "small-param-value")
+                .text(`-`);
+            container.append("div")
+                .attr("class", "small-param-value")
+                .text(`-`);
+            container.append("div")
+                .attr("class", "small-param-value")
+                .text(`-`);
+        }
 
         // Function to handle cell selection
         const cellClick = function(event, d) {
@@ -276,17 +331,65 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // populating the detailed information fields
                 d3.select(`#cell-info-percentage`) // Update cell info
-                    .html(`Log ${mode} function = ` + Number(d[fraction]).toFixed(2)); // <--adjusted for extended data
+                    .html(`Log ${mode} fraction = ` + Number(d[fraction]).toFixed(2)); // <--adjusted for extended data
                 d3.select(`#total-percent`) // Update cell info
-                    .html(`% of total ${mode} = ${Number(selection.attr('total-percent')).toFixed(2)}%`); // <--adjusted for extended data
+                    .html(`% of total ${mode} = ${Math.round(selection.attr('total-percent'))}%`); // <--adjusted for extended data
                 d3.select(`#residence-value`) // Update cell info
-                    .html(`Residence time = ${Number(selection.attr('residence')).toFixed(2)} years`); // <--adjusted for extended data
+                    .html(`Residence time = ${Math.round(selection.attr('residence'))} (years)`); // <--adjusted for extended data
                 d3.select(`#persistence-value`) // Update cell info
-                    .html(`Persistence = ${Number(selection.attr('persistance')).toFixed(2)} years`); // <--adjusted for extended data
+                    .html(`Persistence = ${Math.round(selection.attr('persistance'))} (years)`); // <--adjusted for extended data
+
+                // populating total inflows and outflows
+                let totalInflow = Number(selection.attr('total-inflow')).toFixed(4);
+                let totalOutflow = Number(selection.attr('total-outflow')).toFixed(4);
+                d3.select('#total-inflow')
+                    .html(`${totalInflow}`);
+                d3.select('#total-outflow')
+                    .html(`${totalOutflow}`);
+                // getting the inflows and outflows and converting them into Maps
+                let inflowsString = (selection.attr('inflows')).replace(/'/g, '"');
+                let outflowsString = (selection.attr('outflows')).replace(/'/g, '"');
+                let inflowsObj = JSON.parse(inflowsString);
+                let outflowsObj = JSON.parse(outflowsString);
+                let inflowsMap = new Map(Object.entries(inflowsObj));
+                let outflowsMap = new Map(Object.entries(outflowsObj));
+                // filling the inflows and outflows table
+                const inflowContainer = d3.select('#inflows-container');
+                inflowContainer.selectAll('*').remove();
+                // listing all the inflows if there are any
+                if (totalInflow > 0) {
+                    inflowsMap.forEach((value, key) => {
+                        let inflowName = key.replaceAll("k_", "").replaceAll("_", " ");
+                        let inflowPercentage = (100 * Number(value).toFixed(4)) / totalInflow;
+                        let inflowsItem = inflowContainer.append("div") // creating the row entry per inflow item
+                            .attr("class", "param-container-list");
+                        addFlowEntries(inflowsItem, inflowName, value, inflowPercentage);
+                    });
+                } else { // if no inflows then showing one row of - - -
+                    let inflowsItem = inflowContainer.append("div")
+                        .attr("class", "param-container-list");
+                    addEmptyFlowEntry(inflowsItem);
+                }
+                const outflowContainer = d3.select('#outflows-container');
+                outflowContainer.selectAll('*').remove();
+                // listing all the outflows if there are any
+                if (totalOutflow > 0) {
+                    outflowsMap.forEach((value, key) => {
+                        let outflowName = key.replaceAll("k_", "").replaceAll("_", " ");
+                        let outflowPercentage = (100 * Number(value).toFixed(4)) / totalOutflow;
+                        let outflowsItem = outflowContainer.append("div") // creating the row entry per outflow item
+                            .attr("class", "param-container-list");
+                        addFlowEntries(outflowsItem, outflowName, value, outflowPercentage);
+                    });
+                } else { // if no inflows then showing one row of - - -
+                    let outflowsItem = outflowContainer.append("div")
+                        .attr("class", "param-container-list");
+                    addEmptyFlowEntry(outflowsItem);
+                }
 
                 d3.select(this)
                     .style("stroke", "black") // Set stroke color to black
-                    .style("stroke-width", "2.5px")
+                    .style("stroke-width", "3px")
                     .style("opacity", 1);  // Make the cell color darker
                 // Display current view container
                 document.getElementById(`detailed-view-cell`).style.display = 'flex';
@@ -299,7 +402,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById(`detailed-view-cell`).style.display = 'none';
                 d3.select(selectedCell)
                     .style("stroke", "white") // Set stroke color back to white
-                    .style("opacity", 0.8); // Reset the cell color
+                    .style("stroke-width", "0.8px")
+                    .style("opacity", 0.7); // Reset the cell color
                 selectedCell = null;
 
                 if (selectedCompartment) { // Unselecting previously selected compartment
@@ -338,8 +442,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     .attr("class", "white-background");
 
                 let svg = svgWrapper.append("svg")
-                    .attr("width", (singleCellSize + singleCellGap) * 5.829)
-                    .attr("height", (singleCellSize + singleCellGap) * 4.56)
+                    .attr("width", (singleCellSize + singleCellGap) * 5.83)
+                    .attr("height", (singleCellSize + singleCellGap) * 4.57)
                     .append("svg")
                     .attr("transform",
                         "translate(" + singleMargin.left + "," + singleMargin.top + ")");
@@ -381,14 +485,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     .attr("height", singleCellSize - singleCellGap)
                     // .attr("fill", d => getColor(d.value)) // <--------------- with old heatmaps data
                     .attr("fill", d => getColor(parseFloat(d[fraction]))) // <--------------- with extended data
-                    // TODO this is illogical when multiplied by 100
-                    .attr("total-percent", d => (Number(d[fraction] * 100))) // <--------------- with extended data
+                    .attr("total-percent", d => (Number(d[originFraction] * 100))) // <--------------- with extended data
                     .attr("residence", d => parseFloat(d[cellResidence])) // <--------------- with extended data
                     .attr("persistance", d => parseFloat(d[cellPersistence])) // <--------------- with extended data
+                    .attr("total-inflow",  d => parseFloat(d[totalInflow])) // <--------------- with extended data
+                    .attr("total-outflow",  d => parseFloat(d[totalOutflow])) // <--------------- with extended data
+                    .attr("inflows",  d => d[inflows]) // <--------------- with extended data
+                    .attr("outflows",  d => d[outflows]) // <--------------- with extended data
                     .attr("stroke", "white")
                     .attr("z-index", "9") // lifting up the cells
                     .style("stroke-width", "0.8px")
-                    .style("opacity", 0.8)
+                    .style("opacity", 0.7)
                     .on("mouseover", mouseover)
                     .on("mousemove", mousemove)
                     .on("mouseleave", mouseleave)
@@ -627,7 +734,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr("stroke", "black")
             .style("stroke-width", 0.8)
             .style("fill", "url(#linear-gradient)")
-            .style("opacity", 0.8);
+            .style("opacity", 0.7);
 
         // Add the scale for the legend
         const superscripts = "⁰¹²³⁴⁵⁶⁷⁸⁹";

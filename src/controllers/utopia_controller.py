@@ -83,15 +83,19 @@ def convert_python_table_format_to_d3(df):
     melted_df.drop(columns=['MP_Form', 'Size_Fraction_um', 'Compartment'], inplace=True)
 
     # Apply log transformation to 'mass_g' and 'number_of_particles' to normalize data
+    num = 0
+    new_columns = ['mass', 'number']
     for col in ['mass_fraction', 'number_fraction']:
-        melted_df[col] = np.log10(melted_df[col])
+        # Apply log scale
+        melted_df[new_columns[num]] = np.log10(melted_df[col])
 
         # Replace -inf values with NaN
-        melted_df[col].replace(-np.inf, np.nan, inplace=True)
+        melted_df[new_columns[num]].replace(-np.inf, np.nan, inplace=True)
 
         # Set the lower limit and replace values below it with 0
         lower_limit = -14  # Example lower limit
-        melted_df[col] = melted_df[col].apply(lambda x: np.NaN if x < lower_limit else x)
+        melted_df[new_columns[num]] = melted_df[new_columns[num]].apply(lambda x: np.NaN if x < lower_limit else x)
+        num += 1
 
     melted_df = melted_df[['variable', 'group',
                            'mass_g',
@@ -100,6 +104,8 @@ def convert_python_table_format_to_d3(df):
                            'concentration_num_m3',
                            'mass_fraction',  # --> multiply by 100 to obtain %of total mass
                            'number_fraction',  # --> multiply by 100 to obtain %of total particle number
+                           'mass',
+                           'number',
                            'inflows_g_s',
                            'inflows_num_s',
                            'outflows_g_s',

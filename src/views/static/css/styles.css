@@ -46,7 +46,7 @@ h3 {
 }
 #master-column { /* Container holding the heatmap, legend, information container. */
     display: none;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
     margin-top: -25px;
     margin-bottom: 50px;
@@ -62,6 +62,7 @@ h3 {
     gap: 10px;
     align-items: flex-start;
     width: 52rem;
+    margin-top: 50px;
 }
 
 #model-run-container {
@@ -79,8 +80,7 @@ h3 {
     font-size: medium;
     word-wrap: break-word;
     white-space: pre-wrap;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin: 10px;
 
 }
 .text-center {
@@ -93,29 +93,53 @@ h3 {
     justify-content: space-between;
     align-items: flex-end;
     width: 100%;
+    /*margin-top: -15px;*/
+    padding: 5px;
 }
-.param-name {
-    font-weight: bold;
-    font-size: larger;
-    text-align: right;
-    padding: 10px;
+.param-container-list {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    width: 100%;
+    /*margin-top: 5px;*/
+    /*margin-bottom: 5px;*/
+    padding: 5px;
 }
 .param-value {
     font-size: large;
-    text-align: right;
+    text-align: center;
     padding: 10px;
+    flex: 1; /* Let each of these elements take up equal space */
+    margin-right: 20px;
 }
 .param-value-left{
     font-size: large;
     text-align: left;
     padding-bottom: 10px;
-    padding-top: 10px;
+    /*padding-top: 10px;*/
+    margin-right: 30px;
+    flex: 1; /* Let this element take up the same amount of space as others */
+}
+
+.small-param-value {
+    font-size: medium;
+    text-align: center;
+    margin-left: -15px;
+    flex: 1; /* Let each of these elements take up equal space */
+    margin-right: 20px;
+}
+.small-param-value-left{
+    font-size: medium;
+    text-align: left;
+    margin-left: 10px;
+    margin-right: 30px;
+    flex: 1; /* Let this element take up the same amount of space as others */
 }
 
 .detailed-views {
     display: none;
     width: 100%;
-    height: 36.42rem;
+    height: 100%;
     border: 1px solid black;
     margin-left: 10px;
     box-sizing: border-box;
@@ -133,10 +157,7 @@ h3 {
     margin-top: -12px;
     margin-left: -1px;
     margin-right: -1px;
-    padding: 7px;
-}
-#detailed-info-column1 {
-    display: flex;
+    padding: 7px 7px 7px 17px;
 }
 
 .detail-container {
@@ -147,15 +168,13 @@ h3 {
     border-bottom: 1px solid black; /* Vertical separator lines between info sections */
     box-sizing: border-box;
     padding-left: 10px;
-    margin-bottom: 10px;
 }
 .inner-detail-container {
     display: flex;
+    flex-direction: column;
     height: 100%;
     width: 100%;
     box-sizing: border-box;
-    padding-left: 20px;
-    padding-bottom: 10px;
 }
 .inner-detail-container-general {
     display: flex;
@@ -167,8 +186,8 @@ h3 {
     flex-direction: column;
 }
 .detailed-title {
-    margin-left:10px;
-    margin-top:10px;
+    margin-left: 10px;
+    margin-top: 10px;
     pointer-events: none;
     text-align: left;
     font-weight: bold;
@@ -176,6 +195,9 @@ h3 {
 }
 .text-field-input {
     padding-top: 10px;
+}
+.bold {
+    font-weight: bold;
 }
 
 /* Loading animation */
@@ -216,6 +238,7 @@ h3 {
     align-items: center;
     display: inline-block;
     margin-bottom: 8px;
+    gap: 2px;
 }
 
 .compartment {

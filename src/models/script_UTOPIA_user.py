@@ -739,7 +739,4 @@ def execute_utopia_model(input_obj):
     # Table of Overall residence time and persistence by size fraction: Pov_size_dict_sec and Tov_size_dict_sec
     # Characteristic travel distance (CTD): CTD_df["CTD_mass_km"].max() or CTD_df["CTD_particle_number_km"].max()
 
-    # TODO debugging <- remove later
-    print("This is the original extended df:\n", Results_extended)
-    # print(heatmap_number_fraction_df)
-    return heatmap_mass_fraction_df, heatmap_number_fraction_df, Results_extended
+    return heatmap_mass_fraction_df, heatmap_number_fraction_df, Results_extended # +compartment df +global df
