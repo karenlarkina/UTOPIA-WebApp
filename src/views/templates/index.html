@@ -241,19 +241,40 @@
                             <div class="detailed-info-column">
                                 <div id="compartment-title" class="selection-title">Something something</div>
                                 <div class="inner-detail-container-general">
-                                    <div id="cell-info-compartment"></div>
+<!--                                    <div id="compartment-info"></div>-->
+                                    <div id="comp-total-percent"></div>
+                                    <div id="comp-persistence"></div>
+                                    <div id="comp-residence"></div>
                                 </div>
-<!--                                <div class="inner-detail-container" style="border-top: 1px solid black;">-->
-<!--                                    <div class="param-container">-->
-<!--                                        <div class="param-name"></div>-->
-<!--                                        <div class="param-name">Rate (g/s)</div>-->
-<!--                                        <div class="param-name">Total</div>-->
-<!--                                        <div class="param-name">%</div>-->
-<!--                                    </div>-->
-<!--                                </div>-->
-<!--                                <div class="detail-container">-->
-<!--                                    <t class="detailed-title">Inflows</t>-->
-<!--                                </div>-->
+                                <div class="inner-detail-container" style="border-top: 1px solid black;">
+                                    <div class="param-container">
+                                        <div class="param-value-left bold"></div>
+                                        <div class="param-value bold">Rate (g/s)</div>
+                                        <div class="param-value bold">Total</div>
+                                        <div class="param-value bold">%</div>
+                                    </div>
+                                </div>
+                                <div class="detail-container">
+                                    <div class="param-container">
+                                        <div class="param-value-left bold">Inflows</div>
+                                        <div class="param-value"></div>
+                                        <div class="param-value bold" id="comp-total-inflow"></div>
+                                        <div class="param-value"></div>
+                                    </div>
+                                </div>
+                                <div class="inner-detail-container" id="comp-inflows">
+                                </div>
+                                <div class="detail-container">
+                                    <div class="param-container">
+                                        <div class="param-value-left bold">Outflows</div>
+                                        <div class="param-value"></div>
+                                        <div class="param-value bold" id="comp-total-outflow"></div>
+                                        <div class="param-value"></div>
+                                    </div>
+
+                                </div>
+                                <div class="inner-detail-container" id="comp-outflows">
+                                </div>
                             </div>
                         </div>
                     </div>

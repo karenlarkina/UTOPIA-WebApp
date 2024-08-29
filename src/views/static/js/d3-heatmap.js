@@ -337,7 +337,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 d3.select(`#residence-value`) // Update cell info
                     .html(`Residence time = ${Math.round(selection.attr('residence'))} (years)`); // <--adjusted for extended data
                 d3.select(`#persistence-value`) // Update cell info
-                    .html(`Persistence = ${Math.round(selection.attr('persistance'))} (years)`); // <--adjusted for extended data
+                    .html(`Persistence = ${Math.round(selection.attr('persistance'))}`); // <--adjusted for extended data
 
                 // populating total inflows and outflows
                 let totalInflow = Number(selection.attr('total-inflow')).toFixed(4);
@@ -420,13 +420,66 @@ document.addEventListener('DOMContentLoaded', function () {
             const clickedClass = d3.select(this).attr("class");
 
             selectedCompartment = this; // Update selected compartment
-            blurCompartments(d3.select(selectedCompartment));
-            d3.select(`#cell-info-compartment`) // Update compartment info
-                .html(`The ${clickedClass} is selected`);
-            d3.select(selectedCompartment)
-                .style("border", "solid 3px #000"); // Change the border to appear sleected
+            let selection = d3.select(selectedCompartment);
+            blurCompartments(selection);
+            selection.style("border", "solid 3px #000"); // Change the border to appear sleected
             d3.select('#compartment-title')
-                .html(`${d3.select(selectedCompartment).attr('comp-title')} Compartment`)
+                .html(`${d3.select(selectedCompartment).attr('comp-title')} Compartment`);
+            // adding general info about selected compartment
+            d3.select(`#comp-total-percent`)
+                .html(`% of total ${mode} = ?%`);
+            d3.select(`#comp-persistence`)
+                .html(`Persistance = ?`);
+            d3.select(`#comp-residence`)
+                .html(`Residence time = ? (years)`);
+
+            // // populating total inflows and outflows
+            // let totalCompInflow = Number(selection.attr('comp-total-inflow')).toFixed(4);
+            // let totalCompOutflow = Number(selection.attr('comp-total-outflow')).toFixed(4);
+            d3.select('#comp-total-inflow')
+                .html(`?`);
+            d3.select('#comp-total-outflow')
+                .html(`?`);
+            // // getting the inflows and outflows and converting them into Maps
+            // let compInflowsString = (selection.attr('comp-inflows')).replace(/'/g, '"');
+            // let compOutflowsString = (selection.attr('comp-outflows')).replace(/'/g, '"');
+            // let compInflowsObj = JSON.parse(compInflowsString);
+            // let compOutflowsObj = JSON.parse(compOutflowsString);
+            // let compInflowsMap = new Map(Object.entries(compInflowsObj));
+            // let compOutflowsMap = new Map(Object.entries(compOutflowsObj));
+            // filling the inflows and outflows table
+            const compInflowContainer = d3.select('#comp-inflows');
+            compInflowContainer.selectAll('*').remove();
+            // // listing all the inflows if there are any
+            // if (totalCompInflow > 0) {
+            //     compInflowsMap.forEach((value, key) => {
+            //         let compInflowName = key.replaceAll("k_", "").replaceAll("_", " ");
+            //         let compInflowPercentage = (100 * Number(value).toFixed(4)) / totalCompInflow;
+            //         let compInflowsItem = compInflowContainer.append("div") // creating the row entry per inflow item
+            //             .attr("class", "param-container-list");
+            //         addFlowEntries(compInflowsItem, compInflowName, value, compInflowPercentage);
+            //     });
+            // } else { // if no inflows then showing one row of - - -
+                let compInflowsItem = compInflowContainer.append("div")
+                    .attr("class", "param-container-list");
+                addEmptyFlowEntry(compInflowsItem);
+            // }
+            const compOutflowContainer = d3.select('#comp-outflows');
+            compOutflowContainer.selectAll('*').remove();
+            // // listing all the outflows if there are any
+            // if (totalCompOutflow > 0) {
+            //     compOutflowsMap.forEach((value, key) => {
+            //         let compOutflowName = key.replaceAll("k_", "").replaceAll("_", " ");
+            //         let compOutflowPercentage = (100 * Number(value).toFixed(4)) / totalCompOutflow;
+            //         let compOutflowsItem = compOutflowContainer.append("div") // creating the row entry per outflow item
+            //             .attr("class", "param-container-list");
+            //         addFlowEntries(compOutflowsItem, compOutflowName, value, compOutflowPercentage);
+            //     });
+            // } else { // if no inflows then showing one row of - - -
+                let compOutflowsItem = compOutflowContainer.append("div")
+                    .attr("class", "param-container-list");
+                addEmptyFlowEntry(compOutflowsItem);
+            // }
 
             // Display current view container
             document.getElementById(`detailed-view-compartment`).style.display = 'flex';
@@ -955,7 +1008,7 @@ document.addEventListener('DOMContentLoaded', function () {
             comp_mass_fraction_distribution_btn.classList.remove('active');
             // Highlighting selection on the navbar
             comp_number_fraction_distribution_btn.classList.add('active');
-            assembleCompHeatMap('Number Fraction Distribution Heatmap' , utopia_model_results.number_fraction_distribution_heatmap, "number", utopia_model_results.extended_csv_table);
+            assembleCompHeatMap('Number Fraction Distribution Heatmap' , utopia_model_results.number_fraction_distribution_heatmap, "particle number", utopia_model_results.extended_csv_table);
         }
     });
 });
