@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Update the position of the tooltip
                 tooltip
                     // .html("" + Number(d.value).toFixed(2)) // <--------------- with old heatmaps data
-                    .html("" + Number(d[fraction]).toFixed(2)) // <--------------- with extended data
+                    .html(`Log ${mode} fraction: ${Number(d[fraction]).toFixed(2)}<br>% of total ${mode} = ${Math.round(Number(d[originFraction] * 100))}%`) // <--------------- with extended data
                     .style("left", tooltipLeft + "px")
                     .style("top", tooltipTop + "px")
                     .style("display", "block");
@@ -358,6 +358,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 inflowContainer.selectAll('*').remove();
                 // listing all the inflows if there are any
                 if (totalInflow > 0) {
+                    let inflowsArray = Array.from(inflowsMap);
+                    inflowsArray.sort((a, b) => b[1] - a[1]);
+                    inflowsMap = new Map(inflowsArray);
                     inflowsMap.forEach((value, key) => {
                         let inflowName = key.replaceAll("k_", "").replaceAll("_", " ");
                         let inflowPercentage = (100 * Number(value).toFixed(4)) / totalInflow;
@@ -374,6 +377,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 outflowContainer.selectAll('*').remove();
                 // listing all the outflows if there are any
                 if (totalOutflow > 0) {
+                    // ordering the
+                    let outflowsArray = Array.from(outflowsMap);
+                    outflowsArray.sort((a, b) => b[1] - a[1]);
+                    outflowsMap = new Map(outflowsArray);
                     outflowsMap.forEach((value, key) => {
                         let outflowName = key.replaceAll("k_", "").replaceAll("_", " ");
                         let outflowPercentage = (100 * Number(value).toFixed(4)) / totalOutflow;
@@ -429,7 +436,7 @@ document.addEventListener('DOMContentLoaded', function () {
             d3.select(`#comp-total-percent`)
                 .html(`% of total ${mode} = ?%`);
             d3.select(`#comp-persistence`)
-                .html(`Persistance = ?`);
+                .html(`Persistence = ?`);
             d3.select(`#comp-residence`)
                 .html(`Residence time = ? (years)`);
 

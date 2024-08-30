@@ -267,7 +267,7 @@ h3 {
     border-radius:3px;
     color: transparent;
     position: relative;
-    margin-left: -5px;
+    margin-left: -10px;
 }
 
 .air {
@@ -303,7 +303,7 @@ h3 {
     grid-column: span 2;
     border: solid 2px white;
     border-radius: 3px;
-    width: 356px;
+    width: 353px;
     height: 240px;
     text-align: left;
     align-items: start;
@@ -318,5 +318,5 @@ legend-text {
     position: relative;
     top: -115px;
     left: 0px;
-    margin-left: 20px;
+    margin-left: 50px;
 }
