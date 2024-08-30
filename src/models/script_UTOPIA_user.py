@@ -397,11 +397,25 @@ def execute_utopia_model(input_obj):
     df_numberDistribution = nf_shorted[:10]
 
     # Mass distribution by compartment
+
+    # print("Distribution of number in the system")# Mass distribution by compartment
+    mass_g = []
+    paricle_number = []
     mass_frac_100 = []
     num_frac_100 = []
     mass_conc_g_m3 = []
     num_conc = []
     for comp in list(dict_comp.keys()):
+        mass_g.append(
+            sum(Results_extended[Results_extended["Compartment"] == comp]["mass_g"])
+        )
+        paricle_number.append(
+            sum(
+                Results_extended[Results_extended["Compartment"] == comp][
+                    "number_of_particles"
+                ]
+            )
+        )
         mass_frac_100.append(
             sum(
                 Results_extended[Results_extended["Compartment"] == comp][
@@ -435,6 +449,8 @@ def execute_utopia_model(input_obj):
 
     mass_dist_comp = pd.DataFrame(columns=["Compartments"])
     mass_dist_comp["Compartments"] = list(dict_comp.keys())
+    mass_dist_comp["mass_g"] = mass_g
+    mass_dist_comp["number_of_particles"] = paricle_number
     mass_dist_comp["%_mass"] = mass_frac_100
     mass_dist_comp["%_number"] = num_frac_100
     mass_dist_comp["Concentration_g_m3"] = mass_conc_g_m3
@@ -540,11 +556,20 @@ def execute_utopia_model(input_obj):
         for i in range(len(Results_extended))
     ]
 
-    """ Add persistence and residence time to results extended dataframe"""
+    """ Add iput and output flows dict to compartment results dataframe (mass_dist_comp)"""
+    mass_dist_comp = addFlows_to_results_df_comp(
+        mass_dist_comp, flows_dict_mass, flows_dict_num
+    )
+
+    """ Add persistence and residence time to results extended dataframe and results by compartment"""
 
     Results_extended = calculate_persistence_residence_time(Results_extended)
 
-    ### TO DO ###
+    Results_extended_comp = calculate_persistence_residence_time_comp(mass_dist_comp)
+
+    ############################################################
+    #### ENTRY POINT FOR DATAFRAMES NEEDED FOR VIEW 1 AND 3 ####
+    ############################################################
 
     # Now the Results_extended dataframe contains all the information needed for the output heatmap visualization: (for the cell selection) VIEW 3
 
@@ -569,6 +594,15 @@ def execute_utopia_model(input_obj):
     # 'Persistence_time_num_years']
 
     # % of the inflows and outflows can be obtained by dividing the input froms from the inputflows dictionaries by the total inputflow column. ## I can add as an extra column in form of a dictionary of needed
+
+    # The reults needed for the compartment view is compiled in Result_extended_comp. The VIEW 1 only needs:
+
+    # "Concentration (g/m3)" and "Concentration (N/m3)"
+    # "%_mass" and "%_number"
+    # "Residence_time_mass_years" and "Residence_time_num_years"
+    # "Persistence_time_mass_years" and "Persistence_time_num_years"
+
+    ### Further details to be printed in VIEW 1 (on the rigth) are provided below
 
     """ Estimate exposure indicators """
 
@@ -623,10 +657,10 @@ def execute_utopia_model(input_obj):
     (
         Pov_mass_years,
         Pov_num_years,
-        Pov_size_dict_sec,
+        Pov_size_dict_years,
         Tov_mass_years,
         Tov_num_years,
-        Tov_size_dict_sec,
+        Tov_size_dict_years,
     ) = Exposure_indicators_calculation(
         tables_outputFlows,
         tables_outputFlows_number,
@@ -736,7 +770,7 @@ def execute_utopia_model(input_obj):
 
     # Overall persistence (Pov): Pov_mass_years or Pov_num_years
     # Overall residence time (Tov): Tov_mass_years or Tov_num_years
-    # Table of Overall residence time and persistence by size fraction: Pov_size_dict_sec and Tov_size_dict_sec
+    # Table of Overall residence time (Tov) and persistence (Pov) by size fraction: Tov_size_dict_years and Pov_size_dict_years
     # Characteristic travel distance (CTD): CTD_df["CTD_mass_km"].max() or CTD_df["CTD_particle_number_km"].max()
 
     return heatmap_mass_fraction_df, heatmap_number_fraction_df, Results_extended # +compartment df +global df

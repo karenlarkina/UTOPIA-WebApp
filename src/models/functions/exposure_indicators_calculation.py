@@ -128,7 +128,7 @@ def Exposure_indicators_calculation(
     # NOTE! When the mass is only present in one size fraction then the Pov has to be equal to the overall Pov and mas and number Pov should be the same
 
     size_list = ["a", "b", "c", "d", "e"]
-    Pov_size_dict_sec = {}
+    Pov_size_dict_years = {}
     for size in size_list:
         discorporation_fargmentation_flows = []
         for k in tables_outputFlows:
@@ -151,7 +151,7 @@ def Exposure_indicators_calculation(
         if (
             mass_sizeFraction == 0
         ):  ## If there are no particles of a specific size fraction in the system one does not need to estimate Pov
-            Pov_size_dict_sec[size] = "NaN"
+            Pov_size_dict_years[size_dict[size]] = "NaN"
             continue
 
         Pov_size_sec = mass_sizeFraction / sum(discorporation_fargmentation_flows)
@@ -163,7 +163,7 @@ def Exposure_indicators_calculation(
         #     + " um (years): "
         #     + str(int(Pov_size_years))
         # )
-        Pov_size_dict_sec[size] = Pov_size_sec
+        Pov_size_dict_years[size_dict[size]] = Pov_size_years
 
     """ Overall residence time (years)"""
     # With the new system boundaries wew acount for sequestration in deep soils and burial into coast and frehwater sediment but for the Ocean sediment we do not take burial but the settling into the ocean column water compartment as well as mixing. (We exclude the Ocean column water and ocean sediment from the system boundaries in these calculations)
@@ -259,7 +259,7 @@ def Exposure_indicators_calculation(
 
     # Overall residence time specific to each size class (mass and number independent):
 
-    Tov_size_dict_sec = {}
+    Tov_size_dict_years = {}
     for size in size_list:
 
         mass_sizeFraction = sum(
@@ -267,7 +267,7 @@ def Exposure_indicators_calculation(
         )
 
         if mass_sizeFraction == 0:
-            Tov_size_dict_sec[size] = "NaN"
+            Tov_size_dict_years[size_dict[size]] = "NaN"
             continue
 
         systemloss_flows_size = []
@@ -357,15 +357,15 @@ def Exposure_indicators_calculation(
         else:
             pass
 
-        Tov_size_dict_sec[size] = Tov_size_sec
+        Tov_size_dict_years[size_dict[size]] = Tov_size_years
 
     return (
         Pov_mass_years,
         Pov_num_years,
-        Pov_size_dict_sec,
+        Pov_size_dict_years,
         Tov_mass_years,
         Tov_num_years,
-        Tov_size_dict_sec,
+        Tov_size_dict_years,
     )
 
 
@@ -494,3 +494,64 @@ def calculate_persistence_residence_time(Results_extended):
     Results_extended["Persistence_time_num_years"] = persistence_number
 
     return Results_extended
+
+
+def calculate_persistence_residence_time_comp(mass_dist_comp):
+    ## Calculation of persistence and residence time of all particles (no size or MPform specification) per compartment
+    transf_list = [
+        "k_discorporation",
+        "k_fragmentation",
+        "k_heteroaggregation",
+        "k_heteroaggregate_breackup",
+        "k_biofouling",
+        "k_defouling",
+    ]
+    # For the calculation of the residence time we only take into account the transport flows as well as discorporation flows
+    residence_times_mass = []
+    residence_time_number = []
+    persistence_mass = []
+    persistence_number = []
+    for i in range(len(mass_dist_comp)):
+        if mass_dist_comp.iloc[i].mass_g == 0:
+            residence_times_mass.append(0)
+            persistence_mass.append(0)
+        else:
+            residence_times_mass.append(
+                mass_dist_comp.iloc[i].mass_g
+                / sum(
+                    [
+                        mass_dist_comp.iloc[i].outflows_g_s[c]
+                        for c in mass_dist_comp.iloc[i].outflows_g_s
+                        if c not in transf_list
+                    ]
+                )
+            )
+            persistence_mass.append(
+                mass_dist_comp.iloc[i].mass_g
+                / mass_dist_comp.iloc[i].outflows_g_s["k_discorporation"]
+            )
+        if mass_dist_comp.iloc[i].number_of_particles == 0:
+            residence_time_number.append(0)
+            persistence_number.append(0)
+        else:
+            residence_time_number.append(
+                mass_dist_comp.iloc[i].number_of_particles
+                / sum(
+                    [
+                        mass_dist_comp.iloc[i].outflows_num_s[c]
+                        for c in mass_dist_comp.iloc[i].outflows_num_s
+                        if c not in transf_list
+                    ]
+                )
+            )
+            persistence_number.append(
+                mass_dist_comp.iloc[i].number_of_particles
+                / mass_dist_comp.iloc[i].outflows_num_s["k_discorporation"]
+            )
+
+    mass_dist_comp["Residence_time_mass_years"] = residence_times_mass
+    mass_dist_comp["Residence_time_num_years"] = residence_time_number
+    mass_dist_comp["Persistence_time_mass_years"] = persistence_mass
+    mass_dist_comp["Persistence_time_num_years"] = persistence_number
+
+    return mass_dist_comp
