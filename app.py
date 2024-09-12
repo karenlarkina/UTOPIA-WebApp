@@ -32,6 +32,7 @@ def post_model_run():
     return jsonify({'mass_fraction_distribution_heatmap': heatmap_mass_fraction,
                     'number_fraction_distribution_heatmap': heatmap_number_fraction,
                     'extended_csv_table': extended_table,
+                    # '':
                     })
 
 @app.route('/csv/<path:filename>')

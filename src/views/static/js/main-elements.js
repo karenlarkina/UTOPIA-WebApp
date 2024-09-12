@@ -95,7 +95,8 @@ function toggleOptions(container_id, element) {
     navLinks.forEach(function(link) {
         link.classList.remove('active'); // Remove all active elements
     });
-    element.classList.add('active'); // Reactivate newly selected element
+    // Removed since during model run, all parameters are considered hence shouldn't be seem activated after RUN
+    // element.classList.add('active'); // Reactivate newly selected element
 }
 
 function generateMaterialProperties() {

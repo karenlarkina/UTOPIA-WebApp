@@ -65,24 +65,24 @@ h3 {
     margin-top: 59px;
 }
 
-#model-run-container {
-    display: flex;
-    width: 100%;
-    border: 1px solid black;
-    margin-left: 10px;
-    padding: 10px;
-}
+/*#model-run-container {*/
+/*    display: flex;*/
+/*    width: 100%;*/
+/*    border: 1px solid black;*/
+/*    margin-left: 10px;*/
+/*    padding: 10px;*/
+/*}*/
 
-#model-run-input {
-    display: flex;
-    width: 100%;
-    text-align: left;
-    font-size: medium;
-    word-wrap: break-word;
-    white-space: pre-wrap;
-    margin: 10px;
+/*#model-run-input {*/
+/*    display: flex;*/
+/*    width: 100%;*/
+/*    text-align: left;*/
+/*    font-size: medium;*/
+/*    word-wrap: break-word;*/
+/*    white-space: pre-wrap;*/
+/*    margin: 10px;*/
+/*}*/
 
-}
 .text-center {
     text-align: left;
     font-weight: bold;
@@ -140,9 +140,16 @@ h3 {
     display: none;
     width: 100%;
     height: 100%;
-    border: 1px solid black;
-    margin-left: 10px;
+    /*border: 1px solid black;*/
+    /*margin-left: 10px;*/
     box-sizing: border-box;
+}
+
+.global-view {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
 }
 
 .detailed-info-column {
@@ -164,10 +171,10 @@ h3 {
     display: flex;
     height: 100%;
     width: 100%;
-    border-top: 1px solid black; /* Vertical separator lines between info sections */
-    border-bottom: 1px solid black; /* Vertical separator lines between info sections */
+    /*border-top: 1px solid black; !* Vertical separator lines between info sections *!*/
+    /*border-bottom: 1px solid black; !* Vertical separator lines between info sections *!*/
     box-sizing: border-box;
-    padding-left: 10px;
+    /*padding-left: 10px;*/
 }
 .inner-detail-container {
     display: flex;
@@ -181,7 +188,7 @@ h3 {
     height: 100%;
     width: 100%;
     box-sizing: border-box;
-    padding-left: 20px;
+    padding-left: 10px;
     padding-bottom: 10px;
     flex-direction: column;
 }
@@ -225,6 +232,11 @@ h3 {
     pointer-events: none; /* Disable interactions while blurred */
 }
 
+.fixed-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
 /* New heatmap */
 .horiz-area { /* rows where compartments are placed */
     display: flex;
@@ -239,6 +251,8 @@ h3 {
     display: inline-block;
     margin-bottom: 8px;
     gap: 2px;
+    padding-bottom: 1px;
+    padding-top: 1px;
 }
 
 .compartment {

@@ -11,7 +11,9 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand">Utopia WebApp</a>
+            <a class="navbar-brand">
+                <img src="https://infravis.se/wp-content/uploads/2023/06/cropped-logo_infravis_imageOnly.png" alt="Logo" style="height: 40px;">
+                Utopia WebApp</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -166,10 +168,17 @@
 {#                                <a class="nav-link active" id="number_fraction_distribution_btn" href="#" onclick="">Number Fraction Distribution</a>#}
 {#                            </li>#}
                             <li class="nav-item">
+<!--                                TODO: work in progress, commented out from main-->
+<!--                                <a class="nav-link" id="mass_fraction_overview_btn" href="#" onclick="">Mass Fraction Distribution Overview</a>-->
+<!--                            </li>-->
+<!--                            <li class="nav-item">-->
+<!--                                <a class="nav-link" id="number_fraction_overview_btn" href="#" onclick="">Particle Number Fraction Distribution Overview</a>-->
+<!--                            </li>-->
+<!--                            <li class="nav-item">-->
                                 <a class="nav-link" id="comp_mass_fraction_distribution_btn" href="#" onclick="">Mass Fraction Distribution</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" id="comp_number_fraction_distribution_btn" href="#" onclick="">Number Fraction Distribution</a>
+                                <a class="nav-link" id="comp_number_fraction_distribution_btn" href="#" onclick="">Particle Number Fraction Distribution</a>
                             </li>
                         </ul>
                     </div>
@@ -188,49 +197,71 @@
                         <!-- Heatmap legend container -->
                     </div>
                     <div class="info-containers">
-                        <div id="model-run-container">
+                        <div id="model-run-container" class="card" style="width: 100%;">
                             <div class="detailed-info-column" >
                                 <!-- Model Run information container -->
-                                <t class="detailed-title">Model Run:</t>
-                                <div class="inner-detail-container" id="model-run-input"></div>
+                                <t class="card-header bold">Model Run:</t>
+                                <div class="card-text" id="model-run-input" style="padding: 10px"></div>
                             </div>
                         </div>
                         <div id="detailed-view-cell" class="detailed-views">
                             <!-- Detailed information container -->
-                            <div class="detailed-info-column" id="detailed-info-column1">
-                                <div id="cell-title"  class="selection-title">Something something</div>
+<!--                            <div class="detailed-info-column" id="detailed-info-column1">-->
+                            <div class="card" style="width: 100%;" id="detailed-info-column1">
+                                <div id="cell-title"  class="card-header bold"></div>
                                 <div class="inner-detail-container-general">
                                     <div id="cell-info-percentage"></div>
                                     <div id="total-percent"></div>
                                     <div id="residence-value"></div>
                                     <div id="persistence-value"></div>
                                 </div>
-                                <div class="inner-detail-container" style="border-top: 1px solid black;">
-                                    <div class="param-container">
-                                        <div class="param-value-left bold"></div>
-                                        <div class="param-value bold">Rate (g/s)</div>
-                                        <div class="param-value bold">Total</div>
-                                        <div class="param-value bold">%</div>
-                                    </div>
-                                </div>
-                                <div class="detail-container">
-                                    <div class="param-container">
-                                        <div class="param-value-left bold">Inflows</div>
-                                        <div class="param-value"></div>
-                                        <div class="param-value bold" id="total-inflow"></div>
-                                        <div class="param-value"></div>
-                                    </div>
-                                </div>
-                                <div class="inner-detail-container" id="inflows-container">
-                                </div>
-                                <div class="detail-container">
-                                    <div class="param-container">
-                                        <div class="param-value-left bold">Outflows</div>
-                                        <div class="param-value"></div>
-                                        <div class="param-value bold" id="total-outflow"></div>
-                                        <div class="param-value"></div>
-                                    </div>
+                                <table class="table table-striped table-hover fixed-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th scope="col"> </th>
+                                            <th scope="col">Rate (g/s)</th>
+                                            <th scope="col">Total</th>
+                                            <th scope="col">%</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody style="display: none">
+                                    <tr>
+                                        <th scope="row"></th>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
 
+                                <table class="table table-hover fixed-table" id="inflows-table">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">Inflows</th>
+                                        <th scope="col"> </th>
+                                        <th scope="col" id="total-inflow"></th>
+                                        <th scope="col"> </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="inflows-body">
+                                    </tbody>
+                                </table>
+
+                                <table class="table table-hover fixed-table" id="outflows-table">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">Outflows</th>
+                                        <th scope="col"> </th>
+                                        <th scope="col" id="total-outflow"></th>
+                                        <th scope="col"> </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="outflows-body">
+                                    </tbody>
+                                </table>
+
+                                <div class="detail-container">
                                 </div>
                                 <div class="inner-detail-container" id="outflows-container">
                                 </div>
@@ -238,8 +269,9 @@
                         </div>
                         <div id="detailed-view-compartment" class="detailed-views">
                             <!-- Detailed information container -->
-                            <div class="detailed-info-column">
-                                <div id="compartment-title" class="selection-title">Something something</div>
+                            <div class="card" style="width: 100%;">
+                                <div id="compartment-title"  class="card-header bold"></div>
+<!--                                <div id="compartment-title" class="selection-title"></div>-->
                                 <div class="inner-detail-container-general">
 <!--                                    <div id="compartment-info"></div>-->
                                     <div id="comp-total-percent"></div>
@@ -249,33 +281,61 @@
                                 <div class="inner-detail-container" style="border-top: 1px solid black;">
                                     <div class="param-container">
                                         <div class="param-value-left bold"></div>
-                                        <div class="param-value bold">Rate (g/s)</div>
-                                        <div class="param-value bold">Total</div>
-                                        <div class="param-value bold">%</div>
+                                        <div class="param-value bold"></div>
+                                        <div class="param-value bold"></div>
+                                        <div class="param-value bold"></div>
                                     </div>
                                 </div>
-                                <div class="detail-container">
-                                    <div class="param-container">
-                                        <div class="param-value-left bold">Inflows</div>
-                                        <div class="param-value"></div>
-                                        <div class="param-value bold" id="comp-total-inflow"></div>
-                                        <div class="param-value"></div>
-                                    </div>
-                                </div>
-                                <div class="inner-detail-container" id="comp-inflows">
-                                </div>
-                                <div class="detail-container">
-                                    <div class="param-container">
-                                        <div class="param-value-left bold">Outflows</div>
-                                        <div class="param-value"></div>
-                                        <div class="param-value bold" id="comp-total-outflow"></div>
-                                        <div class="param-value"></div>
-                                    </div>
+                                <table class="table table-hover fixed-table" id="comp-inflows-table">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">Inflows</th>
+                                        <th scope="col"> </th>
+                                        <th scope="col" id="comp-total-inflow"></th>
+                                        <th scope="col"> </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="comp-inflows">
+                                    </tbody>
+                                </table>
 
-                                </div>
-                                <div class="inner-detail-container" id="comp-outflows">
-                                </div>
+                                <table class="table table-hover fixed-table" id="comp-outflows-table">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">Outflows</th>
+                                        <th scope="col"> </th>
+                                        <th scope="col" id="comp-total-outflow"></th>
+                                        <th scope="col"> </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="comp-outflows">
+                                    </tbody>
+                                </table>
                             </div>
+                        </div>
+                        <div id="global-view" class="global-view">
+                            <!-- Detailed information container -->
+                            <div class="card" style="width: 100%;">
+                                <div id="global-balance"  class="card-header bold">Global Mass Balance</div>
+                                <!--                                <div id="compartment-title" class="selection-title"></div>-->
+                                <div class="inner-detail-container-general">
+                                    <!--                                    <div id="compartment-info"></div>-->
+
+                                    <div id="difference">Difference inflow-outflow = 0.000 (g)</div>
+                                </div>
+                                <div class="card" style="width: 100%;">
+                                    <div id="global-exposure"  class="card-header bold">Overall exposure indicators mass</div>
+                                    <!--                                <div id="compartment-title" class="selection-title"></div>-->
+                                    <div class="inner-detail-container-general">
+                                        <!--                                    <div id="compartment-info"></div>-->
+                                        <div id="global-persistence">Overall persistence (Pov): _ years</div>
+                                        <div id="global-residence">Overall residence time (Tov): _ years</div>
+                                        <div id="global-travel">Characteristic travel distance (CTD): _ km</div>
+                                    </div>
+                                </div>
+
+                            </div>
+
                         </div>
                     </div>
                 </div>
