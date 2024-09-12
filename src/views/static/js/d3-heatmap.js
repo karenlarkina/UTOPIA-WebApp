@@ -1251,6 +1251,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(model_results => {
                 utopia_model_results = model_results; //store values from backend for assembling all visualizations
                 assembleCompHeatMap('Mass Fraction Distribution Heatmap' , utopia_model_results.mass_fraction_distribution_heatmap, "mass", utopia_model_results.extended_csv_table);
+                comp_mass_fraction_distribution_btn.classList.add('active');
             })
             .catch(error => {
                 console.error('There was a problem with the POST request:', error);

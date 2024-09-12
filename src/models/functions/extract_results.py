@@ -1,3 +1,5 @@
+import pandas as pd
+
 # function to organise results into a dictionary of compartments, each compartment containing a dictionary of aggregation states, of wich contain number of particles per size fraction
 
 
