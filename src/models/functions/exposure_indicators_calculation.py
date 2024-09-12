@@ -20,7 +20,7 @@ def Exposure_indicators_calculation(
     print_output,
 ):
     #### EXPOSURE INDICATORS ####
-    # When estimating the exposure indicators we do not take on account the Column Water and Ocean Sediment compartments. This is to mantain consistency with the OECD tool as there the particles going deeper than 100 m into the ocean are considered lossess, therefore we also use that as a boundary in our system. Also in this way we prevent the ocean sediment and column water from driving the POV and residence times values. However our emission fraction estimates do take this compartmets into consideration and the MPs fate into the whole UTOPIA systme is reflected there.
+    # When estimating the overall exposure indicators we do not take on account the Column Water and Ocean Sediment compartments. This is to mantain consistency with the OECD tool as there the particles going deeper than 100 m into the ocean are considered lossess, therefore we also use that as a boundary in our system. Also in this way we prevent the ocean sediment and column water from driving the POV and residence times values. However our emission fraction estimates do take this compartmets into consideration and the MPs fate into the whole UTOPIA systme is reflected there.
 
     """Overall persistance (years)"""
 
@@ -166,7 +166,7 @@ def Exposure_indicators_calculation(
         Pov_size_dict_years[size_dict[size]] = Pov_size_years
 
     """ Overall residence time (years)"""
-    # With the new system boundaries wew acount for sequestration in deep soils and burial into coast and frehwater sediment but for the Ocean sediment we do not take burial but the settling into the ocean column water compartment as well as mixing. (We exclude the Ocean column water and ocean sediment from the system boundaries in these calculations)
+    # With the new system boundaries we acount for sequestration in deep soils and burial into coast and freshwater sediment but for the Ocean sediment we do not take burial but the settling into the ocean column water compartment as well as mixing. (We exclude the Ocean column water and ocean sediment from the system boundaries in these calculations)
 
     systemloss_flows_mass = []
     systemloss_flows_number = []
@@ -496,7 +496,7 @@ def calculate_persistence_residence_time(Results_extended):
     return Results_extended
 
 
-def calculate_persistence_residence_time_comp(mass_dist_comp):
+def calculate_persistence_residence_time_comp(results_by_comp):
     ## Calculation of persistence and residence time of all particles (no size or MPform specification) per compartment
     transf_list = [
         "k_discorporation",
@@ -511,47 +511,47 @@ def calculate_persistence_residence_time_comp(mass_dist_comp):
     residence_time_number = []
     persistence_mass = []
     persistence_number = []
-    for i in range(len(mass_dist_comp)):
-        if mass_dist_comp.iloc[i].mass_g == 0:
+    for i in range(len(results_by_comp)):
+        if results_by_comp.iloc[i].mass_g == 0:
             residence_times_mass.append(0)
             persistence_mass.append(0)
         else:
             residence_times_mass.append(
-                mass_dist_comp.iloc[i].mass_g
+                results_by_comp.iloc[i].mass_g
                 / sum(
                     [
-                        mass_dist_comp.iloc[i].outflows_g_s[c]
-                        for c in mass_dist_comp.iloc[i].outflows_g_s
+                        results_by_comp.iloc[i].outflows_g_s[c]
+                        for c in results_by_comp.iloc[i].outflows_g_s
                         if c not in transf_list
                     ]
                 )
             )
             persistence_mass.append(
-                mass_dist_comp.iloc[i].mass_g
-                / mass_dist_comp.iloc[i].outflows_g_s["k_discorporation"]
+                results_by_comp.iloc[i].mass_g
+                / results_by_comp.iloc[i].outflows_g_s["k_discorporation"]
             )
-        if mass_dist_comp.iloc[i].number_of_particles == 0:
+        if results_by_comp.iloc[i].number_of_particles == 0:
             residence_time_number.append(0)
             persistence_number.append(0)
         else:
             residence_time_number.append(
-                mass_dist_comp.iloc[i].number_of_particles
+                results_by_comp.iloc[i].number_of_particles
                 / sum(
                     [
-                        mass_dist_comp.iloc[i].outflows_num_s[c]
-                        for c in mass_dist_comp.iloc[i].outflows_num_s
+                        results_by_comp.iloc[i].outflows_num_s[c]
+                        for c in results_by_comp.iloc[i].outflows_num_s
                         if c not in transf_list
                     ]
                 )
             )
             persistence_number.append(
-                mass_dist_comp.iloc[i].number_of_particles
-                / mass_dist_comp.iloc[i].outflows_num_s["k_discorporation"]
+                results_by_comp.iloc[i].number_of_particles
+                / results_by_comp.iloc[i].outflows_num_s["k_discorporation"]
             )
 
-    mass_dist_comp["Residence_time_mass_years"] = residence_times_mass
-    mass_dist_comp["Residence_time_num_years"] = residence_time_number
-    mass_dist_comp["Persistence_time_mass_years"] = persistence_mass
-    mass_dist_comp["Persistence_time_num_years"] = persistence_number
+    results_by_comp["Residence_time_mass_years"] = residence_times_mass
+    results_by_comp["Residence_time_num_years"] = residence_time_number
+    results_by_comp["Persistence_time_mass_years"] = persistence_mass
+    results_by_comp["Persistence_time_num_years"] = persistence_number
 
-    return mass_dist_comp
+    return results_by_comp

@@ -399,62 +399,7 @@ def execute_utopia_model(input_obj):
     # Mass distribution by compartment
 
     # print("Distribution of number in the system")# Mass distribution by compartment
-    mass_g = []
-    paricle_number = []
-    mass_frac_100 = []
-    num_frac_100 = []
-    mass_conc_g_m3 = []
-    num_conc = []
-    for comp in list(dict_comp.keys()):
-        mass_g.append(
-            sum(Results_extended[Results_extended["Compartment"] == comp]["mass_g"])
-        )
-        paricle_number.append(
-            sum(
-                Results_extended[Results_extended["Compartment"] == comp][
-                    "number_of_particles"
-                ]
-            )
-        )
-        mass_frac_100.append(
-            sum(
-                Results_extended[Results_extended["Compartment"] == comp][
-                    "mass_fraction"
-                ]
-            )
-            * 100
-        )
-        num_frac_100.append(
-            sum(
-                Results_extended[Results_extended["Compartment"] == comp][
-                    "number_fraction"
-                ]
-            )
-            * 100
-        )
-        mass_conc_g_m3.append(
-            sum(
-                Results_extended[Results_extended["Compartment"] == comp][
-                    "concentration_g_m3"
-                ]
-            )
-        )
-        num_conc.append(
-            sum(
-                Results_extended[Results_extended["Compartment"] == comp][
-                    "concentration_num_m3"
-                ]
-            )
-        )
-
-    mass_dist_comp = pd.DataFrame(columns=["Compartments"])
-    mass_dist_comp["Compartments"] = list(dict_comp.keys())
-    mass_dist_comp["mass_g"] = mass_g
-    mass_dist_comp["number_of_particles"] = paricle_number
-    mass_dist_comp["%_mass"] = mass_frac_100
-    mass_dist_comp["%_number"] = num_frac_100
-    mass_dist_comp["Concentration_g_m3"] = mass_conc_g_m3
-    mass_dist_comp["Concentration_num_m3"] = num_conc
+    results_by_comp = extract_results_by_compartment(Results_extended, dict_comp)
 
     ### MASS BALANCE PER COMPARTMENT###
 
@@ -556,16 +501,16 @@ def execute_utopia_model(input_obj):
         for i in range(len(Results_extended))
     ]
 
-    """ Add iput and output flows dict to compartment results dataframe (mass_dist_comp)"""
-    mass_dist_comp = addFlows_to_results_df_comp(
-        mass_dist_comp, flows_dict_mass, flows_dict_num
+    """ Add iput and output flows dict to compartment results dataframe (results_by_comp)"""
+    results_by_comp = addFlows_to_results_df_comp(
+        results_by_comp, flows_dict_mass, flows_dict_num
     )
 
     """ Add persistence and residence time to results extended dataframe and results by compartment"""
 
     Results_extended = calculate_persistence_residence_time(Results_extended)
 
-    Results_extended_comp = calculate_persistence_residence_time_comp(mass_dist_comp)
+    Results_extended_comp = calculate_persistence_residence_time_comp(results_by_comp)
 
     ############################################################
     #### ENTRY POINT FOR DATAFRAMES NEEDED FOR VIEW 1 AND 3 ####
