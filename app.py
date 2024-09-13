@@ -28,9 +28,11 @@ def index():
 def post_model_run():
     # Retrieve the data sent in the POST request
     data = request.json    
-    heatmap_mass_fraction, heatmap_number_fraction = run_utopia(data)
+    heatmap_mass_fraction, heatmap_number_fraction, extended_table = run_utopia(data)
     return jsonify({'mass_fraction_distribution_heatmap': heatmap_mass_fraction,
-                    'number_fraction_distribution_heatmap': heatmap_number_fraction, 
+                    'number_fraction_distribution_heatmap': heatmap_number_fraction,
+                    'extended_csv_table': extended_table,
+                    # '':
                     })
 
 @app.route('/csv/<path:filename>')
