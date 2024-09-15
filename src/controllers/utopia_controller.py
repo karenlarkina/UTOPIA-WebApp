@@ -1,6 +1,7 @@
 import os
 import csv
 import numpy as np
+import pandas as pd
 from src.models.script_UTOPIA_user import execute_utopia_model
 
 # Function to read CSV files from a folder
@@ -122,6 +123,18 @@ def convert_python_table_format_to_d3(df):
     return melted_df.to_csv(index=True)
 
 
+# Function to convert a regular python dictionary into a
+def convert_dict_to_d3_format(global_info_dict):
+    data_list = []  # list to store the data
+    for key, value in global_info_dict.items():  # populating the list
+        data_list.append({'variable': key, 'value': value})
+
+    # converting data from list to a dataframe
+    df = pd.DataFrame(data_list)
+    print(df)
+    return df.to_csv(index=False)
+
+
 def run_utopia(input_obj):
-    heatmap_mass_fraction_df, heatmap_number_fraction_df, extended_results_df = execute_utopia_model(input_obj)
-    return convert_format_python_to_d3(heatmap_mass_fraction_df), convert_format_python_to_d3(heatmap_number_fraction_df), convert_python_table_format_to_d3(extended_results_df)
+    heatmap_mass_fraction_df, heatmap_number_fraction_df, extended_results_df, global_info_dict = execute_utopia_model(input_obj)
+    return convert_format_python_to_d3(heatmap_mass_fraction_df), convert_format_python_to_d3(heatmap_number_fraction_df), convert_python_table_format_to_d3(extended_results_df), convert_dict_to_d3_format(global_info_dict)

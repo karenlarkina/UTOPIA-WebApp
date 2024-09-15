@@ -719,7 +719,7 @@ def execute_utopia_model(input_obj):
     # Characteristic travel distance (CTD): CTD_df["CTD_mass_km"].max() or CTD_df["CTD_particle_number_km"].max()
 
     ## Global information
-    # Creating a dictionary with the variables
+    # TODO: where are the differences for overall inflow-outflow
     global_info_dict = {
         "Pov_mass_years": Pov_mass_years,
         "Pov_num_years": Pov_num_years,
@@ -731,17 +731,4 @@ def execute_utopia_model(input_obj):
         "CTD_num": CTD_df["CTD_particle_number_km"].max()
     }
 
-    # TODO debugging
-    # print("\nPov_mass_years =", Pov_mass_years)
-    # print("\nPov_num_years =", Pov_num_years)
-    # print("\nTov_mass_years =", Tov_mass_years)
-    # print("\nTov_num_years =", Tov_num_years)
-    #
-    # print("\nTov_size_dict_years =", Tov_size_dict_years)
-    # print("\nPov_size_dict_years =", Pov_size_dict_years)
-    # print("\nCTD_df[\"CTD_mass_km\"].max() =", CTD_df["CTD_mass_km"].max())
-    # print("\nCTD_df[\"CTD_particle_number_km\"].max() =", CTD_df["CTD_particle_number_km"].max())
-
-    # print("\nResults_extended_comp:\n", Results_extended_comp)
-
-    return heatmap_mass_fraction_df, heatmap_number_fraction_df, Results_extended #, global_info_dict # +compartment df +global df
+    return heatmap_mass_fraction_df, heatmap_number_fraction_df, Results_extended, global_info_dict # +compartment df
