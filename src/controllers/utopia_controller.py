@@ -45,8 +45,6 @@ def convert_format_python_to_d3(df):
     # Reorder columns
     melted_df = melted_df[['group', 'variable', 'value']]
 
-    # print("ORIGINAL MELTER:\n", melted_df.to_csv(index=False))
-    # print("\n\nNUMBER OF ORIGINAL ELEMENTS:\n", len(melted_df.to_csv(index=False)))
     return melted_df.to_csv(index=False)
 
 
@@ -123,6 +121,24 @@ def convert_python_table_format_to_d3(df):
     return melted_df.to_csv(index=True)
 
 
+# Function to convert the extended results compartments dataframe to d3 svg
+def convert_compdf_to_d3_format(compartment_df):
+    # Reset index to convert MultiIndex to columns
+    compartment_df.reset_index(inplace=True)
+
+    # Melt the DataFrame
+    melted_df = compartment_df.melt(id_vars=['Compartments', 'mass_g', 'number_of_particles', '%_mass', '%_number',
+                                             'Concentration_g_m3', 'Concentration_num_m3', 'inflows_g_s',
+                                             'inflows_num_s', 'outflows_g_s', 'outflows_num_s',
+                                             'Residence_time_mass_years', 'Residence_time_num_years',
+                                             'Persistence_time_mass_years', 'Persistence_time_num_years'],
+                                    var_name='variable', value_name='value')
+
+    melted_df['variable'] = melted_df['Compartments'].astype(str)
+
+    return melted_df.to_csv(index=False)
+
+
 # Function to convert a regular python dictionary into a
 def convert_dict_to_d3_format(global_info_dict):
     data_list = []  # list to store the data
@@ -136,5 +152,5 @@ def convert_dict_to_d3_format(global_info_dict):
 
 
 def run_utopia(input_obj):
-    heatmap_mass_fraction_df, heatmap_number_fraction_df, extended_results_df, global_info_dict = execute_utopia_model(input_obj)
-    return convert_format_python_to_d3(heatmap_mass_fraction_df), convert_format_python_to_d3(heatmap_number_fraction_df), convert_python_table_format_to_d3(extended_results_df), convert_dict_to_d3_format(global_info_dict)
+    heatmap_mass_fraction_df, heatmap_number_fraction_df, extended_results_df, global_info_dict, extended_comp = execute_utopia_model(input_obj)
+    return convert_format_python_to_d3(heatmap_mass_fraction_df), convert_format_python_to_d3(heatmap_number_fraction_df), convert_python_table_format_to_d3(extended_results_df), convert_dict_to_d3_format(global_info_dict), convert_compdf_to_d3_format(extended_comp)

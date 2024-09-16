@@ -52,6 +52,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Function to unselect selections and display the global overview info on right
+    function unselectWithGlobal() {
+        unselectEverything();
+        d3.select("#global-view").style("display", "flex");
+    }
+
     // Function to unblur all compartments
     function unblurCompartments() {
         d3.selectAll('.compartment')
@@ -861,10 +867,8 @@ document.addEventListener('DOMContentLoaded', function () {
             .text("Size Class (µm)");
     }
 
-    // Building the global distribution overview <- not used in main
-    let assembleGlobalView = function(title, mode, csvExtended, globalInfo) {
-        // d3.select('#master-column').on("click", unselectEverything); // closing info and unselecting when clicked outside of compartments
-        console.log(globalInfo);
+    // Building the global distribution overview
+    let assembleGlobalView = function(title, mode, csvExtendedComp, globalInfo) {
         // Remove any existing heatmap
         d3.select('#heatmap-container').selectAll('*').remove();
         // Set the dimensions and margins of the graph
@@ -880,7 +884,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const container = d3.select("#heatmap-container")
             .attr("width", width + 160)
             .attr("height", heatmapContainerHeight)
-            .on("click", unselectEverything) // closing info column only when ckicked in heatmap area to let user copy info column elements
+            .on("click", unselectWithGlobal)
             .append("g")
             .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
@@ -895,11 +899,17 @@ document.addEventListener('DOMContentLoaded', function () {
             .text(title);
 
         // ========================NEW=IN=USE===extended=data=======================
-        let data = d3.csvParse(csvExtended);
-        const myVars = Array.from(new Set(data.map(d => d.variable))).reverse();
+        let data = d3.csvParse(csvExtendedComp);
+        const myVars = Array.from(new Set(data.map(d => d.Compartments))).reverse();
 
         let globalData = d3.csvParse(globalInfo);
-        let difference = null;
+        let globalMap = new Map();
+        globalData.forEach(row => {
+            // converting dataframe elements to Map elements
+            globalMap.set(row.variable, row.value);
+        });
+
+        let difference = 'Difference';
         let pov = null;
         let tov = null;
         let ctd = null;
@@ -907,16 +917,16 @@ document.addEventListener('DOMContentLoaded', function () {
         let tovDict = 'Tov_size_dict_years';
         // Getting the values depending on mode and storing appropriate column labels
         if (mode === "mass") {
-            difference = 'mass';
             pov = 'Pov_mass_years';
             tov = 'Tov_mass_years';
             ctd = 'CTD_mass';
         } else {
-            difference = 'number';
             pov = 'Pov_num_years';
             tov = 'Tov_num_years';
             ctd = 'CTD_num';
         }
+        // TODO add code for fetching the overall distribution, residence time and persistence by size fraction
+        // and building the table with this information per size fraction
 
         // Create a tooltip
         const tooltip = d3.select("#heatmap-container")
@@ -1024,7 +1034,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 .html(`${d3.select(selectedCompartment).attr('comp-title')} Compartment`);
             // adding general info about selected compartment
             d3.select(`#comp-total-percent`)
-                .html(`% of total ${mode} = ?%`);
+                .html(`% of total ${mode} = %`);
             d3.select(`#comp-persistence`)
                 .html(`Persistence = ?`);
             d3.select(`#comp-residence`)
@@ -1212,7 +1222,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     row.append("div")
                         .attr("class", `${compartmentType}`)
                         .attr("id", `${uniqueCompartment}`)
-                        .attr("comp-title", compTitle)
+                        .attr("comp-title", compTitle.replaceAll('_', ' '))
                         .text(`${compTitle.replaceAll("_", " ")}`)
                         .style("font-geight", "normal");
 
@@ -1230,6 +1240,18 @@ document.addEventListener('DOMContentLoaded', function () {
         const cont13 = d3.select("#compartment-13");
         const newLegendContainer = cont13.append("div")
             .attr("class", "new-legend-container");
+
+        let differenceString = globalMap.get(difference);
+        let differenceParts = differenceString.split("e");
+        // Populating the global information fields
+        d3.select('#difference')
+            .html(`Difference inflow-outflow = ${Number(parseFloat(differenceParts[0])).toFixed(2)}e${differenceParts[1]} (g)`);
+        d3.select('#global-persistence')
+            .html(`Overall persistence (Pov): ${Math.round(globalMap.get(pov))} years`);
+        d3.select('#global-residence')
+            .html(`Overall residence time (Tov): ${Math.round(globalMap.get(tov))} years`);
+        d3.select('#global-travel')
+            .html(`Characteristic travel distance (CTD): ${Math.round(globalMap.get(ctd))} years`);
     }
 
     // Add event listener for button click
@@ -1392,7 +1414,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Highlighting selection on the navbar
             mass_fraction_overview_btn.classList.add('active');
             d3.select("#global-view").style("display", "flex");
-            assembleGlobalView('Mass Fraction Distribution Overview', "mass", utopia_model_results.extended_csv_table, utopia_model_results.global_info_dict);
+            assembleGlobalView('Mass Fraction Distribution Overview', "mass", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
         }
     });
     number_fraction_overview_btn.addEventListener('click', function() { // Number Fraction Distribution Overview
@@ -1406,7 +1428,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Highlighting selection on the navbar
             number_fraction_overview_btn.classList.add('active');
             d3.select("#global-view").style("display", "flex");
-            assembleGlobalView('Particle Number Fraction Distribution Overview', "particle number", utopia_model_results.extended_csv_table, utopia_model_results.global_info_dict);
+            assembleGlobalView('Particle Number Fraction Distribution Overview', "particle number", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
         }
     });
 });

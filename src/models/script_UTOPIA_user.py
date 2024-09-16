@@ -368,7 +368,7 @@ def execute_utopia_model(input_obj):
     ]
 
     # Solve mass balance and print result
-    massBalance(R, system_particle_object_list, q_mass_g_s)
+    global_difference_inf_outf = massBalance(R, system_particle_object_list, q_mass_g_s)
 
     # Test that there are no negative results
     for i, idx in zip(R["mass_g"], R.index):
@@ -718,17 +718,17 @@ def execute_utopia_model(input_obj):
     # Table of Overall residence time (Tov) and persistence (Pov) by size fraction: Tov_size_dict_years and Pov_size_dict_years
     # Characteristic travel distance (CTD): CTD_df["CTD_mass_km"].max() or CTD_df["CTD_particle_number_km"].max()
 
-    ## Global information
-    # TODO: where are the differences for overall inflow-outflow
+    # # Global information
     global_info_dict = {
+        "Difference": global_difference_inf_outf,  # TODO: confirm where are the differences for overall inflow-outflow
         "Pov_mass_years": Pov_mass_years,
         "Pov_num_years": Pov_num_years,
         "Tov_mass_years": Tov_mass_years,
         "Tov_num_years": Tov_num_years,
-        "Tov_size_dict_years": Tov_size_dict_years,
-        "Pov_size_dict_years": Pov_size_dict_years,
+        "Tov_size_dict_years": Tov_size_dict_years,  # same for both mass and particle number?
+        "Pov_size_dict_years": Pov_size_dict_years,  # same for both mass and particle number?
         "CTD_mass": CTD_df["CTD_mass_km"].max(),
         "CTD_num": CTD_df["CTD_particle_number_km"].max()
     }
 
-    return heatmap_mass_fraction_df, heatmap_number_fraction_df, Results_extended, global_info_dict # +compartment df
+    return heatmap_mass_fraction_df, heatmap_number_fraction_df, Results_extended, global_info_dict, Results_extended_comp
