@@ -913,7 +913,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let pov = null;
         let tov = null;
         let ctd = null;
-        let pocDict = 'Pov_size_dict_years';
+        let povDict = 'Pov_size_dict_years';
         let tovDict = 'Tov_size_dict_years';
         // Getting the values depending on mode and storing appropriate column labels
         if (mode === "mass") {
@@ -995,6 +995,23 @@ document.addEventListener('DOMContentLoaded', function () {
             selectedElement.node().classed('blurry', false); // unblurring the selected element compartment
         }
 
+        // Function to add the %, pov, and tov to global table
+        function addFlowToGlobalTable(tableRow, flowName, tovValue, povValue) {
+
+            if (tovValue === "NaN") {
+                tableRow.append("td").text(`${flowName}`);
+                tableRow.append("td").text(`-`);
+                tableRow.append("td").text(`-`);
+                tableRow.append("td").text(`-`);
+            } else {
+                tableRow.append("td").text(`${flowName}`);
+                tableRow.append("td").text(`-`);
+                tableRow.append("td").text(`${povValue}`);
+                tableRow.append("td").text(`${tovValue}`);
+            }
+        }
+
+        // Function to add flows information to given d3 flow element
         function addFlowToTable(tableRow, flowName, value, flowPercentage) {
             let flowValue = Number(value).toFixed(4);
             if (flowValue <= 0) {
@@ -1012,12 +1029,12 @@ document.addEventListener('DOMContentLoaded', function () {
             tableRow.append("td").text(`${percentage}`);
         }
 
-        function addEmptyFlow(tableRow) {
-            tableRow.append("th").text(`-`);
-            tableRow.append("td").text(`-`);
-            tableRow.append("td").text(` `);
-            tableRow.append("td").text(`-`);
-        }
+        // function addEmptyFlow(tableRow) {
+        //     tableRow.append("th").text(`-`);
+        //     tableRow.append("td").text(`-`);
+        //     tableRow.append("td").text(`-`);
+        //     tableRow.append("td").text(`-`);
+        // }
 
         // Handling compartment selection
         const compartmentClick = function(event) {
@@ -1252,6 +1269,39 @@ document.addEventListener('DOMContentLoaded', function () {
             .html(`Overall residence time (Tov): ${Math.round(globalMap.get(tov))} years`);
         d3.select('#global-travel')
             .html(`Characteristic travel distance (CTD): ${Math.round(globalMap.get(ctd))} years`);
+
+        // getting the inflows and outflows and converting them into Maps
+        let povBySizeString = (globalMap.get(povDict)).replace(/'/g, '"');
+        let tovBySizeString = (globalMap.get(tovDict)).replace(/'/g, '"');
+        let povBySizeObj = JSON.parse(povBySizeString);
+        let tovBySizeObj = JSON.parse(tovBySizeString);
+        let povBySizeMap = new Map(Object.entries(povBySizeObj));
+        let tovBySizeMap = new Map(Object.entries(tovBySizeObj));
+
+        // populating the %, pov, and tov table
+        const povBySizeContainer = d3.select('#global-table');
+        const povBySizeBody = d3.select("#global-table-body");
+        povBySizeBody.selectAll('*').remove();
+
+        d3.select('#global-number').html(`% ${mode}`)
+        // getting the pov, and tov per fraction size for the table
+        povBySizeMap.forEach((value, key) => {
+            let  povValue;
+            if (value > 10) {
+                povValue = Math.round(value);
+            } else {
+                povValue = Number(value).toFixed(2);
+            }
+            let tovValue;
+            if (tovBySizeMap.get(key) > 10) {
+                tovValue = Math.round(tovBySizeMap.get(key));
+            } else {
+                tovValue = Number(tovBySizeMap.get(key)).toFixed(2);
+            }
+            let globalTableRow = povBySizeBody.append("tr"); // creating the row entry per inflow item
+            // populating the elements in the table
+            addFlowToGlobalTable(globalTableRow, key, tovValue, povValue);
+        });
     }
 
     // Add event listener for button click

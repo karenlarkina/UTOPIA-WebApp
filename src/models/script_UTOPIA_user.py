@@ -725,8 +725,8 @@ def execute_utopia_model(input_obj):
         "Pov_num_years": Pov_num_years,
         "Tov_mass_years": Tov_mass_years,
         "Tov_num_years": Tov_num_years,
-        "Tov_size_dict_years": Tov_size_dict_years,  # same for both mass and particle number?
-        "Pov_size_dict_years": Pov_size_dict_years,  # same for both mass and particle number?
+        "Tov_size_dict_years": {str(key): value for key, value in Tov_size_dict_years.items()},  # same for both mass and particle number?
+        "Pov_size_dict_years": {str(key): value for key, value in Pov_size_dict_years.items()},  # same for both mass and particle number?
         "CTD_mass": CTD_df["CTD_mass_km"].max(),
         "CTD_num": CTD_df["CTD_particle_number_km"].max()
     }
