@@ -48,7 +48,7 @@ def convert_format_python_to_d3(df):
     return melted_df.to_csv(index=False)
 
 
-# Function to convert the extended results dataframe to d3 svg
+# Function to convert the extended results (information per each cell in each compartment) dataframe to d3 svg
 def convert_python_table_format_to_d3(df):
     # Reset index to convert MultiIndex to columns
     df.reset_index(inplace=True)
@@ -135,6 +135,8 @@ def convert_compdf_to_d3_format(compartment_df):
                                     var_name='variable', value_name='value')
 
     melted_df['variable'] = melted_df['Compartments'].astype(str)
+
+    print(melted_df)
 
     return melted_df.to_csv(index=False)
 

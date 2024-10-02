@@ -902,13 +902,13 @@ document.addEventListener('DOMContentLoaded', function () {
         let data = d3.csvParse(csvExtendedComp);
         const myVars = Array.from(new Set(data.map(d => d.Compartments))).reverse();
 
+        // Dlobal data information
         let globalData = d3.csvParse(globalInfo);
         let globalMap = new Map();
         globalData.forEach(row => {
             // converting dataframe elements to Map elements
             globalMap.set(row.variable, row.value);
         });
-
         let difference = 'Difference';
         let pov = null;
         let tov = null;
@@ -928,44 +928,74 @@ document.addEventListener('DOMContentLoaded', function () {
         // TODO add code for fetching the overall distribution, residence time and persistence by size fraction
         // and building the table with this information per size fraction
 
+        // Compartments data information
+        let myValues = null;
+        // Column labels for fetching different properties for selected compartment (different for mass and particle number)
+        let fraction = null;
+        let concentration = null;
+        let fraction% = null;
+        let residence = null;
+        let persistence = null;
+        let inflows = null;
+        let outflows = null;
+
+        // Getting the values depending on mode and storing appropriate column labels
+        if (mode === "mass") {
+            fraction = 'mass_g';
+            concentration = 'Concentration_g_m3';
+            fraction% = '%_mass';
+            residence = 'Residence_time_mass_years';
+            persistence = 'Persistence_time_mass_years';
+            inflows = 'inflows_g_s';
+            outflows = 'outflows_g_s';
+        } else {
+            fraction = 'number_of_particles';
+            concentration = 'Concentration_num_m3';
+            fraction% = '%_number';
+            residence = 'Residence_time_num_years';
+            persistence = 'Persistence_time_num_years';
+            inflows = 'inflows_num_s';
+            outflows = 'outflows_num_s';
+        }
+
         // Create a tooltip
         const tooltip = d3.select("#heatmap-container")
             .append("div")
             .style("opacity", 0)
             .attr("class", "tooltip");
 
-        // Three functions that change the tooltip when the user hovers/moves/leaves a cell
+        // Three functions that change the tooltip when the user hovers/moves/leaves a compartment
         const mouseover = function (event, d) {
             // if (d[fractionType] !== "" && d[fractionType] !== 0 && d[fractionType] !== "0" && !Number.isNaN(d[fractionType])) {
             //    // when hovering over no visual effect should be shown for empty cells
             // }
             tooltip
                 .style("opacity", 1);
-            if (this !== selectedCell) { // to ensure that the selected cell still appears selected
+            if (this !== selectedCompartment) { // to ensure that the selected cell still appears selected
                 d3.select(this)
-                    .style("stroke", "#737373") // Set stroke color to a darker grey
-                    .style("stroke-width", "1.2px")
-                    .style("opacity", 1);  // Make the cell color darker
+                    .style("stroke", "black") // Set stroke color to a darker grey
+                    .style("stroke-width", "1.5px")
+                    .style("opacity", 1.5);  // Make the cell color darker
             }
         };
 
         const mousemove = function(event, d) {
-            if (d[fraction] !== "" && d[fraction] !== 0 && d[fraction] !== "0" && !Number.isNaN(d[fraction])) { // <--adjusted for extended data
+            // if (d[fraction] !== "" && d[fraction] !== 0 && d[fraction] !== "0" && !Number.isNaN(d[fraction])) { // <--adjusted for extended data
                 // Calculate the position of the tooltip relative to the mouse pointer
                 const tooltipLeft = event.pageX + 10;
                 const tooltipTop = event.pageY - 50;
 
-                // Update the position of the tooltip
-                tooltip
-                    // .html("" + Number(d.value).toFixed(2)) // <--------------- with old heatmaps data
-                    .html(`Log ${mode} fraction: ${Number(d[fraction]).toFixed(2)}<br>% of total ${mode} = ${Math.round(Number(d[originFraction] * 100))}%`) // <--------------- with extended data
-                    .style("left", tooltipLeft + "px")
-                    .style("top", tooltipTop + "px")
-                    .style("display", "block");
-            } else {
-                // If d.value is empty, hide the tooltip
-                tooltip.style("display", "none");
-            }
+                // // Update the position of the tooltip
+                // tooltip
+                //     // .html("" + Number(d.value).toFixed(2)) // <--------------- with old heatmaps data
+                //     // .html(`Log ${mode} fraction: ${Number(d[fraction]).toFixed(2)}<br>% of total ${mode} = ${Math.round(Number(d[originFraction] * 100))}%`) // <--------------- with extended data
+                //     .style("left", tooltipLeft + "px")
+                //     .style("top", tooltipTop + "px")
+                //     .style("display", "block");
+            // } else {
+            //     // If d.value is empty, hide the tooltip
+            //     tooltip.style("display", "none");
+            // }
         };
 
         const mouseleave = function (event, d) {
@@ -973,9 +1003,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 .style("opacity", 0);
             if (this !== selectedCell) { // Only reset stroke for the unselected cells
                 d3.select(this)
-                    .style("stroke", "white") // Set stroke color back to white
+                    .style("stroke", "black") // Set stroke color back to white
                     .style("stroke-width", "0.8px")
-                    .style("opacity", 0.7); // Reset the cell color
+                    .style("opacity", 0.9); // Reset the cell color
             }
         };
 
@@ -1029,12 +1059,13 @@ document.addEventListener('DOMContentLoaded', function () {
             tableRow.append("td").text(`${percentage}`);
         }
 
-        // function addEmptyFlow(tableRow) {
-        //     tableRow.append("th").text(`-`);
-        //     tableRow.append("td").text(`-`);
-        //     tableRow.append("td").text(`-`);
-        //     tableRow.append("td").text(`-`);
-        // }
+        // Function to add an empty placeholder entry to flows table for compartments with now inflows-outflows
+        function addEmptyFlow(tableRow) {
+            tableRow.append("th").text(`-`);
+            tableRow.append("td").text(`-`);
+            tableRow.append("td").text(`-`);
+            tableRow.append("td").text(`-`);
+        }
 
         // Handling compartment selection
         const compartmentClick = function(event) {
@@ -1116,7 +1147,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     .attr("id", "compartment-air")
                     .style("cursor", "pointer")
                     .attr("comp-title", `${currentCompartment}`)
-                    .on("click", compartmentClick);
+                    .on("click", compartmentClick)
+                    .style("capacity", 0.9)
+                    .style("font-weight", "normal")
+                    .on("mouseover", mouseover)
+                    .on("mousemove", mousemove)
+                    .on("mouseleave", mouseleave);
 
                 compartmentContainer.append("div")
                     .attr("class", "compartment-title")
@@ -1241,12 +1277,16 @@ document.addEventListener('DOMContentLoaded', function () {
                         .attr("id", `${uniqueCompartment}`)
                         .attr("comp-title", compTitle.replaceAll('_', ' '))
                         .text(`${compTitle.replaceAll("_", " ")}`)
-                        .style("font-geight", "normal");
+                        .style("font-weight", "normal");
 
                     let compartmentContainer = d3.select(`#${uniqueCompartment}`);
                     if (compartmentType !== "compartment empty" && compartmentType !== "new-legend-container" && compartmentType !== "nothing") {
                         compartmentContainer.style("cursor", "pointer")
-                            .on("click", compartmentClick);
+                            .style("capacity", 0.9)
+                            .on("click", compartmentClick)
+                            .on("mouseover", mouseover)
+                            .on("mousemove", mousemove)
+                            .on("mouseleave", mouseleave);
                     }
                 }
             }
