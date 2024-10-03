@@ -933,7 +933,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Column labels for fetching different properties for selected compartment (different for mass and particle number)
         let fraction = null;
         let concentration = null;
-        let fraction% = null;
+        let fracPercent = null;
         let residence = null;
         let persistence = null;
         let inflows = null;
@@ -943,7 +943,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (mode === "mass") {
             fraction = 'mass_g';
             concentration = 'Concentration_g_m3';
-            fraction% = '%_mass';
+            fracPercent = '%_mass';
             residence = 'Residence_time_mass_years';
             persistence = 'Persistence_time_mass_years';
             inflows = 'inflows_g_s';
@@ -951,7 +951,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             fraction = 'number_of_particles';
             concentration = 'Concentration_num_m3';
-            fraction% = '%_number';
+            fracPercent = '%_number';
             residence = 'Residence_time_num_years';
             persistence = 'Persistence_time_num_years';
             inflows = 'inflows_num_s';
