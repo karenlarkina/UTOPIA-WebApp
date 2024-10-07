@@ -52,6 +52,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Function to unselect selections and display the global overview info on right
+    function unselectWithGlobal() {
+        unselectEverything();
+        d3.select("#global-view").style("display", "flex");
+    }
+
     // Function to unblur all compartments
     function unblurCompartments() {
         d3.selectAll('.compartment')
@@ -861,9 +867,8 @@ document.addEventListener('DOMContentLoaded', function () {
             .text("Size Class (µm)");
     }
 
-    // Building the global distribution overview <- not used in main
-    let assembleGlobalView = function(title, mode, csvExtended) {
-        // d3.select('#master-column').on("click", unselectEverything); // closing info and unselecting when clicked outside of compartments
+    // Building the global distribution overview
+    let assembleGlobalView = function(title, mode, csvExtendedComp, globalInfo) {
         // Remove any existing heatmap
         d3.select('#heatmap-container').selectAll('*').remove();
         // Set the dimensions and margins of the graph
@@ -879,7 +884,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const container = d3.select("#heatmap-container")
             .attr("width", width + 160)
             .attr("height", heatmapContainerHeight)
-            .on("click", unselectEverything) // closing info column only when ckicked in heatmap area to let user copy info column elements
+            .on("click", unselectWithGlobal)
             .append("g")
             .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
@@ -894,9 +899,64 @@ document.addEventListener('DOMContentLoaded', function () {
             .text(title);
 
         // ========================NEW=IN=USE===extended=data=======================
-        let data = d3.csvParse(csvExtended);
-        // const myGroups = Array.from(new Set(data.map(d => d.group))).reverse();
-        const myVars = Array.from(new Set(data.map(d => d.variable))).reverse();
+        let data = d3.csvParse(csvExtendedComp);
+        const myVars = Array.from(new Set(data.map(d => d.Compartments))).reverse();
+
+        // Dlobal data information
+        let globalData = d3.csvParse(globalInfo);
+        let globalMap = new Map();
+        globalData.forEach(row => {
+            // converting dataframe elements to Map elements
+            globalMap.set(row.variable, row.value);
+        });
+        let difference = 'Difference';
+        let pov = null;
+        let tov = null;
+        let ctd = null;
+        let povDict = 'Pov_size_dict_years';
+        let tovDict = 'Tov_size_dict_years';
+        // Getting the values depending on mode and storing appropriate column labels
+        if (mode === "mass") {
+            pov = 'Pov_mass_years';
+            tov = 'Tov_mass_years';
+            ctd = 'CTD_mass';
+        } else {
+            pov = 'Pov_num_years';
+            tov = 'Tov_num_years';
+            ctd = 'CTD_num';
+        }
+        // TODO add code for fetching the overall distribution, residence time and persistence by size fraction
+        // and building the table with this information per size fraction
+
+        // Compartments data information
+        let myValues = null;
+        // Column labels for fetching different properties for selected compartment (different for mass and particle number)
+        let fraction = null;
+        let concentration = null;
+        let fracPercent = null;
+        let residence = null;
+        let persistence = null;
+        let inflows = null;
+        let outflows = null;
+
+        // Getting the values depending on mode and storing appropriate column labels
+        if (mode === "mass") {
+            fraction = 'mass_g';
+            concentration = 'Concentration_g_m3';
+            fracPercent = '%_mass';
+            residence = 'Residence_time_mass_years';
+            persistence = 'Persistence_time_mass_years';
+            inflows = 'inflows_g_s';
+            outflows = 'outflows_g_s';
+        } else {
+            fraction = 'number_of_particles';
+            concentration = 'Concentration_num_m3';
+            fracPercent = '%_number';
+            residence = 'Residence_time_num_years';
+            persistence = 'Persistence_time_num_years';
+            inflows = 'inflows_num_s';
+            outflows = 'outflows_num_s';
+        }
 
         // Create a tooltip
         const tooltip = d3.select("#heatmap-container")
@@ -904,38 +964,38 @@ document.addEventListener('DOMContentLoaded', function () {
             .style("opacity", 0)
             .attr("class", "tooltip");
 
-        // Three functions that change the tooltip when the user hovers/moves/leaves a cell
+        // Three functions that change the tooltip when the user hovers/moves/leaves a compartment
         const mouseover = function (event, d) {
             // if (d[fractionType] !== "" && d[fractionType] !== 0 && d[fractionType] !== "0" && !Number.isNaN(d[fractionType])) {
             //    // when hovering over no visual effect should be shown for empty cells
             // }
             tooltip
                 .style("opacity", 1);
-            if (this !== selectedCell) { // to ensure that the selected cell still appears selected
+            if (this !== selectedCompartment) { // to ensure that the selected cell still appears selected
                 d3.select(this)
-                    .style("stroke", "#737373") // Set stroke color to a darker grey
-                    .style("stroke-width", "1.2px")
-                    .style("opacity", 1);  // Make the cell color darker
+                    .style("stroke", "black") // Set stroke color to a darker grey
+                    .style("stroke-width", "1.5px")
+                    .style("opacity", 1.5);  // Make the cell color darker
             }
         };
 
         const mousemove = function(event, d) {
-            if (d[fraction] !== "" && d[fraction] !== 0 && d[fraction] !== "0" && !Number.isNaN(d[fraction])) { // <--adjusted for extended data
+            // if (d[fraction] !== "" && d[fraction] !== 0 && d[fraction] !== "0" && !Number.isNaN(d[fraction])) { // <--adjusted for extended data
                 // Calculate the position of the tooltip relative to the mouse pointer
                 const tooltipLeft = event.pageX + 10;
                 const tooltipTop = event.pageY - 50;
 
-                // Update the position of the tooltip
-                tooltip
-                    // .html("" + Number(d.value).toFixed(2)) // <--------------- with old heatmaps data
-                    .html(`Log ${mode} fraction: ${Number(d[fraction]).toFixed(2)}<br>% of total ${mode} = ${Math.round(Number(d[originFraction] * 100))}%`) // <--------------- with extended data
-                    .style("left", tooltipLeft + "px")
-                    .style("top", tooltipTop + "px")
-                    .style("display", "block");
-            } else {
-                // If d.value is empty, hide the tooltip
-                tooltip.style("display", "none");
-            }
+                // // Update the position of the tooltip
+                // tooltip
+                //     // .html("" + Number(d.value).toFixed(2)) // <--------------- with old heatmaps data
+                //     // .html(`Log ${mode} fraction: ${Number(d[fraction]).toFixed(2)}<br>% of total ${mode} = ${Math.round(Number(d[originFraction] * 100))}%`) // <--------------- with extended data
+                //     .style("left", tooltipLeft + "px")
+                //     .style("top", tooltipTop + "px")
+                //     .style("display", "block");
+            // } else {
+            //     // If d.value is empty, hide the tooltip
+            //     tooltip.style("display", "none");
+            // }
         };
 
         const mouseleave = function (event, d) {
@@ -943,9 +1003,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 .style("opacity", 0);
             if (this !== selectedCell) { // Only reset stroke for the unselected cells
                 d3.select(this)
-                    .style("stroke", "white") // Set stroke color back to white
+                    .style("stroke", "black") // Set stroke color back to white
                     .style("stroke-width", "0.8px")
-                    .style("opacity", 0.7); // Reset the cell color
+                    .style("opacity", 0.9); // Reset the cell color
             }
         };
 
@@ -965,6 +1025,23 @@ document.addEventListener('DOMContentLoaded', function () {
             selectedElement.node().classed('blurry', false); // unblurring the selected element compartment
         }
 
+        // Function to add the %, pov, and tov to global table
+        function addFlowToGlobalTable(tableRow, flowName, tovValue, povValue) {
+
+            if (tovValue === "NaN") {
+                tableRow.append("td").text(`${flowName}`);
+                tableRow.append("td").text(`-`);
+                tableRow.append("td").text(`-`);
+                tableRow.append("td").text(`-`);
+            } else {
+                tableRow.append("td").text(`${flowName}`);
+                tableRow.append("td").text(`-`);
+                tableRow.append("td").text(`${povValue}`);
+                tableRow.append("td").text(`${tovValue}`);
+            }
+        }
+
+        // Function to add flows information to given d3 flow element
         function addFlowToTable(tableRow, flowName, value, flowPercentage) {
             let flowValue = Number(value).toFixed(4);
             if (flowValue <= 0) {
@@ -982,10 +1059,11 @@ document.addEventListener('DOMContentLoaded', function () {
             tableRow.append("td").text(`${percentage}`);
         }
 
+        // Function to add an empty placeholder entry to flows table for compartments with now inflows-outflows
         function addEmptyFlow(tableRow) {
             tableRow.append("th").text(`-`);
             tableRow.append("td").text(`-`);
-            tableRow.append("td").text(` `);
+            tableRow.append("td").text(`-`);
             tableRow.append("td").text(`-`);
         }
 
@@ -1004,7 +1082,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 .html(`${d3.select(selectedCompartment).attr('comp-title')} Compartment`);
             // adding general info about selected compartment
             d3.select(`#comp-total-percent`)
-                .html(`% of total ${mode} = ?%`);
+                .html(`% of total ${mode} = %`);
             d3.select(`#comp-persistence`)
                 .html(`Persistence = ?`);
             d3.select(`#comp-residence`)
@@ -1069,7 +1147,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     .attr("id", "compartment-air")
                     .style("cursor", "pointer")
                     .attr("comp-title", `${currentCompartment}`)
-                    .on("click", compartmentClick);
+                    .on("click", compartmentClick)
+                    .style("capacity", 0.9)
+                    .style("font-weight", "normal")
+                    .on("mouseover", mouseover)
+                    .on("mousemove", mousemove)
+                    .on("mouseleave", mouseleave);
 
                 compartmentContainer.append("div")
                     .attr("class", "compartment-title")
@@ -1192,14 +1275,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     row.append("div")
                         .attr("class", `${compartmentType}`)
                         .attr("id", `${uniqueCompartment}`)
-                        .attr("comp-title", compTitle)
+                        .attr("comp-title", compTitle.replaceAll('_', ' '))
                         .text(`${compTitle.replaceAll("_", " ")}`)
-                        .style("font-geight", "normal");
+                        .style("font-weight", "normal");
 
                     let compartmentContainer = d3.select(`#${uniqueCompartment}`);
                     if (compartmentType !== "compartment empty" && compartmentType !== "new-legend-container" && compartmentType !== "nothing") {
                         compartmentContainer.style("cursor", "pointer")
-                            .on("click", compartmentClick);
+                            .style("capacity", 0.9)
+                            .on("click", compartmentClick)
+                            .on("mouseover", mouseover)
+                            .on("mousemove", mousemove)
+                            .on("mouseleave", mouseleave);
                     }
                 }
             }
@@ -1210,6 +1297,51 @@ document.addEventListener('DOMContentLoaded', function () {
         const cont13 = d3.select("#compartment-13");
         const newLegendContainer = cont13.append("div")
             .attr("class", "new-legend-container");
+
+        let differenceString = globalMap.get(difference);
+        let differenceParts = differenceString.split("e");
+        // Populating the global information fields
+        d3.select('#difference')
+            .html(`Difference inflow-outflow = ${Number(parseFloat(differenceParts[0])).toFixed(2)}e${differenceParts[1]} (g)`);
+        d3.select('#global-persistence')
+            .html(`Overall persistence (Pov): ${Math.round(globalMap.get(pov))} years`);
+        d3.select('#global-residence')
+            .html(`Overall residence time (Tov): ${Math.round(globalMap.get(tov))} years`);
+        d3.select('#global-travel')
+            .html(`Characteristic travel distance (CTD): ${Math.round(globalMap.get(ctd))} years`);
+
+        // getting the inflows and outflows and converting them into Maps
+        let povBySizeString = (globalMap.get(povDict)).replace(/'/g, '"');
+        let tovBySizeString = (globalMap.get(tovDict)).replace(/'/g, '"');
+        let povBySizeObj = JSON.parse(povBySizeString);
+        let tovBySizeObj = JSON.parse(tovBySizeString);
+        let povBySizeMap = new Map(Object.entries(povBySizeObj));
+        let tovBySizeMap = new Map(Object.entries(tovBySizeObj));
+
+        // populating the %, pov, and tov table
+        const povBySizeContainer = d3.select('#global-table');
+        const povBySizeBody = d3.select("#global-table-body");
+        povBySizeBody.selectAll('*').remove();
+
+        d3.select('#global-number').html(`% ${mode}`)
+        // getting the pov, and tov per fraction size for the table
+        povBySizeMap.forEach((value, key) => {
+            let  povValue;
+            if (value > 10) {
+                povValue = Math.round(value);
+            } else {
+                povValue = Number(value).toFixed(2);
+            }
+            let tovValue;
+            if (tovBySizeMap.get(key) > 10) {
+                tovValue = Math.round(tovBySizeMap.get(key));
+            } else {
+                tovValue = Number(tovBySizeMap.get(key)).toFixed(2);
+            }
+            let globalTableRow = povBySizeBody.append("tr"); // creating the row entry per inflow item
+            // populating the elements in the table
+            addFlowToGlobalTable(globalTableRow, key, tovValue, povValue);
+        });
     }
 
     // Add event listener for button click
@@ -1243,13 +1375,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Fetching the master column container
                 let masterContainer = document.getElementById('master-column');
                 masterContainer.style.display = "flex"; // Reveal the model run information box
+
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
                 return response.json(); // Parse the response body as JSON
             })
             .then(model_results => {
-                utopia_model_results = model_results; //store values from backend for assembling all visualizations
+                utopia_model_results = model_results; // store values from backend for assembling all visualizations
                 assembleCompHeatMap('Mass Fraction Distribution Heatmap' , utopia_model_results.mass_fraction_distribution_heatmap, "mass", utopia_model_results.extended_csv_table);
                 comp_mass_fraction_distribution_btn.classList.add('active');
             })
@@ -1329,8 +1462,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Views actions
     let comp_mass_fraction_distribution_btn = document.getElementById('comp_mass_fraction_distribution_btn')
     let comp_number_fraction_distribution_btn = document.getElementById('comp_number_fraction_distribution_btn')
-    // let mass_fraction_overview_btn = document.getElementById('mass_fraction_overview_btn')
-    // let number_fraction_overview_btn = document.getElementById('number_fraction_overview_btn')
+    let mass_fraction_overview_btn = document.getElementById('mass_fraction_overview_btn')
+    let number_fraction_overview_btn = document.getElementById('number_fraction_overview_btn')
 
     comp_mass_fraction_distribution_btn.addEventListener('click', function() {
         if(utopia_model_results !== null){
@@ -1338,11 +1471,11 @@ document.addEventListener('DOMContentLoaded', function () {
             unselectEverything();
             // Removing selection from the other
             comp_number_fraction_distribution_btn.classList.remove('active');
-            // mass_fraction_overview_btn.classList.remove('active');
-            // number_fraction_overview_btn.classList.remove('active');
+            mass_fraction_overview_btn.classList.remove('active');
+            number_fraction_overview_btn.classList.remove('active');
             // Highlighting selection on the navbar
             comp_mass_fraction_distribution_btn.classList.add('active');
-            // d3.select("#global-view").style("display", "none");
+            d3.select("#global-view").style("display", "none");
             assembleCompHeatMap('Mass Fraction Distribution Heatmap', utopia_model_results.mass_fraction_distribution_heatmap, "mass", utopia_model_results.extended_csv_table);
         }
     });
@@ -1352,40 +1485,40 @@ document.addEventListener('DOMContentLoaded', function () {
             unselectEverything();
             // Removing selection from the other
             comp_mass_fraction_distribution_btn.classList.remove('active');
-            // mass_fraction_overview_btn.classList.remove('active');
-            // number_fraction_overview_btn.classList.remove('active');
+            mass_fraction_overview_btn.classList.remove('active');
+            number_fraction_overview_btn.classList.remove('active');
             // Highlighting selection on the navbar
             comp_number_fraction_distribution_btn.classList.add('active');
-            // d3.select("#global-view").style("display", "none");
+            d3.select("#global-view").style("display", "none");
             assembleCompHeatMap('Particle Number Fraction Distribution Heatmap', utopia_model_results.number_fraction_distribution_heatmap, "particle number", utopia_model_results.extended_csv_table);
-    //     }
-    // });
-    // mass_fraction_overview_btn.addEventListener('click', function() { // Mass Distribution Overview
-    //     if(utopia_model_results !== null){
-    //         // Hide all information containers
-    //         unselectEverything();
-    //         // Removing selection from the other
-    //         comp_mass_fraction_distribution_btn.classList.remove('active');
-    //         comp_number_fraction_distribution_btn.classList.remove('active');
-    //         number_fraction_overview_btn.classList.remove('active');
-    //         // Highlighting selection on the navbar
-    //         mass_fraction_overview_btn.classList.add('active');
-    //         d3.select("#global-view").style("display", "flex");
-    //         assembleGlobalView('Mass Fraction Distribution Overview', "mass", utopia_model_results.extended_csv_table);
-    //     }
-    // });
-    // number_fraction_overview_btn.addEventListener('click', function() { // Number Fraction Distribution Overview
-    //     if(utopia_model_results !== null){
-    //         // Hide all information containers
-    //         unselectEverything();
-    //         // Removing selection from the other
-    //         comp_mass_fraction_distribution_btn.classList.remove('active');
-    //         comp_number_fraction_distribution_btn.classList.remove('active');
-    //         mass_fraction_overview_btn.classList.remove('active');
-    //         // Highlighting selection on the navbar
-    //         number_fraction_overview_btn.classList.add('active');
-    //         d3.select("#global-view").style("display", "flex");
-    //         assembleGlobalView('Particle Number Fraction Distribution Overview', "particle number", utopia_model_results.extended_csv_table);
+        }
+    });
+    mass_fraction_overview_btn.addEventListener('click', function() { // Mass Distribution Overview
+        if(utopia_model_results !== null){
+            // Hide all information containers
+            unselectEverything();
+            // Removing selection from the other
+            comp_mass_fraction_distribution_btn.classList.remove('active');
+            comp_number_fraction_distribution_btn.classList.remove('active');
+            number_fraction_overview_btn.classList.remove('active');
+            // Highlighting selection on the navbar
+            mass_fraction_overview_btn.classList.add('active');
+            d3.select("#global-view").style("display", "flex");
+            assembleGlobalView('Mass Fraction Distribution Overview', "mass", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
+        }
+    });
+    number_fraction_overview_btn.addEventListener('click', function() { // Number Fraction Distribution Overview
+        if(utopia_model_results !== null){
+            // Hide all information containers
+            unselectEverything();
+            // Removing selection from the other
+            comp_mass_fraction_distribution_btn.classList.remove('active');
+            comp_number_fraction_distribution_btn.classList.remove('active');
+            mass_fraction_overview_btn.classList.remove('active');
+            // Highlighting selection on the navbar
+            number_fraction_overview_btn.classList.add('active');
+            d3.select("#global-view").style("display", "flex");
+            assembleGlobalView('Particle Number Fraction Distribution Overview', "particle number", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
         }
     });
 });
