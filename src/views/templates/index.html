@@ -91,6 +91,10 @@
                         </select>
                     </div>
                     <div class="row">
+                        <label for="customRange3" class="form-label col-md-4" style="color: #e22b74">Numeric range</label>
+                        <input type="range" class="form-range col-md-3" min="0" max="1" step="0.1" id="customRange3" style="width: 25%">
+                    </div>
+                    <div class="row">
                         <label class="col-md-4">Process Input Parameters</label>
                         <label class="col-md-3">TBD</label>
                     </div>
@@ -169,12 +173,12 @@
 {#                            </li>#}
                             <li class="nav-item">
 <!--                                TODO: work in progress, commented out from main-->
-<!--                                <a class="nav-link" id="mass_fraction_overview_btn" href="#" onclick="">Mass Fraction Distribution Overview</a>-->
-<!--                            </li>-->
-<!--                            <li class="nav-item">-->
-<!--                                <a class="nav-link" id="number_fraction_overview_btn" href="#" onclick="">Particle Number Fraction Distribution Overview</a>-->
-<!--                            </li>-->
-<!--                            <li class="nav-item">-->
+                                <a class="nav-link" id="mass_fraction_overview_btn" href="#" onclick="">Mass Fraction Distribution Overview</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="number_fraction_overview_btn" href="#" onclick="">Particle Number Fraction Distribution Overview</a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" id="comp_mass_fraction_distribution_btn" href="#" onclick="">Mass Fraction Distribution</a>
                             </li>
                             <li class="nav-item">
@@ -332,6 +336,19 @@
                                         <div id="global-residence">Overall residence time (Tov): _ years</div>
                                         <div id="global-travel">Characteristic travel distance (CTD): _ km</div>
                                     </div>
+
+                                    <table class="table table-hover table-bordered fixed-table" id="global-table">
+                                        <thead class="table-light">
+                                        <tr>
+                                            <th scope="col">Size Fraction (µm)</th>
+                                            <th scope="col" id="global-number">% mass/particle number</th>
+                                            <th scope="col">Persistence (years)</th>
+                                            <th scope="col">Residence time (years)</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="global-table-body">
+                                        </tbody>
+                                    </table>
                                 </div>
 
                             </div>
