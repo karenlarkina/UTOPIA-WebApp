@@ -172,7 +172,7 @@
 {#                                <a class="nav-link active" id="number_fraction_distribution_btn" href="#" onclick="">Number Fraction Distribution</a>#}
 {#                            </li>#}
                             <li class="nav-item">
-<!--                                TODO: work in progress, commented out from main-->
+                            <!--TODO: work in progress, commented out from main-->
                                 <a class="nav-link" id="mass_fraction_overview_btn" href="#" onclick="">Mass Fraction Distribution Overview</a>
                             </li>
                             <li class="nav-item">
@@ -210,7 +210,6 @@
                         </div>
                         <div id="detailed-view-cell" class="detailed-views">
                             <!-- Detailed information container -->
-<!--                            <div class="detailed-info-column" id="detailed-info-column1">-->
                             <div class="card" style="width: 100%;" id="detailed-info-column1">
                                 <div id="cell-title"  class="card-header bold"></div>
                                 <div class="inner-detail-container-general">
@@ -275,28 +274,35 @@
                             <!-- Detailed information container -->
                             <div class="card" style="width: 100%;">
                                 <div id="compartment-title"  class="card-header bold"></div>
-<!--                                <div id="compartment-title" class="selection-title"></div>-->
                                 <div class="inner-detail-container-general">
-<!--                                    <div id="compartment-info"></div>-->
+                                    <div id="comp-concentration"></div>
                                     <div id="comp-total-percent"></div>
                                     <div id="comp-persistence"></div>
                                     <div id="comp-residence"></div>
                                 </div>
-                                <div class="inner-detail-container" style="border-top: 1px solid black;">
-                                    <div class="param-container">
-                                        <div class="param-value-left bold"></div>
-                                        <div class="param-value bold"></div>
-                                        <div class="param-value bold"></div>
-                                        <div class="param-value bold"></div>
-                                    </div>
-                                </div>
+                                <table class="table table-striped table-hover fixed-table">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th scope="col"> </th>
+                                        <th scope="col">Rate (g/s)</th>
+                                        <th scope="col">Total</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody style="display: none">
+                                    <tr>
+                                        <th scope="row"></th>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
                                 <table class="table table-hover fixed-table" id="comp-inflows-table">
                                     <thead class="table-light">
                                     <tr>
                                         <th scope="col">Inflows</th>
                                         <th scope="col"> </th>
-                                        <th scope="col" id="comp-total-inflow"></th>
-                                        <th scope="col"> </th>
+                                        <th scope="col" id="comp-total-inflow"> </th>
                                     </tr>
                                     </thead>
                                     <tbody id="comp-inflows">
@@ -308,8 +314,7 @@
                                     <tr>
                                         <th scope="col">Outflows</th>
                                         <th scope="col"> </th>
-                                        <th scope="col" id="comp-total-outflow"></th>
-                                        <th scope="col"> </th>
+                                        <th scope="col" id="comp-total-outflow"> </th>
                                     </tr>
                                     </thead>
                                     <tbody id="comp-outflows">
@@ -321,22 +326,28 @@
                             <!-- Detailed information container -->
                             <div class="card" style="width: 100%;">
                                 <div id="global-balance"  class="card-header bold">Global Mass Balance</div>
-                                <!--                                <div id="compartment-title" class="selection-title"></div>-->
                                 <div class="inner-detail-container-general">
-                                    <!--                                    <div id="compartment-info"></div>-->
-
                                     <div id="difference">Difference inflow-outflow = 0.000 (g)</div>
                                 </div>
+                                <table class="table fixed-table">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th scope="row">Overall exposure indicators mass</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr>
+                                        <td>
+                                            <div id="global-persistence">Overall persistence (Pov): _ years</div>
+                                            <div id="global-residence">Overall residence time (Tov): _ years</div>
+                                            <div id="global-travel">Characteristic travel distance (CTD): _ km</div>
+                                        </td>
+                                    </tr>
+
+                                    </tbody>
+                                </table>
                                 <div class="card" style="width: 100%;">
                                     <div id="global-exposure"  class="card-header bold">Overall exposure indicators mass</div>
-                                    <!--                                <div id="compartment-title" class="selection-title"></div>-->
-                                    <div class="inner-detail-container-general">
-                                        <!--                                    <div id="compartment-info"></div>-->
-                                        <div id="global-persistence">Overall persistence (Pov): _ years</div>
-                                        <div id="global-residence">Overall residence time (Tov): _ years</div>
-                                        <div id="global-travel">Characteristic travel distance (CTD): _ km</div>
-                                    </div>
-
                                     <table class="table table-hover table-bordered fixed-table" id="global-table">
                                         <thead class="table-light">
                                         <tr>

@@ -91,15 +91,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Building the new heatmaps with respect to compartments
     let assembleCompHeatMap = function(title, csvText, mode, csvExtended) {
-        // d3.select('#master-column').on("click", unselectEverything); // closing info and unselecting when clicked outside of compartments
         // remove any existing heatmap
         d3.select('#heatmap-container').selectAll('*').remove();
         // set the dimensions and margins of the graph
         const margin = {top: 50, right: 5, bottom: 150, left: 150},
-            // viewportWidth = window.innerWidth * 0.48,
-            viewportWidth = 810, // Temporary static width for the heatmap container
+            viewportWidth = 810,
             viewportHeight = window.innerHeight * 0.6,
-            // cellSize = 26, // Size of each cell in px
             width = viewportWidth - margin.left - margin.right,
             height = viewportHeight - margin.top - margin.bottom;
         const heatmapContainerHeight = height + margin.top + margin.bottom * 2 + 30;
@@ -126,7 +123,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const myVars = Array.from(new Set(data.map(d => d.variable))).reverse();
 
         let myValues = null;
-        // let detailedInfoItems = new Map(); // can be used to store and fetch different properties
         // Column labels for fetching different properties for selected cell (different for mass and particle number)
         let fraction = null;
         let originFraction = null;
@@ -293,15 +289,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Function to add flows information to given d3 flow element
         function addFlowToTable(tableRow, flowName, value, flowPercentage) {
             let flowValue = roundDynamiucFloat(value);
-            // let flowValue = Number(value).toFixed(4);
-            // if (flowValue <= 0) {
-            //     flowValue = "< 0.00005";
-            // }
             let percentage = roundDynamiucFloat(flowPercentage);
-            // let percentage = Number(flowPercentage).toFixed(1);
-            // if (percentage <= 0) {
-            //     percentage = "< 0.05";
-            // }
 
             tableRow.append("td")
                 .text(`${flowName.charAt(0).toUpperCase()}${flowName.slice(1)}`);
@@ -392,7 +380,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // listing all the outflows if there are any
                 if (totalOutflow > 0) {
-                    // ordering the
+                    // ordering the outflows to decending order
                     let outflowsArray = Array.from(outflowsMap);
                     outflowsArray.sort((a, b) => b[1] - a[1]);
                     outflowsMap = new Map(outflowsArray);
@@ -435,76 +423,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
 
-        // Handling compartment selection TODO: not used in distribution heatmaps visualization
-        const compartmentClick = function(event) {
-            event.stopPropagation();
-            unselectEverything();
-            const clickedClass = d3.select(this).attr("class");
-
-            selectedCompartment = this; // update selected compartment
-            let selection = d3.select(selectedCompartment);
-            blurCompartments(selection);
-            selection.style("border", "solid 3px #000"); // change the border to appear sleected
-            d3.select('#compartment-title')
-                .html(`${d3.select(selectedCompartment).attr('comp-title')} Compartment`);
-            // adding general info about selected compartment
-            d3.select(`#comp-total-percent`)
-                .html(`% of total ${mode} = ?%`);
-            d3.select(`#comp-persistence`)
-                .html(`Persistence = ?`);
-            d3.select(`#comp-residence`)
-                .html(`Residence time = ? (years)`);
-
-            // // populating total inflows and outflows
-            // let totalCompInflow = Number(selection.attr('comp-total-inflow')).toFixed(4);
-            // let totalCompOutflow = Number(selection.attr('comp-total-outflow')).toFixed(4);
-            d3.select('#comp-total-inflow')
-                .html(`?`);
-            d3.select('#comp-total-outflow')
-                .html(`?`);
-
-            const compInflowContainer = d3.select('#comp-inflows');
-            compInflowContainer.selectAll('*').remove();
-            // TODO // listing all the inflows if there are any
-            // if (totalCompInflow > 0) {
-            //     compInflowsMap.forEach((value, key) => {
-            //         let compInflowName = key.replaceAll("k_", "").replaceAll("_", " ");
-            //         let compInflowPercentage = (100 * Number(value).toFixed(4)) / totalCompInflow;
-            //         let compInflowsItem = compInflowContainer.append("div") // creating the row entry per inflow item
-            //             .attr("class", "param-container-list");
-            //         addFlowEntries(compInflowsItem, compInflowName, value, compInflowPercentage);
-            //     });
-            // } else { // if no inflows then showing one row of - - -
-                let compInflowsItem = compInflowContainer.append("div")
-                    .attr("class", "param-container-list");
-                addEmptyFlowEntry(compInflowsItem);
-            // }
-            const compOutflowContainer = d3.select('#comp-outflows');
-            compOutflowContainer.selectAll('*').remove();
-            // TODO // listing all the outflows if there are any
-            // if (totalCompOutflow > 0) {
-            //     compOutflowsMap.forEach((value, key) => {
-            //         let compOutflowName = key.replaceAll("k_", "").replaceAll("_", " ");
-            //         let compOutflowPercentage = (100 * Number(value).toFixed(4)) / totalCompOutflow;
-            //         let compOutflowsItem = compOutflowContainer.append("div") // creating the row entry per outflow item
-            //             .attr("class", "param-container-list");
-            //         addFlowEntries(compOutflowsItem, compOutflowName, value, compOutflowPercentage);
-            //     });
-            // } else { // if no inflows then showing one row with less than the <minimum value>
-                let compOutflowsItem = compOutflowContainer.append("div")
-                    .attr("class", "param-container-list");
-                addEmptyFlowEntry(compOutflowsItem);
-            // }
-
-            // Display current view container
-            document.getElementById(`detailed-view-compartment`).style.display = 'flex';
-        };
-
         // Function to create a heatmap for a given compartment
         function createHeatmap(container, compartmentType, variable) {
             if (compartmentType !== "compartment empty" && compartmentType !== "new-legend-container" && compartmentType !== "nothing") {
-                // container.style("cursor", "pointer");
-                //     .on("click", compartmentClick);
 
                 const svgWrapper = container.append("div")
                     .attr("class", "white-background");
@@ -994,22 +915,16 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         const mousemove = function(event, d) {
-            // if (d[fraction] !== "" && d[fraction] !== 0 && d[fraction] !== "0" && !Number.isNaN(d[fraction])) { // <--adjusted for extended data
-                // Calculate the position of the tooltip relative to the mouse pointer
-                const tooltipLeft = event.pageX + 10;
-                const tooltipTop = event.pageY - 50;
+            // Calculate the position of the tooltip relative to the mouse pointer
+            const tooltipLeft = event.pageX + 10;
+            const tooltipTop = event.pageY - 50;
 
-                // // Update the position of the tooltip
-                // tooltip
-                //     // .html("" + Number(d.value).toFixed(2)) // <--------------- with old heatmaps data
-                //     // .html(`Log ${mode} fraction: ${Number(d[fraction]).toFixed(2)}<br>% of total ${mode} = ${Math.round(Number(d[originFraction] * 100))}%`) // <--------------- with extended data
-                //     .style("left", tooltipLeft + "px")
-                //     .style("top", tooltipTop + "px")
-                //     .style("display", "block");
-            // } else {
-            //     // If d.value is empty, hide the tooltip
-            //     tooltip.style("display", "none");
-            // }
+            // Update the position of the tooltip
+            tooltip
+                .html(`Concentration (in ${mode}/m\u00B3) = ${d3.select(this).attr('comp-concentration')} <br>% of total ${mode} in the system = ${roundDynamiucFloat(d3.select(this).attr('comp-percent'))} % <br> Persistence = ${d3.select(this).attr('comp-persistence')} <br>Residence time = ${d3.select(this).attr('comp-residence')} (years)`)
+                .style("left", tooltipLeft + "px")
+                .style("top", tooltipTop + "px")
+                .style("display", "block");
         };
 
         const mouseleave = function (event, d) {
@@ -1056,29 +971,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Function to add flows information to given d3 flow element
-        function addFlowToTable(tableRow, flowName, value, flowPercentage) {
-            let flowValue = Number(value).toFixed(4);
-            if (flowValue <= 0) {
-                flowValue = 0;
-            }
-            let percentage = Number(flowPercentage).toFixed(1);
-            if (percentage <= 0) {
-                percentage = 0;
-            }
+        function addFlowToTable(tableRow, flowName, value) {
+            let flowValue = roundDynamiucFloat(value);
 
             tableRow.append("td")
                 .text(`${flowName.charAt(0).toUpperCase()}${flowName.slice(1)}`);
             tableRow.append("td").text(`${flowValue}`);
+            // tableRow.append("td").text(` `);
             tableRow.append("td").text(` `);
-            tableRow.append("td").text(`${percentage}`);
-        }
-
-        // Function to add an empty placeholder entry to flows table for compartments with now inflows-outflows
-        function addEmptyFlow(tableRow) {
-            tableRow.append("th").text(`-`);
-            tableRow.append("td").text(`-`);
-            tableRow.append("td").text(`-`);
-            tableRow.append("td").text(`-`);
         }
 
         // Handling compartment selection
@@ -1095,57 +995,63 @@ document.addEventListener('DOMContentLoaded', function () {
             d3.select('#compartment-title')
                 .html(`${d3.select(selectedCompartment).attr('comp-title')} Compartment`);
             // adding general info about selected compartment
+            d3.select(`#comp-concentration`)
+                .html(`Concentration (in ${mode}/m\u00B3) = ${d3.select(selectedCompartment).attr('comp-concentration')}`);
             d3.select(`#comp-total-percent`)
-                .html(`% of total ${mode} = ${d3.select(selectedCompartment).attr('comp-percent')} %`);
+                .html(`% of total ${mode} = ${roundDynamiucFloat(d3.select(selectedCompartment).attr('comp-percent'))} %`);
             d3.select(`#comp-persistence`)
                 .html(`Persistence = ${d3.select(selectedCompartment).attr('comp-persistence')}`);
             d3.select(`#comp-residence`)
                 .html(`Residence time = ${d3.select(selectedCompartment).attr('comp-residence')} (years)`);
 
-            // // populating total inflows and outflows
-            // let totalCompInflow = Number(selection.attr('comp-total-inflow')).toFixed(4);
-            // let totalCompOutflow = Number(selection.attr('comp-total-outflow')).toFixed(4);
-            d3.select('#comp-total-inflow')
-                .html(`?`);
-            d3.select('#comp-total-outflow')
-                .html(`?`);
+            // getting the inflows and outflows and converting them into Maps
+            let inflowsString = (selection.attr('comp-inflows')).replace(/'/g, '"');
+            let outflowsString = (selection.attr('comp-outflows')).replace(/'/g, '"');
+            let inflowsObj = JSON.parse(inflowsString);
+            let outflowsObj = JSON.parse(outflowsString);
+            let inflowsMap = new Map(Object.entries(inflowsObj));
+            let outflowsMap = new Map(Object.entries(outflowsObj));
 
-            // compInflows = 'inflows_g_s';
-            // compOutflows = 'outflows_g_s';
+            compInflows = 'inflows_g_s';
+            compOutflows = 'outflows_g_s';
 
-            // TODO minor adjustments and start using when extended_comp_info in use
-            // const compInflowContainer = d3.select('#comp-inflows');
-            // compInflowContainer.selectAll('*').remove();
-            // // // listing all the inflows if there are any
-            // // if (totalCompInflow > 0) {
-            // //     compInflowsMap.forEach((value, key) => {
-            // //         let compInflowName = key.replaceAll("k_", "").replaceAll("_", " ");
-            // //         let compInflowPercentage = (100 * Number(value).toFixed(4)) / totalCompInflow;
-            // //         let compInflowsItem = compInflowContainer.append("div") // creating the row entry per inflow item
-            // //             .attr("class", "param-container-list");
-            // //         addFlowEntries(compInflowsItem, compInflowName, value, compInflowPercentage);
-            // //     });
-            // // } else { // if no inflows then showing one row of - - -
-            // let compInflowsItem = compInflowContainer.append("div")
-            //     .attr("class", "param-container-list");
-            // addEmptyFlowEntry(compInflowsItem);
-            // // }
-            // const compOutflowContainer = d3.select('#comp-outflows');
-            // compOutflowContainer.selectAll('*').remove();
-            // // // listing all the outflows if there are any
-            // // if (totalCompOutflow > 0) {
-            // //     compOutflowsMap.forEach((value, key) => {
-            // //         let compOutflowName = key.replaceAll("k_", "").replaceAll("_", " ");
-            // //         let compOutflowPercentage = (100 * Number(value).toFixed(4)) / totalCompOutflow;
-            // //         let compOutflowsItem = compOutflowContainer.append("div") // creating the row entry per outflow item
-            // //             .attr("class", "param-container-list");
-            // //         addFlowEntries(compOutflowsItem, compOutflowName, value, compOutflowPercentage);
-            // //     });
-            // // } else { // if no inflows then showing one row of - - -
-            // let compOutflowsItem = compOutflowContainer.append("div")
-            //     .attr("class", "param-container-list");
-            // addEmptyFlowEntry(compOutflowsItem);
-            // }
+            // filling the inflows and outflows table
+            const inflowContainer = d3.select('#comp-inflows-table');
+            const inflowsBody = d3.select("#comp-inflows");
+            inflowsBody.selectAll('*').remove();
+
+            let inflowsArray = Array.from(inflowsMap);
+            inflowsArray.sort((a, b) => b[1] - a[1]);
+            inflowsMap = new Map(inflowsArray);
+
+            let totalCompInflow = 0;
+            inflowsMap.forEach((value, key) => {
+                totalCompInflow += value; // coputing total
+                let inflowName = key.replaceAll("k_", "").replaceAll("_", " ");
+                let inflowsTableRow = inflowsBody.append("tr"); // creating the row entry per inflow item
+                // Listing the elements in the table
+                addFlowToTable(inflowsTableRow, inflowName, value);
+            });
+            d3.select('#comp-total-inflow').text(roundDynamiucFloat(totalCompInflow));
+
+            const outflowContainer = d3.select('#comp-outflows-table');
+            const outflowsBody = d3.select("#comp-outflows");
+            outflowsBody.selectAll('*').remove();
+
+            // ordering the outflows to decending order
+            let outflowsArray = Array.from(outflowsMap);
+            outflowsArray.sort((a, b) => b[1] - a[1]);
+            outflowsMap = new Map(outflowsArray);
+
+            let totalCompOutflow = 0;
+            outflowsMap.forEach((value, key) => {
+                totalCompOutflow += value; // coputing total
+                let outflowName = key.replaceAll("k_", "").replaceAll("_", " ");
+                let outflowsTableRow = outflowsBody.append("tr");
+
+                addFlowToTable(outflowsTableRow, outflowName, value);
+            });
+            d3.select('#comp-total-outflow').text(roundDynamiucFloat(totalCompOutflow));
 
             // Display current view container
             document.getElementById(`detailed-view-compartment`).style.display = 'flex';
@@ -1171,10 +1077,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     .attr("current-compartment", currentCompartment)
                     .attr("comp-size", parseFloat(collections[currentCompartment][0][compSize]))
                     .attr("comp-percent", (collections[currentCompartment][0][compPercent]))
-                    .attr("comp-concentration", parseFloat(collections[currentCompartment][0][compConcentration]))
-                    .attr("comp-residence", parseFloat(collections[currentCompartment][0][compResidence]))
-                    .attr("comp-persistence", parseFloat(collections[currentCompartment][0][compPersistence]))
-                    .attr("comp-inflowsn", collections[currentCompartment][0][compInflows])
+                    .attr("comp-concentration", roundDynamiucFloat(parseFloat(collections[currentCompartment][0][compConcentration])))
+                    .attr("comp-residence", Math.round(parseFloat(collections[currentCompartment][0][compResidence])))
+                    .attr("comp-persistence", Math.round(parseFloat(collections[currentCompartment][0][compPersistence])))
+                    .attr("comp-inflows", collections[currentCompartment][0][compInflows])
                     .attr("comp-outflows", collections[currentCompartment][0][compOutflows])
                     .on("mouseover", mouseover)
                     .on("mousemove", mousemove)
@@ -1183,23 +1089,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 compartmentContainer.append("div")
                     .attr("class", "compartment-title")
                     .style("text-align", "center")
+                    .style("margin-bottom", "10px")
                     .text(`${currentCompartment}`);
-
                 compartmentContainer.append("div")
                     .attr("class", "compartment-field")
-                    .text(`C = ${parseFloat(collections[currentCompartment][0][compConcentration])} ${mode}`);
-
+                    .text(`C = ${roundDynamiucFloat(parseFloat(collections[currentCompartment][0][compConcentration]))}`);
                 compartmentContainer.append("div")
                     .attr("class", "compartment-field")
-                    .text(`${Number(parseFloat(collections[currentCompartment][0][compPercent])).toFixed(2)}% of total ${mode}`);
-
+                    .text(`${roundDynamiucFloat(collections[currentCompartment][0][compPercent])} %`);
                 compartmentContainer.append("div")
                     .attr("class", "compartment-field")
-                    .text(`Persistance = ${parseFloat(collections[currentCompartment][0][compPersistence])} time`);
-
+                    .text(`Persistance = ${Math.round(parseFloat(collections[currentCompartment][0][compPersistence]))}`);
                 compartmentContainer.append("div")
                     .attr("class", "compartment-field")
-                    .text(`Resistance = ${parseFloat(collections[currentCompartment][0][compResidence])} time`);
+                    .text(`Resistance = ${Math.round(parseFloat(collections[currentCompartment][0][compResidence]))}`);
 
             } else {
                 // Creating columns within each row
@@ -1328,11 +1231,11 @@ document.addEventListener('DOMContentLoaded', function () {
                             .attr("mode", mode)
                             .attr("current-compartment", currentCompartment)
                             .attr("comp-size", parseFloat(collections[currentCompartment][0][compSize]))
-                            .attr("comp-percent", Number(collections[currentCompartment][0][compPercent]))
-                            .attr("comp-concentration", parseFloat(collections[currentCompartment][0][compConcentration]))
-                            .attr("comp-residence", parseFloat(collections[currentCompartment][0][compResidence]))
-                            .attr("comp-persistence", parseFloat(collections[currentCompartment][0][compPersistence]))
-                            .attr("comp-inflowsn", collections[currentCompartment][0][compInflows])
+                            .attr("comp-percent", (collections[currentCompartment][0][compPercent]))
+                            .attr("comp-concentration", roundDynamiucFloat(parseFloat(collections[currentCompartment][0][compConcentration])))
+                            .attr("comp-residence", Math.round(parseFloat(collections[currentCompartment][0][compResidence])))
+                            .attr("comp-persistence", Math.round(parseFloat(collections[currentCompartment][0][compPersistence])))
+                            .attr("comp-inflows", collections[currentCompartment][0][compInflows])
                             .attr("comp-outflows", collections[currentCompartment][0][compOutflows])
                             .on("click", compartmentClick)
                             .on("mouseover", mouseover)
@@ -1341,19 +1244,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         compartmentContainer.append("div")
                             .attr("class", "compartment-field")
-                            .text(`C = ${parseFloat(collections[currentCompartment][0][compConcentration])}`);
-
+                            .style("margin-top", "10px")
+                            .text(`C = ${roundDynamiucFloat(parseFloat(collections[currentCompartment][0][compConcentration]))}`);
                         compartmentContainer.append("div")
                             .attr("class", "compartment-field")
-                            .text(`${Number(parseFloat(collections[currentCompartment][0][compPercent])).toFixed(2)} %`);
-
+                            .text(`${roundDynamiucFloat(collections[currentCompartment][0][compPercent])} %`);
                         compartmentContainer.append("div")
                             .attr("class", "compartment-field")
-                            .text(`Persistance = ${parseFloat(collections[currentCompartment][0][compPersistence])}`);
-
+                            .text(`Persistance = ${Math.round(parseFloat(collections[currentCompartment][0][compPersistence]))}`);
                         compartmentContainer.append("div")
                             .attr("class", "compartment-field")
-                            .text(`Resistance = ${parseFloat(collections[currentCompartment][0][compResidence])}`);
+                            .text(`Resistance = ${Math.round(parseFloat(collections[currentCompartment][0][compResidence]))}`);
                     }
                 }
             }
