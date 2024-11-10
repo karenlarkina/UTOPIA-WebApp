@@ -267,6 +267,16 @@ h3 {
     font-family: "Times New Roman";
 }
 
+.compartment-title {
+    font-size: small;
+    font-weight: bold;
+}
+
+.compartment-field {
+    font-size: smaller;
+    font-weight: normal;
+}
+
 .blurry { /* Blur effect for the background when loading */
     filter: blur(2px);
     opacity: 0.4;

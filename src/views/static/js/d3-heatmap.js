@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function () {
             event.stopPropagation(); // disallowing cpompartment selection to take place
             unselectEverything();
 
-            if (d[fraction] !== "" && d[fraction] !== 0 && d[fraction] !== "0" && !Number.isNaN(d[fraction])) { // For cells that have a value
+            if (d[fraction] !== "" && d[fraction] !== 0 && d[fraction] !== "0" && !Number.isNaN(d[fraction])) { // for cells that have a value
                 selectedCell = this; // update selected cell
                 const selection = d3.select(selectedCell);
                 const cellCompartment = selection.attr("data-compartment").replaceAll("compartment ", "") + " compartment"
@@ -563,6 +563,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     .attr("z-index", "9") // lifting up the cells
                     .style("stroke-width", "0.8px")
                     .style("opacity", 0.7)
+                    .style("cursor", "pointer")
                     .on("mouseover", mouseover)
                     .on("mousemove", mousemove)
                     .on("mouseleave", mouseleave)
@@ -585,7 +586,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 const compartmentContainer = row.append("div") // creating a container for the title and svg
                     .attr("class", "compartment air")
                     .attr("id", "compartment-air")
-                    .style("cursor", "pointer")
                     .attr("comp-title", `${currentCompartment}`);
 
                 compartmentContainer.append("div")
@@ -712,7 +712,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         .attr("id", `${uniqueCompartment}`)
                         .attr("comp-title", compTitle)
                         .text(`${compTitle.replaceAll("_", " ")}`)
-                        .style("font-geight", "normal");
+                        .style("font-weight", "bold");
 
                     let compartmentContainer = d3.select(`#${uniqueCompartment}`);
                     createHeatmap(compartmentContainer, compartmentType, currentCompartment)
@@ -913,17 +913,6 @@ document.addEventListener('DOMContentLoaded', function () {
             .style("margin-bottom", "30px")
             .text(title);
 
-        // * * * * * * * * * * * * * * * * Compartment data * * * * * * * * * * * * * * * * * *
-        //  'Compartments', 'mass_g', 'number_of_particles', '%_mass', '%_number',
-        //  'Concentration_g_m3', 'Concentration_num_m3', 'inflows_g_s',
-        //  'inflows_num_s', 'outflows_g_s', 'outflows_num_s',
-        //  'Residence_time_mass_years', 'Residence_time_num_years',
-        //  'Persistence_time_mass_years', 'Persistence_time_num_years'
-        let data = d3.csvParse(csvExtendedComp);
-        const myVars = Array.from(new Set(data.map(d => d.Compartments))).reverse();
-
-
-
         // * * * * * * * * * * * * * * * * Global data * * * * * * * * * * * * * * * * * *
         let globalData = d3.csvParse(globalInfo);
         let globalMap = new Map();
@@ -948,34 +937,42 @@ document.addEventListener('DOMContentLoaded', function () {
             ctd = 'CTD_num';
         }
 
-        // Compartments data information
-        let myValues = null;
+        // * * * * * * * * * * * * * * * * Compartment data * * * * * * * * * * * * * * * * * *
+        let data = d3.csvParse(csvExtendedComp);
+        const myVars = Array.from(new Set(data.map(d => d.Compartments))).reverse();
+
+        const collections = {}; // for storing data for each compartment separately
+        // Dividing the data according to myVars elements (compartments)
+        myVars.forEach(variable => {
+            collections[variable] = data.filter(d => d.variable === variable);
+        });
+
         // Column labels for fetching different properties for selected compartment (different for mass and particle number)
-        let fraction = null;
-        let concentration = null;
-        let fracPercent = null;
-        let residence = null;
-        let persistence = null;
-        let inflows = null;
-        let outflows = null;
+        let compSize = null;
+        let compPercent = null;
+        let compConcentration = null;
+        let compResidence = null;
+        let compPersistence = null;
+        let compInflows = null;
+        let compOutflows = null;
 
         // Getting the values depending on mode and storing appropriate column labels
         if (mode === "mass") {
-            fraction = 'mass_g';
-            concentration = 'Concentration_g_m3';
-            fracPercent = '%_mass';
-            residence = 'Residence_time_mass_years';
-            persistence = 'Persistence_time_mass_years';
-            inflows = 'inflows_g_s';
-            outflows = 'outflows_g_s';
+            compSize = 'mass_g';
+            compPercent = 'percent_mass';
+            compConcentration = 'Concentration_g_m3';
+            compResidence = 'Residence_time_mass_years';
+            compPersistence = 'Persistence_time_mass_years';
+            compInflows = 'inflows_g_s';
+            compOutflows = 'outflows_g_s';
         } else {
-            fraction = 'number_of_particles';
-            concentration = 'Concentration_num_m3';
-            fracPercent = '%_number';
-            residence = 'Residence_time_num_years';
-            persistence = 'Persistence_time_num_years';
-            inflows = 'inflows_num_s';
-            outflows = 'outflows_num_s';
+            compSize = 'number_of_particles';
+            compPercent = 'percent_number';
+            compConcentration = 'Concentration_num_m3';
+            compResidence = 'Residence_time_num_years';
+            compPersistence = 'Persistence_time_num_years';
+            compInflows = 'inflows_num_s';
+            compOutflows = 'outflows_num_s';
         }
 
         // Create a tooltip
@@ -1099,11 +1096,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 .html(`${d3.select(selectedCompartment).attr('comp-title')} Compartment`);
             // adding general info about selected compartment
             d3.select(`#comp-total-percent`)
-                .html(`% of total ${mode} = %`);
+                .html(`% of total ${mode} = ${d3.select(selectedCompartment).attr('comp-percent')} %`);
             d3.select(`#comp-persistence`)
-                .html(`Persistence = ?`);
+                .html(`Persistence = ${d3.select(selectedCompartment).attr('comp-persistence')}`);
             d3.select(`#comp-residence`)
-                .html(`Residence time = ? (years)`);
+                .html(`Residence time = ${d3.select(selectedCompartment).attr('comp-residence')} (years)`);
 
             // // populating total inflows and outflows
             // let totalCompInflow = Number(selection.attr('comp-total-inflow')).toFixed(4);
@@ -1112,6 +1109,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 .html(`?`);
             d3.select('#comp-total-outflow')
                 .html(`?`);
+
+            // compInflows = 'inflows_g_s';
+            // compOutflows = 'outflows_g_s';
 
             // TODO minor adjustments and start using when extended_comp_info in use
             // const compInflowContainer = d3.select('#comp-inflows');
@@ -1167,6 +1167,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     .on("click", compartmentClick)
                     .style("capacity", 0.9)
                     .style("font-weight", "normal")
+                    .attr("mode", mode)
+                    .attr("current-compartment", currentCompartment)
+                    .attr("comp-size", parseFloat(collections[currentCompartment][0][compSize]))
+                    .attr("comp-percent", (collections[currentCompartment][0][compPercent]))
+                    .attr("comp-concentration", parseFloat(collections[currentCompartment][0][compConcentration]))
+                    .attr("comp-residence", parseFloat(collections[currentCompartment][0][compResidence]))
+                    .attr("comp-persistence", parseFloat(collections[currentCompartment][0][compPersistence]))
+                    .attr("comp-inflowsn", collections[currentCompartment][0][compInflows])
+                    .attr("comp-outflows", collections[currentCompartment][0][compOutflows])
                     .on("mouseover", mouseover)
                     .on("mousemove", mousemove)
                     .on("mouseleave", mouseleave);
@@ -1175,6 +1184,22 @@ document.addEventListener('DOMContentLoaded', function () {
                     .attr("class", "compartment-title")
                     .style("text-align", "center")
                     .text(`${currentCompartment}`);
+
+                compartmentContainer.append("div")
+                    .attr("class", "compartment-field")
+                    .text(`C = ${parseFloat(collections[currentCompartment][0][compConcentration])} ${mode}`);
+
+                compartmentContainer.append("div")
+                    .attr("class", "compartment-field")
+                    .text(`${Number(parseFloat(collections[currentCompartment][0][compPercent])).toFixed(2)}% of total ${mode}`);
+
+                compartmentContainer.append("div")
+                    .attr("class", "compartment-field")
+                    .text(`Persistance = ${parseFloat(collections[currentCompartment][0][compPersistence])} time`);
+
+                compartmentContainer.append("div")
+                    .attr("class", "compartment-field")
+                    .text(`Resistance = ${parseFloat(collections[currentCompartment][0][compResidence])} time`);
 
             } else {
                 // Creating columns within each row
@@ -1294,16 +1319,41 @@ document.addEventListener('DOMContentLoaded', function () {
                         .attr("id", `${uniqueCompartment}`)
                         .attr("comp-title", compTitle.replaceAll('_', ' '))
                         .text(`${compTitle.replaceAll("_", " ")}`)
-                        .style("font-weight", "normal");
+                        .style("font-weight", "bold");
 
                     let compartmentContainer = d3.select(`#${uniqueCompartment}`);
                     if (compartmentType !== "compartment empty" && compartmentType !== "new-legend-container" && compartmentType !== "nothing") {
                         compartmentContainer.style("cursor", "pointer")
                             .style("capacity", 0.9)
+                            .attr("mode", mode)
+                            .attr("current-compartment", currentCompartment)
+                            .attr("comp-size", parseFloat(collections[currentCompartment][0][compSize]))
+                            .attr("comp-percent", Number(collections[currentCompartment][0][compPercent]))
+                            .attr("comp-concentration", parseFloat(collections[currentCompartment][0][compConcentration]))
+                            .attr("comp-residence", parseFloat(collections[currentCompartment][0][compResidence]))
+                            .attr("comp-persistence", parseFloat(collections[currentCompartment][0][compPersistence]))
+                            .attr("comp-inflowsn", collections[currentCompartment][0][compInflows])
+                            .attr("comp-outflows", collections[currentCompartment][0][compOutflows])
                             .on("click", compartmentClick)
                             .on("mouseover", mouseover)
                             .on("mousemove", mousemove)
                             .on("mouseleave", mouseleave);
+
+                        compartmentContainer.append("div")
+                            .attr("class", "compartment-field")
+                            .text(`C = ${parseFloat(collections[currentCompartment][0][compConcentration])}`);
+
+                        compartmentContainer.append("div")
+                            .attr("class", "compartment-field")
+                            .text(`${Number(parseFloat(collections[currentCompartment][0][compPercent])).toFixed(2)} %`);
+
+                        compartmentContainer.append("div")
+                            .attr("class", "compartment-field")
+                            .text(`Persistance = ${parseFloat(collections[currentCompartment][0][compPersistence])}`);
+
+                        compartmentContainer.append("div")
+                            .attr("class", "compartment-field")
+                            .text(`Resistance = ${parseFloat(collections[currentCompartment][0][compResidence])}`);
                     }
                 }
             }
