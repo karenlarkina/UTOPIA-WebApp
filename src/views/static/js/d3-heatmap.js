@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             MicroWeatProperties:{
                 fragmentation_style: document.getElementById('fragmentation_style').value
+                // fragmentation_range: document.getElementById('customFragmentationRange').value;
             },
             EmScenario:{
                 MPform: document.getElementById('mp_form').value,
@@ -1318,9 +1319,10 @@ document.addEventListener('DOMContentLoaded', function () {
     runButton.addEventListener('click', function() {
         document.getElementById('loading-spinner').style.display = 'block'; // loading animation
         document.getElementById('main-content').classList.add('blur'); // blurring the background
-        // Hide all information containers
-        unselectEverything();
-        d3.select("#global-view").style("display", "none");
+        // Ensure the selected fragmentation value in WP is displayed correctly
+        document.getElementById('selectedFragmentationRange').textContent = document.getElementById('customFragmentationRange').value;
+        // Hide all information containers besides the global
+        unselectWithGlobal();
         // Collect all variable values to be sent to the backend
         let inputData = extractVariablesFromClientSide();
         // Make HTTP post and get result
@@ -1493,5 +1495,14 @@ document.addEventListener('DOMContentLoaded', function () {
             d3.select("#global-view").style("display", "flex");
             assembleGlobalView('Particle Number Fraction Distribution Overview', "particle number", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
         }
+    });
+
+    const rangeInput = document.getElementById('customFragmentationRange');
+    const rangeValue = document.getElementById('selectedFragmentationRange');
+    rangeInput.addEventListener('click', function () {
+        // Update span value whenever the slider changes
+        rangeInput.addEventListener('input', function() {
+            rangeValue.textContent = rangeInput.value;
+        });
     });
 });
