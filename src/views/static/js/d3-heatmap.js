@@ -239,6 +239,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const mouseleave = function (event, d) {
             tooltip
+                .html('')
                 .style("opacity", 0);
             if (this !== selectedCell) { // only reset stroke for the unselected cells
                 d3.select(this)
@@ -929,6 +930,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const mouseleave = function (event, d) {
             tooltip
+                .html('')
                 .style("opacity", 0);
             if (this !== selectedCell) { // only reset stroke for the unselected cells
                 d3.select(this)
@@ -1089,7 +1091,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 compartmentContainer.append("div")
                     .attr("class", "compartment-title")
                     .style("text-align", "center")
-                    .style("margin-bottom", "10px")
+                    .style("margin-bottom", "8px")
                     .text(`${currentCompartment}`);
                 compartmentContainer.append("div")
                     .attr("class", "compartment-field")
@@ -1244,7 +1246,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         compartmentContainer.append("div")
                             .attr("class", "compartment-field")
-                            .style("margin-top", "10px")
+                            .style("margin-top", "8px")
                             .text(`C = ${roundDynamiucFloat(parseFloat(collections[currentCompartment][0][compConcentration]))}`);
                         compartmentContainer.append("div")
                             .attr("class", "compartment-field")
