@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Building the new heatmaps with respect to compartments
-    let assembleCompHeatMap = function(title, csvText, mode, csvExtended) {
+    let assembleHeatMap = function(title, csvText, mode, csvExtended) {
         // remove any existing heatmap
         d3.select('#heatmap-container').selectAll('*').remove();
         // set the dimensions and margins of the graph
@@ -1104,7 +1104,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     .text(`Persistance = ${Math.round(parseFloat(collections[currentCompartment][0][compPersistence]))}`);
                 compartmentContainer.append("div")
                     .attr("class", "compartment-field")
-                    .text(`Resistance = ${Math.round(parseFloat(collections[currentCompartment][0][compResidence]))}`);
+                    .text(`Residence = ${Math.round(parseFloat(collections[currentCompartment][0][compResidence]))}`);
 
             } else {
                 // Creating columns within each row
@@ -1256,7 +1256,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             .text(`Persistance = ${Math.round(parseFloat(collections[currentCompartment][0][compPersistence]))}`);
                         compartmentContainer.append("div")
                             .attr("class", "compartment-field")
-                            .text(`Resistance = ${Math.round(parseFloat(collections[currentCompartment][0][compResidence]))}`);
+                            .text(`Residence = ${Math.round(parseFloat(collections[currentCompartment][0][compResidence]))}`);
                     }
                 }
             }
@@ -1353,8 +1353,11 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(model_results => {
                 utopia_model_results = model_results; // store values from backend for assembling all visualizations
-                assembleCompHeatMap('Mass Fraction Distribution Heatmap' , utopia_model_results.mass_fraction_distribution_heatmap, "mass", utopia_model_results.extended_csv_table);
-                comp_mass_fraction_distribution_btn.classList.add('active');
+                assembleGlobalView('Mass Fraction Distribution Overview', "mass", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
+                comp_mass_fraction_distribution_btn.classList.remove('active');
+                comp_number_fraction_distribution_btn.classList.remove('active');
+                number_fraction_overview_btn.classList.remove('active');
+                mass_fraction_overview_btn.classList.add('active');
             })
             .catch(error => {
                 console.error('There was a problem with the POST request:', error);
@@ -1446,7 +1449,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Highlighting selection on the navbar
             comp_mass_fraction_distribution_btn.classList.add('active');
             d3.select("#global-view").style("display", "none");
-            assembleCompHeatMap('Mass Fraction Distribution Heatmap', utopia_model_results.mass_fraction_distribution_heatmap, "mass", utopia_model_results.extended_csv_table);
+            assembleHeatMap('Mass Fraction Distribution Heatmap', utopia_model_results.mass_fraction_distribution_heatmap, "mass", utopia_model_results.extended_csv_table);
         }
     });
     comp_number_fraction_distribution_btn.addEventListener('click', function() {
@@ -1460,7 +1463,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Highlighting selection on the navbar
             comp_number_fraction_distribution_btn.classList.add('active');
             d3.select("#global-view").style("display", "none");
-            assembleCompHeatMap('Particle Number Fraction Distribution Heatmap', utopia_model_results.number_fraction_distribution_heatmap, "particle number", utopia_model_results.extended_csv_table);
+            assembleHeatMap('Particle Number Fraction Distribution Heatmap', utopia_model_results.number_fraction_distribution_heatmap, "particle number", utopia_model_results.extended_csv_table);
         }
     });
     mass_fraction_overview_btn.addEventListener('click', function() { // mass Distribution Overview

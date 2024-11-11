@@ -93,7 +93,7 @@ function toggleOptions(container_id, element) {
     // Highlighting selection on the navbar
     var navLinks = document.querySelectorAll('.nav-link');
     navLinks.forEach(function(link) {
-        link.classList.remove('active'); // Remove all active elements
+        // link.classList.remove('active'); // Remove all active elements
     });
     // Removed since during model run, all parameters are considered hence shouldn't be seem activated after RUN
     // element.classList.add('active'); // Reactivate newly selected element
