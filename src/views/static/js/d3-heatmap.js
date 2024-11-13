@@ -994,7 +994,7 @@ document.addEventListener('DOMContentLoaded', function () {
             selectedCompartment = this; // update selected compartment
             let selection = d3.select(selectedCompartment);
             blurCompartments(selection);
-            selection.style("border", "solid 3px #000"); // change the border to appear sleected
+            selection.style("border", "solid 3px #000"); // change the border to appear selected
             d3.select('#compartment-title')
                 .html(`${d3.select(selectedCompartment).attr('comp-title')} Compartment`);
             // adding general info about selected compartment
@@ -1014,9 +1014,6 @@ document.addEventListener('DOMContentLoaded', function () {
             let outflowsObj = JSON.parse(outflowsString);
             let inflowsMap = new Map(Object.entries(inflowsObj));
             let outflowsMap = new Map(Object.entries(outflowsObj));
-
-            compInflows = 'inflows_g_s';
-            compOutflows = 'outflows_g_s';
 
             // filling the inflows and outflows table
             const inflowContainer = d3.select('#comp-inflows-table');

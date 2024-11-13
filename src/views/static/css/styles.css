@@ -279,7 +279,7 @@ h3 {
 
 .blurry { /* Blur effect for the background when loading */
     filter: blur(2px);
-    opacity: 0.4;
+    opacity: 0.4 !important;
 }
 
 .nothing { /* containers under the stretched legend container */
