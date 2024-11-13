@@ -1,0 +1,7 @@
+/utopia-venv/*
+**/.DS_Store
+*.pyc
+*.xlsx
+*.csv
+*.sqlite
+*.vsidx

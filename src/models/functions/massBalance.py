@@ -48,6 +48,47 @@ def massBalance(R, system_particle_object_list, q_mass_g_s):
     return difference_inf_outf
 
 
+def massBalance(R, system_particle_object_list, q_mass_g_s):
+    # Estimate looses: loss processess=[discorporation, burial]
+    # Lossess also from fragmentation of the smallest size bin
+    # k_soil_convection is only a loss process when coming from the deeper soil compartments and I need to take the second value of the list.,"k_soil_convection"
+    loss_processess = ["k_discorporation", "k_burial", "k_sequestration_deep_soils"]
+    elimination_rates = []
+
+    # Estimate outflows
+
+    for p in system_particle_object_list:
+
+        if p.Pcode[0] == "a":
+            elimination_rates.append(
+                sum(
+                    [
+                        p.RateConstants[e]
+                        for e in loss_processess
+                        if e in p.RateConstants
+                    ]
+                )
+                + sum(p.RateConstants["k_fragmentation"])
+            )
+        else:
+            elimination_rates.append(
+                sum(
+                    [
+                        p.RateConstants[e]
+                        for e in loss_processess
+                        if e in p.RateConstants
+                    ]
+                )
+            )
+    # mass at Steady state
+    m_ss = R["mass_g"]
+
+    # output flow
+    out_flow_g_s = sum(elimination_rates * m_ss)
+
+    print("Difference inflow-outflow = " + str(sum(q_mass_g_s) - out_flow_g_s))
+
+
 def compartment_massBalance(
     comp,
     tables_outputFlows,
