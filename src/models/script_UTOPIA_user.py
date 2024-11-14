@@ -611,8 +611,6 @@ def execute_utopia_model(input_obj):
         }
     )
 
-    pd.DataFrame.from_dict(size_distr, orient="index", columns=["% of total mass"])
-
     """ Estimate exposure indicators """
 
     #### EXPOSURE INDICATORS ####
