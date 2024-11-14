@@ -734,25 +734,25 @@ def execute_utopia_model(input_obj):
     """ Add persistence and residence time to results extended dataframe, results by compartment and the size distribution dataframe"""
     # Results by compartment
 
-    results_by_comp["Persistence for mass (years)"] = Pov_Tov_comp_df["Pov_years(mass)"]
-    results_by_comp["Persistence for particle number (years)"] = Pov_Tov_comp_df[
+    results_by_comp["Persistence_time_mass_years"] = Pov_Tov_comp_df["Pov_years(mass)"]
+    results_by_comp["Persistence_time_num_years"] = Pov_Tov_comp_df[
         "Pov_years(particle_number)"
     ]
-    results_by_comp["Residence time for mass (years)"] = Pov_Tov_comp_df[
+    results_by_comp["Residence_time_mass_years"] = Pov_Tov_comp_df[
         "Tov_years(mass_g)"
     ]
-    results_by_comp["Residence time for particle number (years)"] = Pov_Tov_comp_df[
+    results_by_comp["Residence_time_num_years"] = Pov_Tov_comp_df[
         "Tov_years(particle_number)"
     ]
 
     # Results per size fraction: (The values are the same for mass and particle number)
-
-    size_distribution_df["Persistence (years)"] = list(
-        map(lambda x: round(x, 2), list(Pov_size_dict_years.values()))
-    )
-    size_distribution_df["Residence time (years)"] = list(
-        map(lambda x: round(x, 2), list(Tov_size_dict_years.values()))
-    )
+    # TODO commented out for now until we resolve these
+    # size_distribution_df["Persistence (years)"] = list(
+    #     map(lambda x: round(x, 2), list(Pov_size_dict_years.values()))
+    # )
+    # size_distribution_df["Residence time (years)"] = list(
+    #     map(lambda x: round(x, 2), list(Tov_size_dict_years.values()))
+    # )
 
     Results_extended = calculate_persistence_residence_time(
         Results_extended
@@ -827,5 +827,5 @@ def execute_utopia_model(input_obj):
         Results_extended,
         global_info_dict,
         results_by_comp,
-        size_distribution_df,
+        # size_distribution_df,
     )
