@@ -126,8 +126,11 @@ def convert_compdf_to_d3_format(compartment_df):
     # Reset index to convert MultiIndex to columns
     compartment_df.reset_index(inplace=True)
 
+    compartment_df['percent_mass'] = compartment_df['%_mass'].astype(str)
+    compartment_df['percent_number'] = compartment_df['%_number'].astype(str)
+
     # Melt the DataFrame
-    melted_df = compartment_df.melt(id_vars=['Compartments', 'mass_g', 'number_of_particles', '%_mass', '%_number',
+    melted_df = compartment_df.melt(id_vars=['Compartments', 'mass_g', 'number_of_particles', 'percent_mass', 'percent_number',
                                              'Concentration_g_m3', 'Concentration_num_m3', 'inflows_g_s',
                                              'inflows_num_s', 'outflows_g_s', 'outflows_num_s',
                                              'Residence_time_mass_years', 'Residence_time_num_years',
@@ -135,8 +138,6 @@ def convert_compdf_to_d3_format(compartment_df):
                                     var_name='variable', value_name='value')
 
     melted_df['variable'] = melted_df['Compartments'].astype(str)
-
-    print(melted_df)
 
     return melted_df.to_csv(index=False)
 
@@ -149,7 +150,6 @@ def convert_dict_to_d3_format(global_info_dict):
 
     # converting data from list to a dataframe
     df = pd.DataFrame(data_list)
-    print(df)
     return df.to_csv(index=False)
 
 
