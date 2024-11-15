@@ -303,7 +303,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Function to add an empty placeholder entry to flows table for cells with now inflows-outflows
         function addEmptyFlow(tableRow) {
             tableRow.append("th").text(` `);
-            tableRow.append("td").text(`< min`);
+            tableRow.append("td").text(`< 0.0000000005`);
             tableRow.append("td").text(` `);
             tableRow.append("td").text(`< 0.0000000005`);
         }
@@ -811,6 +811,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let assembleGlobalView = function(title, mode, csvExtendedComp, globalInfo) {
         // Remove any existing heatmap
         d3.select('#heatmap-container').selectAll('*').remove();
+        d3.select('#global-exposure').html(`Overall exposure indicators ${mode}`);
         // Set the dimensions and margins of the graph
         const margin = {top: 50, right: 5, bottom: 150, left: 150},
             viewportWidth = 810,
