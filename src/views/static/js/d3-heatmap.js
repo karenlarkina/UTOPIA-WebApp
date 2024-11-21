@@ -1318,7 +1318,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('loading-spinner').style.display = 'block'; // loading animation
         document.getElementById('main-content').classList.add('blur'); // blurring the background
         // Ensure the selected fragmentation value in WP is displayed correctly
-        document.getElementById('selectedFragmentationRange').textContent = document.getElementById('customFragmentationRange').value;
+        document.getElementById('selectedFragmentationRange').textContent = document.getElementById('fragmentation_style').value;
         // Hide all information containers besides the global
         unselectWithGlobal();
         // Collect all variable values to be sent to the backend
@@ -1353,7 +1353,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(model_results => {
                 utopia_model_results = model_results; // store values from backend for assembling all visualizations
-                assembleGlobalView('Mass Fraction Distribution Overview', "mass", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
+                assembleGlobalView('Mass Distribution Overview', "mass", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
                 comp_mass_fraction_distribution_btn.classList.remove('active');
                 comp_number_fraction_distribution_btn.classList.remove('active');
                 number_fraction_overview_btn.classList.remove('active');
@@ -1477,7 +1477,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Highlighting selection on the navbar
             mass_fraction_overview_btn.classList.add('active');
             d3.select("#global-view").style("display", "flex");
-            assembleGlobalView('Mass Fraction Distribution Overview', "mass", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
+            assembleGlobalView('Mass Distribution Overview', "mass", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
         }
     });
     number_fraction_overview_btn.addEventListener('click', function() { // number Fraction Distribution Overview
@@ -1491,11 +1491,11 @@ document.addEventListener('DOMContentLoaded', function () {
             // Highlighting selection on the navbar
             number_fraction_overview_btn.classList.add('active');
             d3.select("#global-view").style("display", "flex");
-            assembleGlobalView('Particle Number Fraction Distribution Overview', "particle number", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
+            assembleGlobalView('Particle Number Distribution Overview', "particle number", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
         }
     });
 
-    const rangeInput = document.getElementById('customFragmentationRange');
+    const rangeInput = document.getElementById('fragmentation_style');
     const rangeValue = document.getElementById('selectedFragmentationRange');
     rangeInput.addEventListener('click', function () {
         // Update span value whenever the slider changes

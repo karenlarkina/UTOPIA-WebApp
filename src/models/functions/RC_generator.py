@@ -21,20 +21,31 @@ def discorporation(particle, process_inputs_df):
     # Change process name from degradation
     # to discorporation from corporeal
 
+    ##discorporation should be particle size dependent so that the higuer the surface area to volume ratio of the particel the fastest the process should happen (therfore for smaller particles fagmentation should happen at faster rates)
+
+    # If we use the data from Pfohl et al. 2022 we would use a degradation rate of 6.3 x 10-6 but this is for particles of TPU-ether arom in the size range between 50-200um. We asume this value as discorporation rate for the 50 um MP plastics in free form
+
+    # k_desint_50um_h= 6.3*10**-6 #(in h-1)
+    # k_deg_free=k_desint_50um_h*(50/particle.diameter_um)
+
     """relates only to MP & NPs. Full degradation probably extremely slow
     possibly not significant for most simulations. But add anyway for scenario
     analysis or biodegradable polymers. Values currently placeholders
     ! Add a size relation?!"""
     # degradation half-life of MPs used as input is in days
     cond = (
-        (process_inputs_df["Compartment"] == particle.Pcompartment.Cname)
-        & (process_inputs_df["MPform"] == particle.Pform)
-        & (process_inputs_df["sizeBin"] == particle.Pname[0:3])
+            (process_inputs_df["Compartment"] == particle.Pcompartment.Cname)
+            & (process_inputs_df["MPform"] == particle.Pform)
+            & (process_inputs_df["sizeBin"] == particle.Pname[0:3])
     )
     t_half_d = float(process_inputs_df.loc[cond, "thalf_deg_d"])
 
     # degradation rate constant
     k_deg = math.log(2) / (t_half_d * 24 * 60 * 60)
+
+    # * (
+    #     50**2 / (particle.diameter_um) ** 2
+    # )  # the discorporation rate is normalised to the surface area to volume ratio of the 50um particles since using t_half degradation rates derived from Pfohl et al. 2022 paper. this has already been included when building the table of input parameters
 
     return k_deg
 
@@ -49,9 +60,9 @@ def fragmentation(particle, fsd, process_inputs_df):
     # Fragmentation of heteroaggregated particles is assumed negligible in the default model formulation
 
     cond = (
-        (process_inputs_df["Compartment"] == particle.Pcompartment.Cname)
-        & (process_inputs_df["MPform"] == particle.Pform)
-        & (process_inputs_df["sizeBin"] == "mp5")
+            (process_inputs_df["Compartment"] == particle.Pcompartment.Cname)
+            & (process_inputs_df["MPform"] == particle.Pform)
+            & (process_inputs_df["sizeBin"] == "mp5")
     )
     t_frag_d = process_inputs_df.loc[cond, "tfrag_gen_d"].item()
 
@@ -61,19 +72,19 @@ def fragmentation(particle, fsd, process_inputs_df):
         fragments_formed = 0
     else:
         if (
-            particle.Pname[0:3] == "mp1"
+                particle.Pname[0:3] == "mp1"
         ):  # print("Smallest sizeBin mp5(0.05um), fragments formed will be considered losses")
             frag_rate = 0  # We consider only discorporation for mp5(0.05um)
             fragments_formed = 0
         else:
             volume_fragment = (
-                4 / 3 * math.pi * (float(particle.radius_m) / 10) ** 3
+                    4 / 3 * math.pi * (float(particle.radius_m) / 10) ** 3
             )  #!!!only works for bins 10 times smaller!!!
             fragments_formed = float(particle.Pvolume_m3) / volume_fragment
             frag_rate = (
-                (1 / (float(t_frag_d) * 24 * 60 * 60))
-                * float(particle.diameter_um)
-                / 1000
+                    (1 / (float(t_frag_d) * 24 * 60 * 60))
+                    * float(particle.diameter_um)
+                    / 1000
             )
     # each particle fractions into fragments of smaller sizes and the distribution is expresses via the fragment size distribution matrix fsd. # In this matrix the smallest size fraction is in the first possition and we consider no fragmentation for this size class
     size_dict = {chr(i): i - ord("a") for i in range(ord("a"), ord("e") + 1)}
@@ -107,12 +118,12 @@ def settling(particle):
 
     if settlingMethod == "Stokes":
         vSet_m_s = (
-            2
-            / 9
-            * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
-            / mu_w_21C_kg_ms
-            * g_m_s2
-            * (float(particle.radius_m)) ** 2
+                2
+                / 9
+                * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
+                / mu_w_21C_kg_ms
+                * g_m_s2
+                * (float(particle.radius_m)) ** 2
         )
     else:
         print("Error: cannot calculate settling other than Stokes yet")
@@ -160,12 +171,12 @@ def rising(particle):
 
         if settlingMethod == "Stokes":
             vSet_m_s = (
-                2
-                / 9
-                * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
-                / mu_w_21C_kg_ms
-                * g_m_s2
-                * (float(particle.radius_m)) ** 2
+                    2
+                    / 9
+                    * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
+                    / mu_w_21C_kg_ms
+                    * g_m_s2
+                    * (float(particle.radius_m)) ** 2
             )
         else:
             print("Error: cannot calculate settling other than Stokes yet")
@@ -203,18 +214,18 @@ def heteroaggregation(particle, spm, process_inputs_df):
 
         # first the different collision mechanisms are calculated
         k_peri = (
-            (2 * k_B_J_K * float(particle.Pcompartment.T_K))
-            / (3 * mu_w_21C_kg_ms)
-            * (float(particle.radius_m) + spm.radius_m) ** 2
-            / (float(particle.radius_m) * spm.radius_m)
+                (2 * k_B_J_K * float(particle.Pcompartment.T_K))
+                / (3 * mu_w_21C_kg_ms)
+                * (float(particle.radius_m) + spm.radius_m) ** 2
+                / (float(particle.radius_m) * spm.radius_m)
         )
         # perikinetic contributions to collision rate constant (Brownian motion)
 
         k_ortho = (
-            4
-            / 3
-            * float(particle.Pcompartment.G)
-            * (float(particle.radius_m) + spm.radius_m) ** 3
+                4
+                / 3
+                * float(particle.Pcompartment.G)
+                * (float(particle.radius_m) + spm.radius_m) ** 3
         )
         # orthokinetic contributions to collision rate constant (caused by fluid motion)
 
@@ -224,28 +235,28 @@ def heteroaggregation(particle, spm, process_inputs_df):
             w_den_kg_m3 = density_seaWater_kg_m3
 
         MP_vSet_m_s = (
-            2
-            / 9
-            * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
-            / mu_w_21C_kg_ms
-            * g_m_s2
-            * (float(particle.radius_m)) ** 2
+                2
+                / 9
+                * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
+                / mu_w_21C_kg_ms
+                * g_m_s2
+                * (float(particle.radius_m)) ** 2
         )
 
         SPM_vSet_m_s = (
-            2
-            / 9
-            * (spm.Pdensity_kg_m3 - w_den_kg_m3)
-            / mu_w_21C_kg_ms
-            * g_m_s2
-            * (spm.radius_m) ** 2
+                2
+                / 9
+                * (spm.Pdensity_kg_m3 - w_den_kg_m3)
+                / mu_w_21C_kg_ms
+                * g_m_s2
+                * (spm.radius_m) ** 2
         )
         # settling velocity. currently according to classical Stokes law. Need to include other modes and put calculation on its own, so that it can also be accessed for other processes
 
         k_diffSettling = (
-            math.pi
-            * (float(particle.radius_m) + spm.radius_m) ** 2
-            * abs(MP_vSet_m_s - SPM_vSet_m_s)
+                math.pi
+                * (float(particle.radius_m) + spm.radius_m) ** 2
+                * abs(MP_vSet_m_s - SPM_vSet_m_s)
         )
 
         # differential settling contributions to collision rate constant
@@ -254,9 +265,9 @@ def heteroaggregation(particle, spm, process_inputs_df):
         # the collision rate constant
 
         cond_alpha = (
-            (process_inputs_df["Compartment"] == particle.Pcompartment.Cname)
-            & (process_inputs_df["MPform"] == particle.Pform)
-            & (process_inputs_df["sizeBin"] == particle.Pname[0:3])
+                (process_inputs_df["Compartment"] == particle.Pcompartment.Cname)
+                & (process_inputs_df["MPform"] == particle.Pform)
+                & (process_inputs_df["sizeBin"] == particle.Pname[0:3])
         )
         alpha = process_inputs_df.loc[cond_alpha, "alpha_heter"].item()
         if alpha == "NAN":
@@ -288,18 +299,18 @@ def heteroaggregate_breackup(particle, spm, process_inputs_df):
         # first the different collision mechanisms are calculated
 
         k_peri = (
-            (2 * k_B_J_K * float(particle.Pcompartment.T_K))
-            / (3 * mu_w_21C_kg_ms)
-            * (float(particle.radius_m) + spm.radius_m) ** 2
-            / (float(particle.radius_m) * spm.radius_m)
+                (2 * k_B_J_K * float(particle.Pcompartment.T_K))
+                / (3 * mu_w_21C_kg_ms)
+                * (float(particle.radius_m) + spm.radius_m) ** 2
+                / (float(particle.radius_m) * spm.radius_m)
         )
         # perikinetic contributions to collision rate constant (Brownian motion)
 
         k_ortho = (
-            4
-            / 3
-            * float(particle.Pcompartment.G)
-            * (float(particle.radius_m) + spm.radius_m) ** 3
+                4
+                / 3
+                * float(particle.Pcompartment.G)
+                * (float(particle.radius_m) + spm.radius_m) ** 3
         )
         # orthokinetic contributions to collision rate constant (caused by fluid motion)
         if "Freshwater" in particle.Pcompartment.Cname:
@@ -308,27 +319,27 @@ def heteroaggregate_breackup(particle, spm, process_inputs_df):
             w_den_kg_m3 = density_seaWater_kg_m3
 
         MP_vSet_m_s = (
-            2
-            / 9
-            * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
-            / mu_w_21C_kg_ms
-            * g_m_s2
-            * (float(particle.radius_m)) ** 2
+                2
+                / 9
+                * (float(particle.Pdensity_kg_m3) - w_den_kg_m3)
+                / mu_w_21C_kg_ms
+                * g_m_s2
+                * (float(particle.radius_m)) ** 2
         )
         SPM_vSet_m_s = (
-            2
-            / 9
-            * (spm.Pdensity_kg_m3 - w_den_kg_m3)
-            / mu_w_21C_kg_ms
-            * g_m_s2
-            * (spm.radius_m) ** 2
+                2
+                / 9
+                * (spm.Pdensity_kg_m3 - w_den_kg_m3)
+                / mu_w_21C_kg_ms
+                * g_m_s2
+                * (spm.radius_m) ** 2
         )
         # settling velocity. currently according to classical Stokes law. Need to include other modes and put calculation on its own, so that it can also be accessed for other processes
 
         k_diffSettling = (
-            math.pi
-            * (float(particle.radius_m) + spm.radius_m) ** 2
-            * abs(MP_vSet_m_s - SPM_vSet_m_s)
+                math.pi
+                * (float(particle.radius_m) + spm.radius_m) ** 2
+                * abs(MP_vSet_m_s - SPM_vSet_m_s)
         )
         # differential settling contributions to collision rate constant
 
@@ -336,15 +347,15 @@ def heteroaggregate_breackup(particle, spm, process_inputs_df):
         # the collision rate constant
         if particle.Pform == "heterMP":
             cond_alpha = (
-                (process_inputs_df["Compartment"] == particle.Pcompartment.Cname)
-                & (process_inputs_df["MPform"] == "freeMP")
-                & (process_inputs_df["sizeBin"] == particle.Pname[0:3])
+                    (process_inputs_df["Compartment"] == particle.Pcompartment.Cname)
+                    & (process_inputs_df["MPform"] == "freeMP")
+                    & (process_inputs_df["sizeBin"] == particle.Pname[0:3])
             )
         elif particle.Pform == "heterBiofMP":
             cond_alpha = (
-                (process_inputs_df["Compartment"] == particle.Pcompartment.Cname)
-                & (process_inputs_df["MPform"] == "biofMP")
-                & (process_inputs_df["sizeBin"] == particle.Pname[0:3])
+                    (process_inputs_df["Compartment"] == particle.Pcompartment.Cname)
+                    & (process_inputs_df["MPform"] == "biofMP")
+                    & (process_inputs_df["sizeBin"] == particle.Pname[0:3])
             )
 
         alpha = process_inputs_df.loc[cond_alpha, "alpha_heter"].item()
@@ -438,9 +449,9 @@ def mixing(particle, dict_comp):
 
 def biofouling(particle, process_inputs_df):
     cond_biof = (
-        (process_inputs_df["Compartment"] == particle.Pcompartment.Cname)
-        & (process_inputs_df["MPform"] == particle.Pform)
-        & (process_inputs_df["sizeBin"] == particle.Pname[0:3])
+            (process_inputs_df["Compartment"] == particle.Pcompartment.Cname)
+            & (process_inputs_df["MPform"] == particle.Pform)
+            & (process_inputs_df["sizeBin"] == particle.Pname[0:3])
     )
     t_biof_growth_d = process_inputs_df.loc[cond_biof, "tbiof_growth_d"].item()
 
@@ -458,9 +469,9 @@ def defouling(particle, process_inputs_df):
     # Defouling = degradation of Biofilm.
 
     cond_defoul = (
-        (process_inputs_df["Compartment"] == particle.Pcompartment.Cname)
-        & (process_inputs_df["MPform"] == particle.Pform)
-        & (process_inputs_df["sizeBin"] == particle.Pname[0:3])
+            (process_inputs_df["Compartment"] == particle.Pcompartment.Cname)
+            & (process_inputs_df["MPform"] == particle.Pform)
+            & (process_inputs_df["sizeBin"] == particle.Pname[0:3])
     )
     tbiof_degrade_d = process_inputs_df.loc[cond_defoul, "tbiof_degrade_d"].item()
     if tbiof_degrade_d == "NAN":
@@ -575,9 +586,9 @@ def runoff_transport(particle):
         "Impacted_Soil_Surface": 2.3e-8,
     }
     runoff_rate = (
-        runooff_dict[particle.Pcompartment.Cname]
-        / float(particle.Pcompartment.Cdepth_m)
-    ) / (60 * 60)
+                          runooff_dict[particle.Pcompartment.Cname]
+                          / float(particle.Pcompartment.Cdepth_m)
+                  ) / (60 * 60)
 
     # The total amount of runoff will be distributed into the recieving compartments according to the following matrix
     fro = np.array([[0, 1], [0, 1], [1, 0]])
@@ -642,8 +653,8 @@ def dry_deposition(particle, dict_comp):
     k_dry_depossition = [
         dd_rate_dict[particle.Pcode[0]]
         * (
-            float(dict_comp[c].CsurfaceArea_m2)
-            / float(dict_comp["Air"].CsurfaceArea_m2)
+                float(dict_comp[c].CsurfaceArea_m2)
+                / float(dict_comp["Air"].CsurfaceArea_m2)
         )
         for c in list(dict_comp.keys())
         if "Surface" in c

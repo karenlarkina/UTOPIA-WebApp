@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 
 
 def generate_system_species_list(
-    system_particle_object_list, MPforms_list, compartmentNames_list, boxNames_list
+        system_particle_object_list, MPforms_list, compartmentNames_list, boxNames_list
 ):
     particle_sizes_coding = {"mp1": "a", "mp2": "b", "mp3": "c", "mp4": "d", "mp5": "e"}
 
@@ -23,11 +23,11 @@ def generate_system_species_list(
         particle_boxCode = particle.Pcompartment.CBox.Bname
 
         particleCode = (
-            particle_sizeCode
-            + particle_formCode
-            + str(particle_compartmentCode)
-            + "_"
-            + particle_boxCode
+                particle_sizeCode
+                + particle_formCode
+                + str(particle_compartmentCode)
+                + "_"
+                + particle_boxCode
         )
         # else:
         #     particle_sizeCode = particle_sizes_coding[particle.Pname[0:3]]
@@ -77,8 +77,8 @@ def timeLimit_particles_RC(system_particle_object_list, lim):
     for particle in system_particle_object_list:
         for k in particle.RateConstants:
             if (
-                particle.RateConstants[k] is not None
-                and particle.RateConstants[k] > lim
+                    particle.RateConstants[k] is not None
+                    and particle.RateConstants[k] > lim
             ):
                 particle.RateConstants[k] = lim
             else:
@@ -142,9 +142,10 @@ def extract_inflows_outflows(flows_dict_mass, comp, MP_form, MP_size):
     ]
     outflow_p = [round((v / sum(list_outflow_val)) * 100, 4) for v in list_outflow_val]
 
-    pd_outflows = pd.DataFrame(
-        {"Outflows": list_outflows, "Rate_g_s": list_outflow_val, "%": outflow_p}
-    )
+    pd_outflows = dict(zip(list_outflows, (list_outflow_val, outflow_p)))
+    # pd.DataFrame(
+    #     {"Outflows": list_outflows, "Rate_g_s": list_outflow_val, "%": outflow_p}
+    # )
 
     return pd_inputFlows, pd_outflows
 
@@ -189,3 +190,29 @@ def extract_inflows_outflows_comp(flows_dict_mass, comp):
     pd_outflows
 
     return pd_inputFlows, pd_outflows
+
+
+def generate_fsd_matrix(FI):
+    # Initialize a 5x5 matrix with zeros
+    matrix = np.zeros((5, 5))
+    c1 = 0.2
+    c2 = 0.15
+    c3 = 0.1
+
+    matrix[1, 0] = 1
+    matrix[2, 0] = 1 - FI
+    matrix[2, 1] = FI
+    if FI <= 0.5:
+        matrix[3, 1] = FI * 2 * c1
+        matrix[4, 1] = FI * 2 * c2
+        matrix[4, 2] = FI * 2 * c3
+    else:
+        matrix[3, 1] = c1 - ((FI - 0.5) * 2 * c1)
+        matrix[4, 1] = c2 - ((FI - 0.5) * 2 * c2)
+        matrix[4, 2] = c3 - ((FI - 0.5) * 2 * c3)
+    matrix[3, 0] = matrix[2, 0] + (0.5 * matrix[3, 1])
+    matrix[3, 2] = 1 - matrix[3, 0] - matrix[3, 1]
+    matrix[4, 0] = matrix[3, 0] + (0.5 * matrix[4, 1]) + (0.25 * matrix[4, 2])
+    matrix[4, 3] = 1 - matrix[4, 0] - matrix[4, 1] - matrix[4, 2]
+
+    return matrix

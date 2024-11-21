@@ -105,66 +105,63 @@ def execute_utopia_model(input_obj):
     ## Microplastics weathering properties
     mwp_input = input_obj.get("MicroWeatProperties")
     ## Select fragmentation style
-    """estimate fragmentation relation between size bins using fragment size distribution matrix (https://microplastics-cluster.github.io/fragment-mnp/advanced-usage/fragment-size-distribution.html). Each particle fractions into fragments of smaller sizes and the distribution is expresses via the fragment size distribution matrix fsd. # In this matrix the smallest size fraction is in the first possition and we consider no fragmentation for this size class """
+    """estimate fragmentation relation between size bins using fragment size distribution matrix
+     (https://microplastics-cluster.github.io/fragment-mnp/advanced-usage/fragment-size-distribution.html).
+      Each particle fractions into fragments of smaller sizes and the distribution is expresses via the fragment size
+       distribution matrix fsd. # In this matrix the smallest size fraction is in the first possition and we consider
+        no fragmentation for this size class """
 
-    if N_sizeBins == 5:
-        frag_styles_dict = {
-            "sequential_fragmentation": np.array(
-                [
-                    [0, 0, 0, 0, 0],
-                    [1, 0, 0, 0, 0],
-                    [0, 1, 0, 0, 0],
-                    [0, 0, 1, 0, 0],
-                    [0, 0, 0, 1, 0],
-                ]
-            ),
-            "erosive_fragmentation": np.array(
-                [
-                    [0, 0, 0, 0, 0],
-                    [1, 0, 0, 0, 0],
-                    [0.99, 0.01, 0, 0, 0],
-                    [0.999, 0, 0.001, 0, 0],
-                    [0.9999, 0, 0, 0.0001, 0],
-                ]
-            ),
-            "mixed_fragmentation": np.array(
-                [
-                    [0, 0, 0, 0, 0],
-                    [1, 0, 0, 0, 0],
-                    [0.5, 0.5, 0, 0, 0],
-                    [0.6, 0.2, 0.2, 0, 0],
-                    [0.7, 0.15, 0.1, 0.05, 0],
-                ]
-            ),
-            "no_fragmentation": np.array(
-                [
-                    [0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0],
-                ]
-            ),
-        }
+    ##################
+    # To be implemented #
+    ##################
 
-        frag_style = str(mwp_input.get("fragmentation_style"))
+    # We provide a slider (to be done) where the user can select a fragmentation style by means of choosing a value
+    # of FI (fragmentation index) between 0 and 1 that describes two scenarios :
 
-        fsd = frag_styles_dict[frag_style]
-        sizes = [list(model_lists["dict_size_coding"].keys())]
-        fsd_df = pd.DataFrame(fsd, index=sizes, columns=sizes)
+    #     - Erosive fragmentation (FI=0): In this scenario the particles are being eroded on their surface and
+    #     therefore most of their mass remain in their same size fraction and samall fraction in going to the
+    #     samllest size bins. Its representative fsd is:
 
-        # Save the fsd matrix
-        fsd_filename = os.path.join(inputs_path, "fsd.csv")
-        fsd_df.to_csv(fsd_filename)
+    #         [[0, 0, 0, 0, 0],
+    #         [1, 0, 0, 0, 0],
+    #         [0.99, 0.01, 0, 0, 0],
+    #         [0.999, 0, 0.001, 0, 0],
+    #         [0.9999, 0, 0, 0.0001, 0],]
 
-    else:
-        # print(
-        #     "Fragmetation size distribution not defined for this number of size fractions, please define manually the fsd matrix via the fsd.csv file"
-        # )
-        fsd_df = pd.read_csv(os.path.join(inputs_path, "fsd.csv"), index_col=0)
-        fsd = fsd_df.to_numpy()
+    #     - Sequential fragmentation (FI=1): in this scenario each size fraction breacks down completely into the next smallest size bin.
+    #     Its representative fsd is:
 
-    # optionally the user can type its own fsd matrix following the desciption above
+    #         [[0, 0, 0, 0, 0],
+    #         [1, 0, 0, 0, 0],
+    #         [0, 1, 0, 0, 0],
+    #         [0, 0, 1, 0, 0],
+    #         [0, 0, 0, 1, 0],]
+
+    #     By choosing a value between 0 and 1 the user can select a fragmentation style in between both extremes.
+    #     (i.e. FI=0.5 will represent the mixed fragmentation style)
+
+    ## Select a value for FI in the range 0-1 from a slider where we shoud indicate Erosive Fragmentation under the
+    # value 0 and Sequential Fragmentation under the value 1, like in the following dictionary:
+    # frag_styles_dict = {0:"erosive_fragmentation",0.5:"mixed_fragmentation",1:"sequential_fragmentation"}
+
+    FI = float(mwp_input.get("fragmentation_style"))  # from slider
+
+    # Generate the fsd matrix
+    fsd = generate_fsd_matrix(FI)
+
+    # # Verify the sum of each row of the fsd matrix follows the rule
+    # row_sums = fsd.sum(axis=1)
+    # print("\nSum of each row:")
+    # for idx, sum_value in enumerate(row_sums):
+    #     print(f"Row {idx + 1}: {sum_value}")
+
+    # Create a dataframe from the fsd matrix
+    sizes = [list(model_lists["dict_size_coding"].keys())]
+    fsd_df = pd.DataFrame(fsd, index=sizes, columns=sizes)
+
+    # Save the fsd matrix (not sure if we need to save it-- to be revisited)
+    fsd_filename = os.path.join(inputs_path, "fsd.csv")
+    fsd_df.to_csv(fsd_filename)
 
     ## Weahering processes input parameters
 
@@ -220,7 +217,8 @@ def execute_utopia_model(input_obj):
     ## Emission Scenario
 
     # Choose input flow (in g per second)
-    # Define particle imput (sp_imput): the user has to define in wich form and size the particles are released into the environment and specify the input flow for each compartment
+    # Define particle imput (sp_imput): the user has to define in wich form and size the particles are released into
+    # the environment and specify the input flow for each compartment
 
     # Size fraction:
     # for the preloaded scenario:
@@ -287,13 +285,14 @@ def execute_utopia_model(input_obj):
     # q_mass_g_s_dict=input_flows_df.set_index('compartment')['q_mass_g_s'].to_dict()
 
     saveName = (
-        MP_composition
-        + "_MP_Emissions_"
-        + MP_form
-        + "_"
-        + str(size_dict[size_bin])
-        + "_nm_"
-        + frag_style
+            MP_composition
+            + "_MP_Emissions_"
+            + MP_form
+            + "_"
+            + str(size_dict[size_bin])
+            + "_nm_"
+            + "_FI:"
+            + str(FI)
     )
 
     """Estimate rate constants per particle"""
@@ -367,9 +366,6 @@ def execute_utopia_model(input_obj):
         ]
     ]
 
-    # Solve mass balance and print result
-    global_difference_inf_outf = massBalance(R, system_particle_object_list, q_mass_g_s)
-
     # Test that there are no negative results
     for i, idx in zip(R["mass_g"], R.index):
         if i < 0:
@@ -377,7 +373,8 @@ def execute_utopia_model(input_obj):
         else:
             pass
 
-    # Estimate mass and number fractions and extract ranking tables of the species with higest fractions to understand the distribution of the particles in the system by mass and number of particles
+    # Estimate mass and number fractions and extract ranking tables of the species with higest fractions to understand
+    # the distribution of the particles in the system by mass and number of particles
 
     Results_extended, mf_shorted, nf_shorted = estimate_fractions(Results)
 
@@ -443,7 +440,9 @@ def execute_utopia_model(input_obj):
         )
 
     # Print compartment mass balance table
-    comp_mass_balance_df = pd.DataFrame.from_dict(comp_mass_balance, orient="index")  # TODO input/output rates
+    comp_mass_balance_df = pd.DataFrame.from_dict(
+        comp_mass_balance, orient="index"
+    )  # TODO input/output rates
     # print(comp_mass_balance_df)
 
     comp_mass_balance_df["Mass balance"] = [
@@ -538,7 +537,8 @@ def execute_utopia_model(input_obj):
     # 'Persistence_time_mass_years',
     # 'Persistence_time_num_years']
 
-    # % of the inflows and outflows can be obtained by dividing the input froms from the inputflows dictionaries by the total inputflow column. ## I can add as an extra column in form of a dictionary of needed
+    # % of the inflows and outflows can be obtained by dividing the input froms from the inputflows dictionaries by the
+    # total inputflow column. ## I can add as an extra column in form of a dictionary of needed
 
     # The reults needed for the compartment view is compiled in Result_extended_comp. The VIEW 1 only needs:
 
@@ -616,9 +616,12 @@ def execute_utopia_model(input_obj):
         print_output,
     )
 
+    # Solve mass balance and print result
+    global_difference_inf_outf = global_massBalance(q_mass_g_s, tables_outputFlows)
     # Caracteristic travel distance (CDT) (m):
 
-    # To calculate CTD we need to estimate it by emitting into the especific mobile compartment. We will calculate CTD derived from emmiting to each compartment and taking the higest value:
+    # To calculate CTD we need to estimate it by emitting into the especific mobile compartment. We will calculate CTD
+    # derived from emmiting to each compartment and taking the higest value:
     CTD_mass_list = []
     CTD_number_list = []
 
@@ -718,7 +721,8 @@ def execute_utopia_model(input_obj):
     # Table of Overall residence time (Tov) and persistence (Pov) by size fraction: Tov_size_dict_years and Pov_size_dict_years
     # Characteristic travel distance (CTD): CTD_df["CTD_mass_km"].max() or CTD_df["CTD_particle_number_km"].max()
 
-    # # Global information
+    ## Global information
+    # Creating a dictionary with the variables
     global_info_dict = {
         "Difference": global_difference_inf_outf,  # TODO: confirm where are the differences for overall inflow-outflow
         "Pov_mass_years": Pov_mass_years,
@@ -731,4 +735,26 @@ def execute_utopia_model(input_obj):
         "CTD_num": CTD_df["CTD_particle_number_km"].max()
     }
 
-    return heatmap_mass_fraction_df, heatmap_number_fraction_df, Results_extended, global_info_dict, Results_extended_comp
+    # TODO debugging
+    print("\nDifference =", global_difference_inf_outf)
+    print("\nPov_mass_years =", Pov_mass_years)
+    print("\nPov_num_years =", Pov_num_years)
+    print("\nTov_mass_years =", Tov_mass_years)
+    print("\nTov_num_years =", Tov_num_years)
+    print("\nTov_size_dict_years =", Tov_size_dict_years)
+    print("\nPov_size_dict_years =", Pov_size_dict_years)
+    print('\nCTD_df["CTD_mass_km"].max() =', CTD_df["CTD_mass_km"].max())
+    print(
+        '\nCTD_df["CTD_particle_number_km"].max() =',
+        CTD_df["CTD_particle_number_km"].max(),
+    )
+    # print("\nResults_extended_comp:\n", Results_extended_comp)
+    # print("global_info_dict:", global_info_dict)
+
+    return (
+        heatmap_mass_fraction_df,
+        heatmap_number_fraction_df,
+        Results_extended,
+        global_info_dict,
+        Results_extended_comp
+    )
