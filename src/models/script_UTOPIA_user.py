@@ -163,7 +163,7 @@ def execute_utopia_model(input_obj):
     # Save the fsd matrix (not sure if we need to save it-- to be revisited)
     fsd_filename = os.path.join(inputs_path, "fsd.csv")
     fsd_df.to_csv(fsd_filename)
-    
+
     ## Weahering processes input parameters
 
     # Generate the process inputs table based on the given model structure (created model boxes, compartments and particles)
@@ -175,8 +175,8 @@ def execute_utopia_model(input_obj):
     # The assumptions made for the definition of these degradation times: (NEW assumptions)
     #     - Heteroaggregated particles degrade 10 times slower than the free MPs
     #     - Biofouled particles degrade 2 times faster than the free MPs
-    #     - Both degradation and fragmentation rates are compartment dependent : we assume that in the surface water compartments 
-    #       both degradation and fragmentation are fastest, in soil surface and deeper water compartments both rates are 10 times slower 
+    #     - Both degradation and fragmentation rates are compartment dependent : we assume that in the surface water compartments
+    #       both degradation and fragmentation are fastest, in soil surface and deeper water compartments both rates are 10 times slower
     #       (factor_deepWater_soilSurface) and in sediments and deeper soil compartments they both are 100 times slower (factor_sediment)
 
     t_half_deg_free = 66000  # in days (10 times slower than the rate of degradation (to form dissolved organics) shown in Pfohl et al. 2023 for TPU-arom)
@@ -312,14 +312,14 @@ def execute_utopia_model(input_obj):
 
     saveName = (
 
-        MP_composition
-        + "_MP_Emissions_"
-        + MP_form
-        + "_"
-        + str(size_dict[size_bin])
-        + "_nm_"
-        + "_FI:"
-        + str(FI)
+            MP_composition
+            + "_MP_Emissions_"
+            + MP_form
+            + "_"
+            + str(size_dict[size_bin])
+            + "_nm_"
+            + "_FI:"
+            + str(FI)
 
     )
 
@@ -551,7 +551,7 @@ def execute_utopia_model(input_obj):
                 / sum(Results_extended["mass_g"])
                 * 100,
                 2,
-            )
+                )
         )
         Pnumber.append(
             round(
@@ -563,9 +563,10 @@ def execute_utopia_model(input_obj):
                 / sum(Results_extended["number_of_particles"])
                 * 100,
                 2,
-            )
+                )
         )
 
+    # TODO this is the data for overall % in table
     size_distribution_df = pd.DataFrame(
         {
             "Size_Fraction_um": size_distr,
@@ -754,9 +755,13 @@ def execute_utopia_model(input_obj):
         "Pov_num_years": Pov_num_years,
         "Tov_mass_years": Tov_mass_years,
         "Tov_num_years": Tov_num_years,
+        "Tov_size_dict_years": {str(key): value for key, value in Tov_size_dict_years.items()},
+        "Pov_size_dict_years": {str(key): value for key, value in Pov_size_dict_years.items()},
         "CTD_mass": CTD_df["CTD_mass_km"].max(),
         "CTD_num": CTD_df["CTD_particle_number_km"].max(),
     }
+
+    print(global_info_dict.items())
 
     # The information table for the VIEW 1 is compiled in size_distribution_df:
 
