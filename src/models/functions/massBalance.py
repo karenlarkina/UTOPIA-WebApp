@@ -88,14 +88,16 @@ def massBalance(R, system_particle_object_list, q_mass_g_s):
 
     print("Difference inflow-outflow = " + str(sum(q_mass_g_s) - out_flow_g_s))
 
+    return sum(q_mass_g_s) - out_flow_g_s
+
 
 def compartment_massBalance(
-    comp,
-    tables_outputFlows,
-    PartMass_t0,
-    comp_dict_inverse,
-    dict_comp,
-    tables_inputFlows,
+        comp,
+        tables_outputFlows,
+        PartMass_t0,
+        comp_dict_inverse,
+        dict_comp,
+        tables_inputFlows,
 ):
     loss_processess = ["k_discorporation", "k_burial", "k_sequestration_deep_soils"]
 
@@ -124,9 +126,9 @@ def compartment_massBalance(
         [
             sum(val)
             for i, val in zip(
-                tables_outputFlows[comp].index[0],
-                tables_outputFlows[comp]["k_fragmentation"],
-            )
+            tables_outputFlows[comp].index[0],
+            tables_outputFlows[comp]["k_fragmentation"],
+        )
             if i == 0.5
         ]
     )
@@ -205,3 +207,4 @@ def global_massBalance(q_mass_g_s, tables_outputFlows):
         )
 
     print("Difference inflow-outflow = " + str(sum(q_mass_g_s) - sum(output_flows)))
+    return sum(q_mass_g_s) - sum(output_flows)

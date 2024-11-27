@@ -105,110 +105,65 @@ def execute_utopia_model(input_obj):
     ## Microplastics weathering properties
 
     mwp_input = input_obj.get("MicroWeatProperties")
-    ## Select fragmentation style ### TO BE CHANGED ###
+    ## Select fragmentation style
+    """estimate fragmentation relation between size bins using fragment size distribution matrix
+     (https://microplastics-cluster.github.io/fragment-mnp/advanced-usage/fragment-size-distribution.html).
+      Each particle fractions into fragments of smaller sizes and the distribution is expresses via the fragment size
+       distribution matrix fsd. # In this matrix the smallest size fraction is in the first possition and we consider
+        no fragmentation for this size class """
 
-    ########################
-    ### CHANGE CODE HERE ###
-    ########################
+    ##################
+    # To be implemented #
+    ##################
 
-    """estimate fragmentation relation between size bins using fragment size distribution matrix (https://microplastics-cluster.github.io/fragment-mnp/advanced-usage/fragment-size-distribution.html). Each particle fractions into fragments of smaller sizes and the distribution is expresses via the fragment size distribution matrix fsd. # In this matrix the smallest size fraction is in the first possition and we consider no fragmentation for this size class """
+    # We provide a slider (to be done) where the user can select a fragmentation style by means of choosing a value
+    # of FI (fragmentation index) between 0 and 1 that describes two scenarios :
 
-    # Instead of letting the user select between the three fragmentation styles with the associated fsd matrix, we will provide a slider where the user can select a fragmentation style by means of choosing a value of FI (fragmentation index) between 0 and 1 that describes two scenarios :
-
-    #     - Erosive fragmentation (FI=0): In this scenario the particles are being eroded on their surface and therefore most of their mass remain in their same size fraction and samall fraction in going to the samllest size bins. Its representative fsd is:
+    #     - Erosive fragmentation (FI=0): In this scenario the particles are being eroded on their surface and
+    #     therefore most of their mass remain in their same size fraction and samall fraction in going to the
+    #     samllest size bins. Its representative fsd is:
 
     #         [[0, 0, 0, 0, 0],
-
     #         [1, 0, 0, 0, 0],
-
     #         [0.99, 0.01, 0, 0, 0],
-
     #         [0.999, 0, 0.001, 0, 0],
-
     #         [0.9999, 0, 0, 0.0001, 0],]
 
     #     - Sequential fragmentation (FI=1): in this scenario each size fraction breacks down completely into the next smallest size bin.
     #     Its representative fsd is:
 
     #         [[0, 0, 0, 0, 0],
-
     #         [1, 0, 0, 0, 0],
-
     #         [0, 1, 0, 0, 0],
-
     #         [0, 0, 1, 0, 0],
-
     #         [0, 0, 0, 1, 0],]
 
-    #     By choosing a value between 0 and 1 the user can select a fragmentation style in between both extremes. (i.e. FI=0.5 will represent the mixed fragmentation style)
+    #     By choosing a value between 0 and 1 the user can select a fragmentation style in between both extremes.
+    #     (i.e. FI=0.5 will represent the mixed fragmentation style)
 
-    ## Select a value for FI in the range 0-1 from a slider where we shoud indicate Erosive Fragmentation under the value 0 and Sequential Fragmentation under the value 1, like in the following dictionary:
+    ## Select a value for FI in the range 0-1 from a slider where we shoud indicate Erosive Fragmentation under the
+    # value 0 and Sequential Fragmentation under the value 1, like in the following dictionary:
     # frag_styles_dict = {0:"erosive_fragmentation",0.5:"mixed_fragmentation",1:"sequential_fragmentation"}
 
-    ###TO BE CHANGED HERE ###
-    FI = 0.5  # from slider or user imput
-    # Shoudl it be : FI= mwp_input.get("fragmentation_style")??
+    FI = float(mwp_input.get("fragmentation_style"))  # from slider
 
     # Generate the fsd matrix
     fsd = generate_fsd_matrix(FI)
+
+    # # Verify the sum of each row of the fsd matrix follows the rule
+    # row_sums = fsd.sum(axis=1)
+    # print("\nSum of each row:")
+    # for idx, sum_value in enumerate(row_sums):
+    #     print(f"Row {idx + 1}: {sum_value}")
+
     # Create a dataframe from the fsd matrix
     sizes = [list(model_lists["dict_size_coding"].keys())]
     fsd_df = pd.DataFrame(fsd, index=sizes, columns=sizes)
 
     # Save the fsd matrix (not sure if we need to save it-- to be revisited)
-    # fsd_filename = os.path.join(inputs_path, "fsd.csv")
-    # fsd_df.to_csv(fsd_filename)
-
-    # if N_sizeBins == 5:
-    #     frag_styles_dict = {
-    #         "sequential_fragmentation": np.array(
-    #             [
-    #                 [0, 0, 0, 0, 0],
-    #                 [1, 0, 0, 0, 0],
-    #                 [0, 1, 0, 0, 0],
-    #                 [0, 0, 1, 0, 0],
-    #                 [0, 0, 0, 1, 0],
-    #             ]
-    #         ),
-    #         "erosive_fragmentation": np.array(
-    #             [
-    #                 [0, 0, 0, 0, 0],
-    #                 [1, 0, 0, 0, 0],
-    #                 [0.99, 0.01, 0, 0, 0],
-    #                 [0.999, 0, 0.001, 0, 0],
-    #                 [0.9999, 0, 0, 0.0001, 0],
-    #             ]
-    #         ),
-    #         "mixed_fragmentation": np.array(
-    #             [
-    #                 [0, 0, 0, 0, 0],
-    #                 [1, 0, 0, 0, 0],
-    #                 [0.5, 0.5, 0, 0, 0],
-    #                 [0.6, 0.2, 0.2, 0, 0],
-    #                 [0.7, 0.15, 0.1, 0.05, 0],
-    #             ]
-    #         ),
-    #         "no_fragmentation": np.array(
-    #             [
-    #                 [0, 0, 0, 0, 0],
-    #                 [0, 0, 0, 0, 0],
-    #                 [0, 0, 0, 0, 0],
-    #                 [0, 0, 0, 0, 0],
-    #                 [0, 0, 0, 0, 0],
-    #             ]
-    #         ),
-    #     }
-
-    #     frag_style = str(mwp_input.get("fragmentation_style"))
-
-    #     fsd = frag_styles_dict[frag_style]
-    #     sizes = [list(model_lists["dict_size_coding"].keys())]
-    #     fsd_df = pd.DataFrame(fsd, index=sizes, columns=sizes)
-
-    #     # Save the fsd matrix
-    #     fsd_filename = os.path.join(inputs_path, "fsd.csv")
-    #     fsd_df.to_csv(fsd_filename)
-
+    fsd_filename = os.path.join(inputs_path, "fsd.csv")
+    fsd_df.to_csv(fsd_filename)
+    
     ## Weahering processes input parameters
 
     # Generate the process inputs table based on the given model structure (created model boxes, compartments and particles)
@@ -220,7 +175,9 @@ def execute_utopia_model(input_obj):
     # The assumptions made for the definition of these degradation times: (NEW assumptions)
     #     - Heteroaggregated particles degrade 10 times slower than the free MPs
     #     - Biofouled particles degrade 2 times faster than the free MPs
-    #     - Both degradation and fragmentation rates are compartment dependent : we assume that in the surface water compartments both degradation and fragmentation are fastest, in soil surface and deeper water compartments both rates are 10 times slower (factor_deepWater_soilSurface) and in sediments and deeper soil compartments they both are 100 times slower (factor_sediment)
+    #     - Both degradation and fragmentation rates are compartment dependent : we assume that in the surface water compartments 
+    #       both degradation and fragmentation are fastest, in soil surface and deeper water compartments both rates are 10 times slower 
+    #       (factor_deepWater_soilSurface) and in sediments and deeper soil compartments they both are 100 times slower (factor_sediment)
 
     t_half_deg_free = 66000  # in days (10 times slower than the rate of degradation (to form dissolved organics) shown in Pfohl et al. 2023 for TPU-arom)
     heter_deg_factor = 10
@@ -286,7 +243,8 @@ def execute_utopia_model(input_obj):
     ## Emission Scenario
 
     # Choose input flow (in g per second)
-    # Define particle imput (sp_imput): the user has to define in wich form and size the particles are released into the environment and specify the input flow for each compartment
+    # Define particle imput (sp_imput): the user has to define in wich form and size the particles are released into
+    # the environment and specify the input flow for each compartment
 
     # Size fraction:
     # for the preloaded scenario:
@@ -353,6 +311,7 @@ def execute_utopia_model(input_obj):
     # q_mass_g_s_dict=input_flows_df.set_index('compartment')['q_mass_g_s'].to_dict()
 
     saveName = (
+
         MP_composition
         + "_MP_Emissions_"
         + MP_form
@@ -361,6 +320,7 @@ def execute_utopia_model(input_obj):
         + "_nm_"
         + "_FI:"
         + str(FI)
+
     )
 
     # Print model run summary
@@ -446,9 +406,6 @@ def execute_utopia_model(input_obj):
         ]
     ]
 
-    # Solve mass balance and print result
-    global_difference_inf_outf = massBalance(R, system_particle_object_list, q_mass_g_s)
-
     # Test that there are no negative results
     for i, idx in zip(R["mass_g"], R.index):
         if i < 0:
@@ -456,7 +413,8 @@ def execute_utopia_model(input_obj):
         else:
             pass
 
-    # Estimate mass and number fractions and extract ranking tables of the species with higest fractions to understand the distribution of the particles in the system by mass and number of particles
+    # Estimate mass and number fractions and extract ranking tables of the species with higest fractions to understand
+    # the distribution of the particles in the system by mass and number of particles
 
     Results_extended, mf_shorted, nf_shorted = estimate_fractions(Results)
 
@@ -513,7 +471,9 @@ def execute_utopia_model(input_obj):
         )
 
     # Print compartment mass balance table
+
     comp_mass_balance_df = pd.DataFrame.from_dict(comp_mass_balance, orient="index")
+
     # print(comp_mass_balance_df)
 
     comp_mass_balance_df["Mass balance"] = [
@@ -572,6 +532,9 @@ def execute_utopia_model(input_obj):
     results_by_comp = addFlows_to_results_df_comp(
         results_by_comp, flows_dict_mass, flows_dict_num
     )
+
+    # TODO double chech if works
+    Results_extended_comp = calculate_persistence_residence_time_comp(results_by_comp)
 
     ## Mass and particle number distribution by size fraction
     size_distr = [0.5, 5, 50, 500, 5000]
@@ -638,9 +601,12 @@ def execute_utopia_model(input_obj):
         tables_inputFlows_num,
     )
 
+    # Solve mass balance and print result
+    global_difference_inf_outf = global_massBalance(q_mass_g_s, tables_outputFlows)
     # Caracteristic travel distance (CDT) (m):
 
-    # To calculate CTD we need to estimate it by emitting into the especific mobile compartment. We will calculate CTD derived from emmiting to each compartment and taking the higest value:
+    # To calculate CTD we need to estimate it by emitting into the especific mobile compartment. We will calculate CTD
+    # derived from emmiting to each compartment and taking the higest value:
     CTD_mass_list = []
     CTD_number_list = []
 
@@ -780,7 +746,8 @@ def execute_utopia_model(input_obj):
     # Table of Overall residence time (Tov) and persistence (Pov) by size fraction: Tov_size_dict_years and Pov_size_dict_years
     # Characteristic travel distance (CTD): CTD_df["CTD_mass_km"].max() or CTD_df["CTD_particle_number_km"].max()
 
-    # # Global information
+    ## Global information
+    # Creating a dictionary with the variables
     global_info_dict = {
         "Difference": global_difference_inf_outf,  # TODO: confirm where are the differences for overall inflow-outflow (these are only in mass)
         "Pov_mass_years": Pov_mass_years,
@@ -819,13 +786,15 @@ def execute_utopia_model(input_obj):
     # 'Persistence_time_mass_years',
     # 'Persistence_time_num_years']
 
-    # % of the inflows and outflows can be obtained by dividing the input froms from the inputflows dictionaries by the total inputflow column. ## I can add as an extra column in form of a dictionary of needed
+    # % of the inflows and outflows can be obtained by dividing the input froms from the
+    # inputflows dictionaries by the total inputflow column. ## I can add as an extra column in form of a dictionary of needed
 
     return (
         heatmap_mass_fraction_df,
         heatmap_number_fraction_df,
         Results_extended,
         global_info_dict,
-        results_by_comp,
-        # size_distribution_df,
+        # results_by_comp,
+
+        Results_extended_comp
     )

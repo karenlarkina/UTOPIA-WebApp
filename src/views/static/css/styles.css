@@ -65,6 +65,9 @@ h3 {
     margin-top: 59px;
 }
 
+.nav-item {
+    margin-right: 2rem;
+}
 /*#model-run-container {*/
 /*    display: flex;*/
 /*    width: 100%;*/

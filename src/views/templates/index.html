@@ -81,18 +81,18 @@
                         <h3>Weathering Properties</h3>
                         <i class="fas fa-info-circle info-icon" data-toggle="tooltip" data-placement="right" title="..."></i>
                     </div>
+<!--                    <div class="row">--> <!--Old fragmentation style selector-->
+<!--                        <label class="col-md-4" for="fragmentation_style_old" style="color: orangered">Fragmentation Style:</label>-->
+<!--                        <select class="col-md-3" id="fragmentation_style_old" style="color: orangered" onchange="changeFragmentationStyle()">-->
+<!--                            <option value="sequential_fragmentation">Sequential</option>-->
+<!--                            <option value="erosive_fragmentation">Erosive</option>-->
+<!--                            <option value="mixed_fragmentation">Mixed</option>-->
+<!--                            <option value="no_fragmentation">No Fragmentation</option>-->
+<!--                        </select>-->
+<!--                    </div>-->
                     <div class="row">
-                        <label class="col-md-4" for="fragmentation_style">Fragmentation Style:</label>
-                        <select class="col-md-3" id="fragmentation_style" onchange="changeFragmentationStyle()">
-                            <option value="sequential_fragmentation">Sequential</option>
-                            <option value="erosive_fragmentation">Erosive</option>
-                            <option value="mixed_fragmentation">Mixed</option>
-                            <option value="no_fragmentation">No Fragmentation</option>
-                        </select>
-                    </div>
-                    <div class="row">
-                        <label for="customFragmentationRange" class="form-label col-md-4">Fragmentation range</label>
-                        <input type="range" class="form-range col-md-3" min="0" max="1" step="0.1" id="customFragmentationRange" style="width: 25%" value="0">
+                        <label for="fragmentation_style" class="form-label col-md-4">Fragmentation range</label>
+                        <input type="range" class="form-range col-md-3" min="0" max="1" step="0.1" id="fragmentation_style" style="width: 25%" value="0">
                         <span id="selectedFragmentationRange" class="col-md-1" style="font-weight: bold;">0</span>
                     </div>
 <!--                    <div class="row">-->
@@ -165,25 +165,18 @@
                     </button>
                     <div class="collapse navbar-collapse" id="navbarNav">
                         <ul class="navbar-nav w-100">
-{#                            TODO currently just commented out -> remove later#}
-{#                            <li class="nav-item">#}
-{#                                <a class="nav-link active" id="mass_fraction_distribution_btn" href="#" onclick="">Mass Fraction Distribution</a>#}
-{#                            </li>#}
-{#                            <li class="nav-item">#}
-{#                                <a class="nav-link active" id="number_fraction_distribution_btn" href="#" onclick="">Number Fraction Distribution</a>#}
-{#                            </li>#}
                             <li class="nav-item">
                             <!--TODO: work in progress, commented out from main-->
-                                <a class="nav-link" id="mass_fraction_overview_btn" href="#" onclick="">Mass Fraction Distribution Overview</a>
+                                <a class="nav-link" id="mass_fraction_overview_btn" href="#" onclick="">Mass Overview</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" id="number_fraction_overview_btn" href="#" onclick="">Particle Number Fraction Distribution Overview</a>
+                                <a class="nav-link" id="comp_mass_fraction_distribution_btn" href="#" onclick="">Heatmap of Mass</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" id="comp_mass_fraction_distribution_btn" href="#" onclick="">Mass Fraction Distribution</a>
+                                <a class="nav-link" id="number_fraction_overview_btn" href="#" onclick="">Particle Overview</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" id="comp_number_fraction_distribution_btn" href="#" onclick="">Particle Number Fraction Distribution</a>
+                                <a class="nav-link" id="comp_number_fraction_distribution_btn" href="#" onclick="">Heatmap of Particle</a>
                             </li>
                         </ul>
                     </div>
@@ -348,7 +341,7 @@
                                     </tbody>
                                 </table>
                                 <div class="card" style="width: 100%;">
-                                    <div id="global-exposure"  class="card-header bold">Overall exposure indicators mass</div>
+                                    <div id="global-exposure"  class="card-header bold">Overall exposure indicators</div>
                                     <table class="table table-hover table-bordered fixed-table" id="global-table">
                                         <thead class="table-light">
                                         <tr>

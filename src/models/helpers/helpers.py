@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 
 
 def generate_system_species_list(
-    system_particle_object_list, MPforms_list, compartmentNames_list, boxNames_list
+        system_particle_object_list, MPforms_list, compartmentNames_list, boxNames_list
 ):
     particle_sizes_coding = {"mp1": "a", "mp2": "b", "mp3": "c", "mp4": "d", "mp5": "e"}
 
@@ -23,11 +23,11 @@ def generate_system_species_list(
         particle_boxCode = particle.Pcompartment.CBox.Bname
 
         particleCode = (
-            particle_sizeCode
-            + particle_formCode
-            + str(particle_compartmentCode)
-            + "_"
-            + particle_boxCode
+                particle_sizeCode
+                + particle_formCode
+                + str(particle_compartmentCode)
+                + "_"
+                + particle_boxCode
         )
         # else:
         #     particle_sizeCode = particle_sizes_coding[particle.Pname[0:3]]
@@ -77,8 +77,8 @@ def timeLimit_particles_RC(system_particle_object_list, lim):
     for particle in system_particle_object_list:
         for k in particle.RateConstants:
             if (
-                particle.RateConstants[k] is not None
-                and particle.RateConstants[k] > lim
+                    particle.RateConstants[k] is not None
+                    and particle.RateConstants[k] > lim
             ):
                 particle.RateConstants[k] = lim
             else:

@@ -46,7 +46,7 @@ def estimate_outFlows(system_particle_object_list, dict_comp):
 
 
 def estimate_inFlows(
-    tables_outputFlows, tables_outputFlows_number, dict_comp, surfComp_list
+        tables_outputFlows, tables_outputFlows_number, dict_comp, surfComp_list
 ):
     ##Tables of recieving flows through transport from other compartments
     tables_inputFlows = {}
@@ -58,14 +58,14 @@ def estimate_inFlows(
             if comp in dict_comp[e_comp].connexions:
                 inpProc = dict_comp[e_comp].connexions[comp]
                 if (
-                    type(inpProc) == list
+                        type(inpProc) == list
                 ):  # When there is more than one process of inflow into the compartment
                     df_inflows = tables_outputFlows[e_comp].loc[
-                        :, ["k_" + ele for ele in inpProc]
-                    ]
+                                 :, ["k_" + ele for ele in inpProc]
+                                 ]
                     df_inflows_num = tables_outputFlows_number[e_comp].loc[
-                        :, ["k_" + ele for ele in inpProc]
-                    ]
+                                     :, ["k_" + ele for ele in inpProc]
+                                     ]
 
                     for proc in inpProc:
                         if proc == "dry_deposition":
@@ -75,31 +75,31 @@ def estimate_inFlows(
                             )
                             df_inflows_num["k_" + proc] = df_inflows_num[
                                 "k_" + proc
-                            ].apply(lambda x: x[position] if isinstance(x, list) else x)
+                                ].apply(lambda x: x[position] if isinstance(x, list) else x)
 
                         elif proc == "mixing":
 
                             if (
-                                e_comp == "Ocean_Mixed_Water"
-                                and comp == "Ocean_Surface_Water"
+                                    e_comp == "Ocean_Mixed_Water"
+                                    and comp == "Ocean_Surface_Water"
                             ):
                                 df_inflows["k_" + proc] = df_inflows["k_" + proc].apply(
                                     lambda x: x[0] if isinstance(x, list) else x
                                 )
                                 df_inflows_num["k_" + proc] = df_inflows_num[
                                     "k_" + proc
-                                ].apply(lambda x: x[0] if isinstance(x, list) else x)
+                                    ].apply(lambda x: x[0] if isinstance(x, list) else x)
 
                             elif (
-                                e_comp == "Ocean_Mixed_Water"
-                                and comp == "Ocean_Column_Water"
+                                    e_comp == "Ocean_Mixed_Water"
+                                    and comp == "Ocean_Column_Water"
                             ):
                                 df_inflows["k_" + proc] = df_inflows["k_" + proc].apply(
                                     lambda x: x[1] if isinstance(x, list) else x
                                 )
                                 df_inflows_num["k_" + proc] = df_inflows_num[
                                     "k_" + proc
-                                ].apply(lambda x: x[1] if isinstance(x, list) else x)
+                                    ].apply(lambda x: x[1] if isinstance(x, list) else x)
                             else:
                                 pass
                             # Revisit for percollation and tillage
@@ -131,12 +131,12 @@ def estimate_inFlows(
                             possition = poss_dict[comp]
                             df_inflows["k_" + inpProc] = df_inflows[
                                 "k_" + inpProc
-                            ].apply(
+                                ].apply(
                                 lambda x: x[possition] if isinstance(x, list) else x
                             )
                             df_inflows_num["k_" + inpProc] = df_inflows_num[
                                 "k_" + inpProc
-                            ].apply(
+                                ].apply(
                                 lambda x: x[possition] if isinstance(x, list) else x
                             )
 
@@ -153,7 +153,7 @@ def estimate_inFlows(
 
 
 def generate_flows_dict(
-    tables_outputFlows, tables_inputFlows, size_dict, MP_form_dict_reverse
+        tables_outputFlows, tables_inputFlows, size_dict, MP_form_dict_reverse
 ):
     flows_dict = dict()
     flows_dict["input_flows"] = {}
@@ -202,7 +202,7 @@ def process_flows(compartment, size_fraction, mp_form, flow_type, flows_dict):
     df_comp = flows_dict[flow_type][compartment]
     df_filtered = df_comp[
         (df_comp["MP_form"] == mp_form) & (df_comp["MP_size"] == size_fraction)
-    ]
+        ]
     df_cleaned = df_filtered.drop(["MP_size", "MP_form"], axis=1)
     return {col: sum_column_values(df_cleaned[col]) for col in df_cleaned.columns}
 
@@ -309,6 +309,7 @@ def add_output_flow_conexions(
                 if c == "Ocean_Mixed_Water":
                     inflows_col = results_by_comp[
                         results_by_comp["Compartments"] == key
+
                     ][inputflow_type].values[0]
                     outflow_conexions[key] = {
                         item: (
@@ -329,4 +330,5 @@ def add_output_flow_conexions(
         # Print the modified dictionary
         outflow_conexions_g_s.append(outflow_conexions)
     results_by_comp["outflow_conexions_" + outputflow_type[9:]] = outflow_conexions_g_s
+
     return results_by_comp

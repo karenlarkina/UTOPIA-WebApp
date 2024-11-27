@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     // Ensure the selected fragmentation value in WP is displayed correctly
-    document.getElementById('selectedFragmentationRange').textContent = document.getElementById('customFragmentationRange').value;
+    document.getElementById('selectedFragmentationRange').textContent = document.getElementById('fragmentation_style').value;
     // initialize components
     generateMaterialProperties()
 });
