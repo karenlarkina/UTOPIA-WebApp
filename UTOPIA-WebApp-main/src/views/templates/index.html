@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTOPIA WebApp</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/libs/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand">
+                <img src="https://infravis.se/wp-content/uploads/2023/06/cropped-logo_infravis_imageOnly.png" alt="Logo" style="height: 40px;">
+                Utopia WebApp</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav w-100">
+                    <li class="nav-item">
+                        <a class="nav-link" id="mpp_btn" href="#" onclick="toggleOptions('mpp_container', this)">Microplastics Physical Properties</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="ec_btn" href="#" onclick="toggleOptions('ec_container', this)">Environmental Characteristics</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="mwp_btn" href="#" onclick="toggleOptions('mwp_container', this)">Microplastics Weathering Properties</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="es_btn" href="#" onclick="toggleOptions('es_container', this)">Emission Scenario</a>
+                    </li>
+                    <li class="nav-item">
+                        <button id="run-model" class="btn btn-success">Run Model</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>        
+        <!-- The div for the content to be toggled -->
+            <div class="container" id="input_variables_container">
+                <div id="mpp_container" class="toggle_container">
+                    <div class="col-md-8 d-flex justify-content-between align-items-center">
+                        <h3>Microplastics Physical Properties</h3>
+                        <i class="fas fa-info-circle info-icon" data-toggle="tooltip" data-placement="right" title="..."></i>
+                    </div>
+                    <div class="row">
+                        <label for="mpp_composition" class="col-md-4">Microplastics Physical Property Composition:</label>
+                        <select id="mpp_composition" class="col-md-3" onchange="generateMaterialProperties()">
+                            <option value="PVC">PVC</option>
+                            <option value="PE">PE</option>
+                            <option value="PA">PA</option>
+                        </select>
+                    </div>
+                    <div id="materialProperties">
+                    <!-- will be dynamically generated -->
+                    </div>
+                </div>
+                <div id="ec_container" class="toggle_container">
+                    <div class="col-md-8 d-flex justify-content-between align-items-center">
+                        <h3>Environmental Characteristics</h3>
+                        <i class="fas fa-info-circle info-icon" data-toggle="tooltip" data-placement="right" title="..."></i>
+                    </div>
+                        {# TODO currently just commented out -> remove later #}
+{#                        <div class="row">#}
+{#                            <label class="col-md-4" for="spmDiameter">SPM Diameter (µm):</label>#}
+{#                            <input class="col-md-3" type="number" id="spmDiameter" value="0.5" min="0.1" step="0.1">#}
+{#                        </div>#}
+{#                        <div class="row">#}
+{#                            <label class="col-md-4" for="spmDensity">SPM Density (kg/m³):</label>#}
+{#                            <input class="col-md-3" type="number" id="spmDensity" value="2000">#}
+{#                        </div>#}
+                        <div class="row">
+                            <label class="col-md-4">Compartments Properties:</label>
+                            <button class="col-md-3">Edit File</button>
+                        </div>
+                </div>
+                <div id="mwp_container" class="toggle_container">
+                    <div class="col-md-8 d-flex justify-content-between align-items-center">
+                        <h3>Weathering Properties</h3>
+                        <i class="fas fa-info-circle info-icon" data-toggle="tooltip" data-placement="right" title="..."></i>
+                    </div>
+                    <div class="row">
+                        <label class="col-md-4" for="fragmentation_style">Fragmentation Style:</label>
+                        <select class="col-md-3" id="fragmentation_style" onchange="changeFragmentationStyle()">
+                            <option value="sequential_fragmentation">Sequential</option>
+                            <option value="erosive_fragmentation">Erosive</option>
+                            <option value="mixed_fragmentation">Mixed</option>
+                            <option value="no_fragmentation">No Fragmentation</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <label class="col-md-4">Process Input Parameters</label>
+                        <label class="col-md-3">TBD</label>
+                    </div>
+                </div>
+                <div id="es_container" class="toggle_container">
+                    <div class="col-md-8 d-flex justify-content-between align-items-center">
+                        <h3>Emission Scenario</h3>
+                        <i class="fas fa-info-circle info-icon" data-toggle="tooltip" data-placement="right" title="..."></i>
+                    </div>
+                    <div class="row">
+                        <label class="col-md-4" for="mp_form">MP Form:</label>
+                        <select class="col-md-3" id="mp_form">
+                            <option value="freeMP">Free</option>
+                            <option value="heterMP">Heter</option>
+                            <option value="biofMP">Biof</option>
+                            <option value="heterBiofMP">HeterBiof</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <label class="col-md-4" for="es_bin_size">Size Bin:</label>
+                        <select class="col-md-3" id="es_bin_size">
+                            <option value="a">0.5 µm</option>
+                            <option value="b">5 µm</option>
+                            <option value="c">50 µm</option>
+                            <option value="d">500 µm</option>
+                            <option value="e">5000 µm</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <label class="col-md-4" for="input_flow_g_s">Flow of MPs (g/s):</label>
+                        <input class="col-md-3" type="number" id="input_flow_g_s" value="1" minlength="1">
+                    </div>
+                    <div class="row">
+                        <label class="col-md-4" for="emiss_comp">Receiving Compartment:</label>
+                        <select class="col-md-3" id="emiss_comp">
+                            <option value="Ocean_Surface_Water">Ocean Surface Water</option>
+                            <option value="Ocean_Mixed_Water">Ocean Mixed Water</option>
+                            <option value="Ocean_Column_Water">Ocean Column Water</option>
+                            <option value="Coast_Surface_Water">Coast Surface Water</option>
+                            <option value="Coast_Column_Water">Coast Column Water</option>
+                            <option value="Surface_Freshwater">Surface Freshwater</option>
+                            <option value="Bulk_Freshwater">Bulk Freshwater</option>
+                            <option value="Sediment_Freshwater">Sediment Freshwater</option>
+                            <option value="Sediment_Ocean">Sediment Ocean</option>
+                            <option value="Sediment_Coast">Sediment Coast</option>
+                            <option value="Beaches_Soil_Surface">Beach Surface</option>
+                            <option value="Beaches_Deep_Soil">Beach Subsurface</option>
+                            <option value="Background_Soil_Surface">Background Soil Surface</option>
+                            <option value="Background_Soil">Background Soil</option>
+                            <option value="Impacted_Soil_Surface">Impacted Soil Surface</option>
+                            <option value="Impacted_Soil">Impacted Soil</option>
+                            <option value="Air">Air</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+    <div id="loading-spinner" class="spinner" style="display: none;">
+        <!-- You can use any loading spinner markup here. -->
+        <div class="loader"></div>
+    </div>
+        <!--Visualizations container-->
+            <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+                <div class="container-fluid">
+                    <a class="navbar-brand">Visualizations</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav w-100">
+{#                            TODO currently just commented out -> remove later#}
+{#                            <li class="nav-item">#}
+{#                                <a class="nav-link active" id="mass_fraction_distribution_btn" href="#" onclick="">Mass Fraction Distribution</a>#}
+{#                            </li>#}
+{#                            <li class="nav-item">#}
+{#                                <a class="nav-link active" id="number_fraction_distribution_btn" href="#" onclick="">Number Fraction Distribution</a>#}
+{#                            </li>#}
+                            <li class="nav-item">
+<!--                                TODO: work in progress, commented out from main-->
+<!--                                <a class="nav-link" id="mass_fraction_overview_btn" href="#" onclick="">Mass Fraction Distribution Overview</a>-->
+<!--                            </li>-->
+<!--                            <li class="nav-item">-->
+<!--                                <a class="nav-link" id="number_fraction_overview_btn" href="#" onclick="">Particle Number Fraction Distribution Overview</a>-->
+<!--                            </li>-->
+<!--                            <li class="nav-item">-->
+                                <a class="nav-link" id="comp_mass_fraction_distribution_btn" href="#" onclick="">Mass Fraction Distribution</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="comp_number_fraction_distribution_btn" href="#" onclick="">Particle Number Fraction Distribution</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+        <!-- Heatmap container -->
+            <div class="mt-5" id="main-content">
+                <div class="col" id="master-column">
+                    <div class="">
+                        <div id="heatmap-container" class="text-center">
+                            <!-- Centered heatmap container -->
+                        </div>
+                    </div>
+                    <div id="legend-container">
+                        <!-- Heatmap legend container -->
+                    </div>
+                    <div class="info-containers">
+                        <div id="model-run-container" class="card" style="width: 100%;">
+                            <div class="detailed-info-column" >
+                                <!-- Model Run information container -->
+                                <t class="card-header bold">Model Run:</t>
+                                <div class="card-text" id="model-run-input" style="padding: 10px"></div>
+                            </div>
+                        </div>
+                        <div id="detailed-view-cell" class="detailed-views">
+                            <!-- Detailed information container -->
+<!--                            <div class="detailed-info-column" id="detailed-info-column1">-->
+                            <div class="card" style="width: 100%;" id="detailed-info-column1">
+                                <div id="cell-title"  class="card-header bold"></div>
+                                <div class="inner-detail-container-general">
+                                    <div id="cell-info-percentage"></div>
+                                    <div id="total-percent"></div>
+                                    <div id="residence-value"></div>
+                                    <div id="persistence-value"></div>
+                                </div>
+                                <table class="table table-striped table-hover fixed-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th scope="col"> </th>
+                                            <th scope="col">Rate (g/s)</th>
+                                            <th scope="col">Total</th>
+                                            <th scope="col">%</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody style="display: none">
+                                    <tr>
+                                        <th scope="row"></th>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+
+                                <table class="table table-hover fixed-table" id="inflows-table">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">Inflows</th>
+                                        <th scope="col"> </th>
+                                        <th scope="col" id="total-inflow"></th>
+                                        <th scope="col"> </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="inflows-body">
+                                    </tbody>
+                                </table>
+
+                                <table class="table table-hover fixed-table" id="outflows-table">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">Outflows</th>
+                                        <th scope="col"> </th>
+                                        <th scope="col" id="total-outflow"></th>
+                                        <th scope="col"> </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="outflows-body">
+                                    </tbody>
+                                </table>
+
+                                <div class="detail-container">
+                                </div>
+                                <div class="inner-detail-container" id="outflows-container">
+                                </div>
+                            </div>
+                        </div>
+                        <div id="detailed-view-compartment" class="detailed-views">
+                            <!-- Detailed information container -->
+                            <div class="card" style="width: 100%;">
+                                <div id="compartment-title"  class="card-header bold"></div>
+<!--                                <div id="compartment-title" class="selection-title"></div>-->
+                                <div class="inner-detail-container-general">
+<!--                                    <div id="compartment-info"></div>-->
+                                    <div id="comp-total-percent"></div>
+                                    <div id="comp-persistence"></div>
+                                    <div id="comp-residence"></div>
+                                </div>
+                                <div class="inner-detail-container" style="border-top: 1px solid black;">
+                                    <div class="param-container">
+                                        <div class="param-value-left bold"></div>
+                                        <div class="param-value bold"></div>
+                                        <div class="param-value bold"></div>
+                                        <div class="param-value bold"></div>
+                                    </div>
+                                </div>
+                                <table class="table table-hover fixed-table" id="comp-inflows-table">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">Inflows</th>
+                                        <th scope="col"> </th>
+                                        <th scope="col" id="comp-total-inflow"></th>
+                                        <th scope="col"> </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="comp-inflows">
+                                    </tbody>
+                                </table>
+
+                                <table class="table table-hover fixed-table" id="comp-outflows-table">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">Outflows</th>
+                                        <th scope="col"> </th>
+                                        <th scope="col" id="comp-total-outflow"></th>
+                                        <th scope="col"> </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="comp-outflows">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div id="global-view" class="global-view">
+                            <!-- Detailed information container -->
+                            <div class="card" style="width: 100%;">
+                                <div id="global-balance"  class="card-header bold">Global Mass Balance</div>
+                                <!--                                <div id="compartment-title" class="selection-title"></div>-->
+                                <div class="inner-detail-container-general">
+                                    <!--                                    <div id="compartment-info"></div>-->
+
+                                    <div id="difference">Difference inflow-outflow = 0.000 (g)</div>
+                                </div>
+                                <div class="card" style="width: 100%;">
+                                    <div id="global-exposure"  class="card-header bold">Overall exposure indicators mass</div>
+                                    <!--                                <div id="compartment-title" class="selection-title"></div>-->
+                                    <div class="inner-detail-container-general">
+                                        <!--                                    <div id="compartment-info"></div>-->
+                                        <div id="global-persistence">Overall persistence (Pov): _ years</div>
+                                        <div id="global-residence">Overall residence time (Tov): _ years</div>
+                                        <div id="global-travel">Characteristic travel distance (CTD): _ km</div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+    <script src="{{ url_for('static', filename='js/libs/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/libs/d3.v7.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main-elements.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/d3-heatmap.js') }}"></script>
+
+</body>
+
+</html>

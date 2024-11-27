@@ -87,6 +87,7 @@ def massBalance(R, system_particle_object_list, q_mass_g_s):
     out_flow_g_s = sum(elimination_rates * m_ss)
 
     print("Difference inflow-outflow = " + str(sum(q_mass_g_s) - out_flow_g_s))
+
     return sum(q_mass_g_s) - out_flow_g_s
 
 

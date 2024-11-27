@@ -18,11 +18,15 @@ def Exposure_indicators_calculation(
     dict_comp,
     system_particle_object_list,
     print_output,
+    imput_flows_g_s,
+    tables_inputFlows_num,
 ):
     #### EXPOSURE INDICATORS ####
-    # When estimating the overall exposure indicators we do not take on account the Column Water and Ocean Sediment compartments. This is to mantain consistency with the OECD tool as there the particles going deeper than 100 m into the ocean are considered lossess, therefore we also use that as a boundary in our system. Also in this way we prevent the ocean sediment and column water from driving the POV and residence times values. However our emission fraction estimates do take this compartmets into consideration and the MPs fate into the whole UTOPIA systme is reflected there.
+    # When estimating the overall exposure indicators we do not take on account the Column Water and Ocean Sediment compartments. This is to mantain consistency with the OECD tool as there the particles going deeper than 100 m into the ocean are considered lossess, therefore we also use that as a boundary in our system. Also in this way we prevent the ocean sediment and column water from driving the POV and residence times values. However our emission fraction estimates do take this compartmets into consideration and the MPs fate into the whole UTOPIA system is reflected there.
 
     """Overall persistance (years)"""
+
+    # From the OECD tool (REF: Wegmann et al, 2009. https://doi.org/10.1016/j.envsoft.2008.06.014) Overall persistence (POV, days) is a measure of the time scale of degradation of the chemical in the whole environment. For each mode of emission i, it is calculated by dividing the total mass at steady-state (Mi,TOT, kg) by the sum of all degradation mass fluxes in air (A), water (W) and soil (S) ((FDEG,i,A + FDEG,i,W + FDEG,i,S), kg/h)
 
     # Overall persistance for the plastic material in all size classes and table of overall persistance per compartment:
 
@@ -60,8 +64,12 @@ def Exposure_indicators_calculation(
             )  # When there is no mass in the compartment Pov has no value (marked as NAN)
         else:
             Pov_comp_years.append(
-                sum(Results_extended[Results_extended["Compartment"] == c]["mass_g"])
-                / sum(tables_outputFlows[c].k_discorporation)
+                (
+                    sum(
+                        Results_extended[Results_extended["Compartment"] == c]["mass_g"]
+                    )
+                    / sum(tables_outputFlows[c].k_discorporation)
+                )
                 / 86400
                 / 365
             )
@@ -168,6 +176,10 @@ def Exposure_indicators_calculation(
     """ Overall residence time (years)"""
     # With the new system boundaries we acount for sequestration in deep soils and burial into coast and freshwater sediment but for the Ocean sediment we do not take burial but the settling into the ocean column water compartment as well as mixing. (We exclude the Ocean column water and ocean sediment from the system boundaries in these calculations)
 
+    # from The OECD Tool (REF: ) the overall residence time in a multimedia environment (h), is the ratio of the total mass at steady-state for the given mode of emission (Mi,TOT, kg) divided by the emission mass flux, Fi,E, that enters medium i.
+
+    # However here we are estimating residence time as the mass at steady state divided by the sum of the fluxes of disintegration and advection out of the system (in this case thorugh settling into the ocean column watter as well as burial and sequestration into the soil and deep sediment compartments) ut also weigthed out by the resuspension and mixing from ocean column water.
+
     systemloss_flows_mass = []
     systemloss_flows_number = []
 
@@ -254,6 +266,51 @@ def Exposure_indicators_calculation(
         )
     else:
         pass
+
+    # Residence time especific to each compartment following the definition by Wegmann et al, 2009.:
+    # Residence time Tov in a multimedia environment (h), is the ratio of the total mass at steady-state for the given mode of emission (Mi,TOT, kg) divided by the emission mass flux, Fi,E, that enters medium i.
+
+    Tov_comp_mass_years = []
+    Tov_comp_number_years = []
+    for c, cn in zip(tables_outputFlows.keys(), range(len(tables_outputFlows.keys()))):
+        direct_emiss = list(imput_flows_g_s.values())[cn]
+        Tov_comp_mass_years.append(
+            sum(Results_extended[Results_extended["Compartment"] == c]["mass_g"])
+            / (
+                direct_emiss
+                + sum(
+                    [
+                        sum(tables_outputFlows[c][x])
+                        for x in tables_outputFlows[c].keys()
+                    ]
+                )
+            )
+            / 60
+            / 60
+            / 24
+            / 365
+        )
+
+        Tov_comp_number_years.append(
+            sum(
+                Results_extended[Results_extended["Compartment"] == c][
+                    "number_of_particles"
+                ]
+            )
+            / sum(
+                [
+                    sum(tables_inputFlows_num[c][x])
+                    for x in tables_inputFlows_num[c].keys()
+                ]
+            )
+            / 60
+            / 60
+            / 24
+            / 365
+        )
+
+    Pov_Tov_comp_df["Tov_years(mass_g)"] = Tov_comp_mass_years
+    Pov_Tov_comp_df["Tov_years(particle_number)"] = Tov_comp_number_years
 
     # NOTE: When only one size class pressent, should the residence time be the same in particle number and in mass?? !!! TO check!!!
 
@@ -366,6 +423,7 @@ def Exposure_indicators_calculation(
         Tov_mass_years,
         Tov_num_years,
         Tov_size_dict_years,
+        Pov_Tov_comp_df,
     )
 
 

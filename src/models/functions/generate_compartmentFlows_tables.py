@@ -288,10 +288,10 @@ def addFlows_to_results_df_comp(mass_dist_comp, flows_dict_mass, flows_dict_num)
 
 
 def add_output_flow_conexions(
-        results_by_comp,
-        dict_comp,
-        outputflow_type="outflows_g_s",
-        inputflow_type="inflows_g_s",
+    results_by_comp,
+    dict_comp,
+    outputflow_type="outflows_g_s",
+    inputflow_type="inflows_g_s",
 ):
     # Genrate table of output flows connexions beteen compartments to b used in the mass flow diagram (ti me developed)
 
@@ -309,7 +309,8 @@ def add_output_flow_conexions(
                 if c == "Ocean_Mixed_Water":
                     inflows_col = results_by_comp[
                         results_by_comp["Compartments"] == key
-                        ][inputflow_type].values[0]
+
+                    ][inputflow_type].values[0]
                     outflow_conexions[key] = {
                         item: (
                             inflows_col["k_" + item]
@@ -329,4 +330,5 @@ def add_output_flow_conexions(
         # Print the modified dictionary
         outflow_conexions_g_s.append(outflow_conexions)
     results_by_comp["outflow_conexions_" + outputflow_type[9:]] = outflow_conexions_g_s
+
     return results_by_comp
