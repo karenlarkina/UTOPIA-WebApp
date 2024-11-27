@@ -924,7 +924,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Update the position of the tooltip
             tooltip
-                .html(`Concentration (in ${mode}/m\u00B3) = ${d3.select(this).attr('comp-concentration')} <br>% of total ${mode} in the system = ${roundDynamiucFloat(d3.select(this).attr('comp-percent'))} % <br> Persistence = ${d3.select(this).attr('comp-persistence')} <br>Residence time = ${d3.select(this).attr('comp-residence')} (years)`)
+                .html(`Concentration (in g/m\u00B3) = ${d3.select(this).attr('comp-concentration')} <br>% of total ${mode} = ${roundDynamiucFloat(d3.select(this).attr('comp-percent'))} % <br> Persistence = ${d3.select(this).attr('comp-persistence')} years<br>Residence time = ${d3.select(this).attr('comp-residence')} years`)
                 .style("left", tooltipLeft + "px")
                 .style("top", tooltipTop + "px")
                 .style("display", "block");
@@ -1000,13 +1000,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 .html(`${d3.select(selectedCompartment).attr('comp-title')} Compartment`);
             // adding general info about selected compartment
             d3.select(`#comp-concentration`)
-                .html(`Concentration (in ${mode}/m\u00B3) = ${d3.select(selectedCompartment).attr('comp-concentration')}`);
+                .html(`Concentration (in g/m\u00B3) = ${d3.select(selectedCompartment).attr('comp-concentration')}`);
             d3.select(`#comp-total-percent`)
-                .html(`% of total ${mode} = ${roundDynamiucFloat(d3.select(selectedCompartment).attr('comp-percent'))} %`);
+                .html(`% of the total ${mode} = ${roundDynamiucFloat(d3.select(selectedCompartment).attr('comp-percent'))}`);
             d3.select(`#comp-persistence`)
-                .html(`Persistence = ${d3.select(selectedCompartment).attr('comp-persistence')}`);
+                .html(`Persistence = ${d3.select(selectedCompartment).attr('comp-persistence')} years`);
             d3.select(`#comp-residence`)
-                .html(`Residence time = ${d3.select(selectedCompartment).attr('comp-residence')} (years)`);
+                .html(`Residence time = ${d3.select(selectedCompartment).attr('comp-residence')} years`);
 
             // getting the inflows and outflows and converting them into Maps
             let inflowsString = (selection.attr('comp-inflows')).replace(/'/g, '"');
@@ -1353,7 +1353,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(model_results => {
                 utopia_model_results = model_results; // store values from backend for assembling all visualizations
-                assembleGlobalView('Mass Distribution Overview', "mass", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
+                assembleGlobalView('Mass Overview', "mass", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
                 comp_mass_fraction_distribution_btn.classList.remove('active');
                 comp_number_fraction_distribution_btn.classList.remove('active');
                 number_fraction_overview_btn.classList.remove('active');
@@ -1449,7 +1449,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Highlighting selection on the navbar
             comp_mass_fraction_distribution_btn.classList.add('active');
             d3.select("#global-view").style("display", "none");
-            assembleHeatMap('Mass Fraction Distribution Heatmap', utopia_model_results.mass_fraction_distribution_heatmap, "mass", utopia_model_results.extended_csv_table);
+            assembleHeatMap('Heatmap of Mass', utopia_model_results.mass_fraction_distribution_heatmap, "mass", utopia_model_results.extended_csv_table);
         }
     });
     comp_number_fraction_distribution_btn.addEventListener('click', function() {
@@ -1463,7 +1463,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Highlighting selection on the navbar
             comp_number_fraction_distribution_btn.classList.add('active');
             d3.select("#global-view").style("display", "none");
-            assembleHeatMap('Particle Number Fraction Distribution Heatmap', utopia_model_results.number_fraction_distribution_heatmap, "particle number", utopia_model_results.extended_csv_table);
+            assembleHeatMap('Heatmap of Particle', utopia_model_results.number_fraction_distribution_heatmap, "particle number", utopia_model_results.extended_csv_table);
         }
     });
     mass_fraction_overview_btn.addEventListener('click', function() { // mass Distribution Overview
@@ -1477,7 +1477,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Highlighting selection on the navbar
             mass_fraction_overview_btn.classList.add('active');
             d3.select("#global-view").style("display", "flex");
-            assembleGlobalView('Mass Distribution Overview', "mass", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
+            assembleGlobalView('Mass Overview', "mass", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
         }
     });
     number_fraction_overview_btn.addEventListener('click', function() { // number Fraction Distribution Overview
@@ -1491,7 +1491,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Highlighting selection on the navbar
             number_fraction_overview_btn.classList.add('active');
             d3.select("#global-view").style("display", "flex");
-            assembleGlobalView('Particle Number Distribution Overview', "particle number", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
+            assembleGlobalView('Particle Overview', "particle number", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
         }
     });
 
