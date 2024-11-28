@@ -604,7 +604,7 @@ def execute_utopia_model(input_obj):
     )
 
     # Solve mass balance and print result
-    global_difference_inf_outf = global_massBalance(q_mass_g_s, tables_outputFlows)
+    global_difference_inf_outf = massBalance(R, system_particle_object_list, q_mass_g_s)
     # Caracteristic travel distance (CDT) (m):
 
     # To calculate CTD we need to estimate it by emitting into the especific mobile compartment. We will calculate CTD
