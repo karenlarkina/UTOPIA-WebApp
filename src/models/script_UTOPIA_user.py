@@ -841,11 +841,15 @@ def execute_utopia_model(input_obj):
     # % of the inflows and outflows can be obtained by dividing the input froms from the
     # inputflows dictionaries by the total inputflow column. ## I can add as an extra column in form of a dictionary of needed
 
+    # results_by_comp column names: ['Compartments', 'mass_g', 'number_of_particles', '%_mass', '%_number',
+    # 'Concentration_g_m3', 'Concentration_num_m3', 'inflows_g_s', 'inflows_num_s', 'outflows_g_s', 'outflows_num_s',
+    # 'Residence_time_mass_years', 'Residence_time_num_years', 'Persistence_time_mass_years', 'Persistence_time_num_years']
+
     return (
         heatmap_mass_fraction_df,
         heatmap_number_fraction_df,
         Results_extended,
         global_info_dict,
-        # results_by_comp,
-        Results_extended_comp,
+        results_by_comp,
+        # Results_extended_comp,
     )

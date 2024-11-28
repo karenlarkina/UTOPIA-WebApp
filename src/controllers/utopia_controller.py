@@ -129,6 +129,10 @@ def convert_compdf_to_d3_format(compartment_df):
     compartment_df['percent_mass'] = compartment_df['%_mass'].astype(str)
     compartment_df['percent_number'] = compartment_df['%_number'].astype(str)
 
+    # results_by_comp column names: ['Compartments', 'mass_g', 'number_of_particles', '%_mass', '%_number',
+    # 'Concentration_g_m3', 'Concentration_num_m3', 'inflows_g_s', 'inflows_num_s', 'outflows_g_s', 'outflows_num_s',
+    # 'Residence_time_mass_years', 'Residence_time_num_years', 'Persistence_time_mass_years', 'Persistence_time_num_years']
+    
     # Melt the DataFrame
     melted_df = compartment_df.melt(id_vars=['Compartments', 'mass_g', 'number_of_particles', 'percent_mass', 'percent_number',
                                              'Concentration_g_m3', 'Concentration_num_m3', 'inflows_g_s',
