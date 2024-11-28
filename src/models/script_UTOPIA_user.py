@@ -311,16 +311,14 @@ def execute_utopia_model(input_obj):
     # q_mass_g_s_dict=input_flows_df.set_index('compartment')['q_mass_g_s'].to_dict()
 
     saveName = (
-
-            MP_composition
-            + "_MP_Emissions_"
-            + MP_form
-            + "_"
-            + str(size_dict[size_bin])
-            + "_nm_"
-            + "_FI:"
-            + str(FI)
-
+        MP_composition
+        + "_MP_Emissions_"
+        + MP_form
+        + "_"
+        + str(size_dict[size_bin])
+        + "_nm_"
+        + "_FI:"
+        + str(FI)
     )
 
     # Print model run summary
@@ -405,6 +403,9 @@ def execute_utopia_model(input_obj):
             "concentration_num_m3",
         ]
     ]
+
+    # Solve mass balance and print result
+    massBalance(R, system_particle_object_list, q_mass_g_s)
 
     # Test that there are no negative results
     for i, idx in zip(R["mass_g"], R.index):
@@ -551,7 +552,7 @@ def execute_utopia_model(input_obj):
                 / sum(Results_extended["mass_g"])
                 * 100,
                 2,
-                )
+            )
         )
         Pnumber.append(
             round(
@@ -563,7 +564,7 @@ def execute_utopia_model(input_obj):
                 / sum(Results_extended["number_of_particles"])
                 * 100,
                 2,
-                )
+            )
         )
 
     # TODO this is the data for overall % in table
@@ -705,9 +706,7 @@ def execute_utopia_model(input_obj):
     results_by_comp["Persistence_time_num_years"] = Pov_Tov_comp_df[
         "Pov_years(particle_number)"
     ]
-    results_by_comp["Residence_time_mass_years"] = Pov_Tov_comp_df[
-        "Tov_years(mass_g)"
-    ]
+    results_by_comp["Residence_time_mass_years"] = Pov_Tov_comp_df["Tov_years(mass_g)"]
     results_by_comp["Residence_time_num_years"] = Pov_Tov_comp_df[
         "Tov_years(particle_number)"
     ]
@@ -755,8 +754,12 @@ def execute_utopia_model(input_obj):
         "Pov_num_years": Pov_num_years,
         "Tov_mass_years": Tov_mass_years,
         "Tov_num_years": Tov_num_years,
-        "Tov_size_dict_years": {str(key): value for key, value in Tov_size_dict_years.items()},
-        "Pov_size_dict_years": {str(key): value for key, value in Pov_size_dict_years.items()},
+        "Tov_size_dict_years": {
+            str(key): value for key, value in Tov_size_dict_years.items()
+        },
+        "Pov_size_dict_years": {
+            str(key): value for key, value in Pov_size_dict_years.items()
+        },
         "CTD_mass": CTD_df["CTD_mass_km"].max(),
         "CTD_num": CTD_df["CTD_particle_number_km"].max(),
     }
@@ -800,6 +803,5 @@ def execute_utopia_model(input_obj):
         Results_extended,
         global_info_dict,
         # results_by_comp,
-
-        Results_extended_comp
+        Results_extended_comp,
     )
