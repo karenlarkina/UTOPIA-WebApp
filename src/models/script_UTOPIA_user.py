@@ -178,7 +178,7 @@ def execute_utopia_model(input_obj):
     #       both degradation and fragmentation are fastest, in soil surface and deeper water compartments both rates are 10 times slower
     #       (factor_deepWater_soilSurface) and in sediments and deeper soil compartments they both are 100 times slower (factor_sediment)
 
-    t_half_deg_free = 66000  # in days (10 times slower than the rate of degradation (to form dissolved organics) shown in Pfohl et al. 2023 for TPU-arom)
+    t_half_deg_free = float(mpp_input.get("discorporation_timescale"))  # 66000  # in days (10 times slower than the rate of degradation (to form dissolved organics) shown in Pfohl et al. 2023 for TPU-arom)
     heter_deg_factor = 10
     biof_deg_factor = 1 / 2
 
@@ -220,7 +220,7 @@ def execute_utopia_model(input_obj):
 
     # In UTOPIA we include fragmentation of the heteroaggregated MPs as being 100 slower than fragmentation of the Free MPs and breackup of biofouled and heteroaggregated will be two times slowed of those only heteroaggregated, following the same assumption as for free and biofouled. These values are used in the Domercq et al. 2021 paper and they are asumptions made from lack of current knowlegde
 
-    t_frag_gen_FreeSurfaceWater = 36.5  # in days
+    t_frag_gen_FreeSurfaceWater = float(mpp_input.get("fragmentation_timescale"))  # 36.5  # in days
     biof_frag_factor = 2
     heter_frag_factor = 100
 
@@ -611,12 +611,12 @@ def execute_utopia_model(input_obj):
             )
         )
 
-    # TODO this is the data for overall % in table
+    # This is the data for overall % in table
     size_distribution_df = pd.DataFrame(
         {
-            "Size_Fraction_um": size_distr,
-            "% of total mass": Pmass,
-            "% of total particle number": Pnumber,
+            "size_fraction_um": size_distr,
+            "percent_of_total_mass": Pmass,
+            "percent_of_total_number": Pnumber,
         }
     )
 
@@ -790,6 +790,13 @@ def execute_utopia_model(input_obj):
     # Table of Overall residence time (Tov) and persistence (Pov) by size fraction: Tov_size_dict_years and Pov_size_dict_years
     # Characteristic travel distance (CTD): CTD_df["CTD_mass_km"].max() or CTD_df["CTD_particle_number_km"].max()
 
+    # Creating dictionaries for mass and particle number % of total _ for the overview table
+    percent_mass = {}
+    percent_number = {}
+    for _, row in size_distribution_df.iterrows():
+        percent_mass[str(row["size_fraction_um"])] = row["percent_of_total_mass"]
+        percent_number[str(row["size_fraction_um"])] = row["percent_of_total_number"]
+
     ## Global information
     # Creating a dictionary with the variables
     global_info_dict = {
@@ -806,9 +813,9 @@ def execute_utopia_model(input_obj):
         },
         "CTD_mass": CTD_df["CTD_mass_km"].max(),
         "CTD_num": CTD_df["CTD_particle_number_km"].max(),
+        "percent_total_mass": percent_mass,
+        "percent_total_number": percent_number,
     }
-
-    print(global_info_dict.items())
 
     # The information table for the VIEW 1 is compiled in size_distribution_df:
 
@@ -840,10 +847,6 @@ def execute_utopia_model(input_obj):
 
     # % of the inflows and outflows can be obtained by dividing the input froms from the
     # inputflows dictionaries by the total inputflow column. ## I can add as an extra column in form of a dictionary of needed
-
-    # results_by_comp column names: ['Compartments', 'mass_g', 'number_of_particles', '%_mass', '%_number',
-    # 'Concentration_g_m3', 'Concentration_num_m3', 'inflows_g_s', 'inflows_num_s', 'outflows_g_s', 'outflows_num_s',
-    # 'Residence_time_mass_years', 'Residence_time_num_years', 'Persistence_time_mass_years', 'Persistence_time_num_years']
 
     return (
         heatmap_mass_fraction_df,
