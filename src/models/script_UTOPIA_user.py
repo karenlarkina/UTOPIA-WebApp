@@ -42,9 +42,7 @@ def execute_utopia_model(input_obj):
     MP_composition = str(mpp_input.get("MP_composition"))
     shape = str(mpp_input.get("shape"))  # Fixed for now
     N_sizeBins = 5  # Fixed, should not be changed. The 5 size bins are generated as being one order of magnitude appart and cover the range from mm to nm(i.e. 5000um, 500um, 50um, 5um, 0.5um)
-    big_bin_diameter_um = int(
-        mpp_input.get("big_bin_diameter_um")
-    )  # This size can not be bigger than 10 mm (10000um) or smaller than 1 mm(1000um)
+    big_bin_diameter_um = int(5000)  # default
     runName = MP_composition
 
     # write microplastics inputs file
@@ -104,7 +102,7 @@ def execute_utopia_model(input_obj):
 
     ## Microplastics weathering properties
 
-    mwp_input = input_obj.get("MicroWeatProperties")
+
     ## Select fragmentation style
     """estimate fragmentation relation between size bins using fragment size distribution matrix
      (https://microplastics-cluster.github.io/fragment-mnp/advanced-usage/fragment-size-distribution.html).
@@ -145,7 +143,7 @@ def execute_utopia_model(input_obj):
     # value 0 and Sequential Fragmentation under the value 1, like in the following dictionary:
     # frag_styles_dict = {0:"erosive_fragmentation",0.5:"mixed_fragmentation",1:"sequential_fragmentation"}
 
-    FI = float(mwp_input.get("fragmentation_style"))  # from slider
+    FI = float(mpp_input.get("fragmentation_style"))  # from slider
 
     # Generate the fsd matrix
     fsd = generate_fsd_matrix(FI)
