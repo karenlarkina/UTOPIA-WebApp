@@ -23,6 +23,7 @@ from src.models.functions.generate_compartmentFlows_tables import *
 
 # from src.models.functions.model_run_by_comp import *
 from src.models.functions.emission_fractions_calculation import *
+from src.models.functions.fillInteractions_dictionaries import *
 
 # from src.models.model_run import *
 
@@ -309,16 +310,14 @@ def execute_utopia_model(input_obj):
     # q_mass_g_s_dict=input_flows_df.set_index('compartment')['q_mass_g_s'].to_dict()
 
     saveName = (
-
-            MP_composition
-            + "_MP_Emissions_"
-            + MP_form
-            + "_"
-            + str(size_dict[size_bin])
-            + "_nm_"
-            + "_FI:"
-            + str(FI)
-
+        MP_composition
+        + "_MP_Emissions_"
+        + MP_form
+        + "_"
+        + str(size_dict[size_bin])
+        + "_nm_"
+        + "_FI:"
+        + str(FI)
     )
 
     # Print model run summary
@@ -403,6 +402,9 @@ def execute_utopia_model(input_obj):
             "concentration_num_m3",
         ]
     ]
+
+    # Solve mass balance and print result
+    massBalance(R, system_particle_object_list, q_mass_g_s)
 
     # Test that there are no negative results
     for i, idx in zip(R["mass_g"], R.index):
@@ -507,6 +509,51 @@ def execute_utopia_model(input_obj):
         Results_extended, flows_dict_mass, flows_dict_num
     )
 
+    # Correct input flows to include also the transformation processess (e.g.heteroaggregation)
+    # Only working for mass at the moment, need to estimate steady state particle numbers
+
+    # This is all in mass units
+    interactions_pp_df = fillInteractions_fun_OOP_dict(
+        system_particle_object_list, SpeciesList, surfComp_list
+    )
+
+    # Create a dictionary of recieving inflows per particle taking the values from the interactions matrix
+    particle_inflows_dict_mass = {}
+    particle_inflows_dict_number = {}
+    for p in system_particle_object_list:
+        inflows_p_mass = []
+        # inflows_p_num=[]
+        for p2 in system_particle_object_list:
+            interaction_rate = interactions_pp_df[p2.Pcode][p.Pcode]
+            if type(interaction_rate) == dict:
+                inflow = {k: v * p2.Pmass_g_SS for k, v in interaction_rate.items()}
+                inflows_p_mass.append(inflow)
+                # inflows_p_num.append({k: v * p2.Pnum_g_SS for k, v in interaction_rate.items()})
+            else:
+                inflows_p_mass.append(interaction_rate)
+                # inflows_p_num.append(interaction_rate)
+        dict_list = [item for item in inflows_p_mass if isinstance(item, dict)]
+        # dict_list_num=[item for item in inflows_p_num if isinstance(item, dict)]
+        merged_dict = {}
+        # merged_dict_num={}
+        for d in dict_list:
+            for k, v in d.items():
+                if k in merged_dict:
+                    merged_dict[k] += v
+                    # merged_dict_num[k] += v
+                else:
+                    merged_dict[k] = v
+                    # merged_dict_num[k] = v
+
+        particle_inflows_dict_mass[p.Pcode] = merged_dict
+        # particle_inflows_dict_number[p.Pcode]=merged_dict_num
+
+    # Substitute the inputflow values in the results_extended dataframe:
+
+    for ele in particle_inflows_dict_mass:
+        Results_extended.at[ele, "inflows_g_s"] = particle_inflows_dict_mass[ele]
+        # Results_extended.at[ele, "inflows_num_s"] = particle_inflows_dict_number[ele]
+
     Results_extended["Total_inflows_g_s"] = [
         sum(Results_extended.iloc[i].inflows_g_s.values())
         for i in range(len(Results_extended))
@@ -549,7 +596,7 @@ def execute_utopia_model(input_obj):
                 / sum(Results_extended["mass_g"])
                 * 100,
                 2,
-                )
+            )
         )
         Pnumber.append(
             round(
@@ -561,7 +608,7 @@ def execute_utopia_model(input_obj):
                 / sum(Results_extended["number_of_particles"])
                 * 100,
                 2,
-                )
+            )
         )
 
     # TODO this is the data for overall % in table
@@ -601,7 +648,7 @@ def execute_utopia_model(input_obj):
     )
 
     # Solve mass balance and print result
-    global_difference_inf_outf = global_massBalance(q_mass_g_s, tables_outputFlows)
+    global_difference_inf_outf = massBalance(R, system_particle_object_list, q_mass_g_s)
     # Caracteristic travel distance (CDT) (m):
 
     # To calculate CTD we need to estimate it by emitting into the especific mobile compartment. We will calculate CTD
@@ -703,9 +750,7 @@ def execute_utopia_model(input_obj):
     results_by_comp["Persistence_time_num_years"] = Pov_Tov_comp_df[
         "Pov_years(particle_number)"
     ]
-    results_by_comp["Residence_time_mass_years"] = Pov_Tov_comp_df[
-        "Tov_years(mass_g)"
-    ]
+    results_by_comp["Residence_time_mass_years"] = Pov_Tov_comp_df["Tov_years(mass_g)"]
     results_by_comp["Residence_time_num_years"] = Pov_Tov_comp_df[
         "Tov_years(particle_number)"
     ]
@@ -753,8 +798,12 @@ def execute_utopia_model(input_obj):
         "Pov_num_years": Pov_num_years,
         "Tov_mass_years": Tov_mass_years,
         "Tov_num_years": Tov_num_years,
-        "Tov_size_dict_years": {str(key): value for key, value in Tov_size_dict_years.items()},
-        "Pov_size_dict_years": {str(key): value for key, value in Pov_size_dict_years.items()},
+        "Tov_size_dict_years": {
+            str(key): value for key, value in Tov_size_dict_years.items()
+        },
+        "Pov_size_dict_years": {
+            str(key): value for key, value in Pov_size_dict_years.items()
+        },
         "CTD_mass": CTD_df["CTD_mass_km"].max(),
         "CTD_num": CTD_df["CTD_particle_number_km"].max(),
     }
@@ -798,6 +847,5 @@ def execute_utopia_model(input_obj):
         Results_extended,
         global_info_dict,
         # results_by_comp,
-
-        Results_extended_comp
+        Results_extended_comp,
     )
