@@ -23,6 +23,7 @@ from src.models.functions.generate_compartmentFlows_tables import *
 
 # from src.models.functions.model_run_by_comp import *
 from src.models.functions.emission_fractions_calculation import *
+from src.models.functions.fillInteractions_dictionaries import *
 
 # from src.models.model_run import *
 
@@ -42,9 +43,7 @@ def execute_utopia_model(input_obj):
     MP_composition = str(mpp_input.get("MP_composition"))
     shape = str(mpp_input.get("shape"))  # Fixed for now
     N_sizeBins = 5  # Fixed, should not be changed. The 5 size bins are generated as being one order of magnitude appart and cover the range from mm to nm(i.e. 5000um, 500um, 50um, 5um, 0.5um)
-    big_bin_diameter_um = int(
-        mpp_input.get("big_bin_diameter_um")
-    )  # This size can not be bigger than 10 mm (10000um) or smaller than 1 mm(1000um)
+    big_bin_diameter_um = int(5000)  # default
     runName = MP_composition
 
     # write microplastics inputs file
@@ -104,7 +103,7 @@ def execute_utopia_model(input_obj):
 
     ## Microplastics weathering properties
 
-    mwp_input = input_obj.get("MicroWeatProperties")
+
     ## Select fragmentation style
     """estimate fragmentation relation between size bins using fragment size distribution matrix
      (https://microplastics-cluster.github.io/fragment-mnp/advanced-usage/fragment-size-distribution.html).
@@ -145,7 +144,7 @@ def execute_utopia_model(input_obj):
     # value 0 and Sequential Fragmentation under the value 1, like in the following dictionary:
     # frag_styles_dict = {0:"erosive_fragmentation",0.5:"mixed_fragmentation",1:"sequential_fragmentation"}
 
-    FI = float(mwp_input.get("fragmentation_style"))  # from slider
+    FI = float(mpp_input.get("fragmentation_style"))  # from slider
 
     # Generate the fsd matrix
     fsd = generate_fsd_matrix(FI)
@@ -179,7 +178,7 @@ def execute_utopia_model(input_obj):
     #       both degradation and fragmentation are fastest, in soil surface and deeper water compartments both rates are 10 times slower
     #       (factor_deepWater_soilSurface) and in sediments and deeper soil compartments they both are 100 times slower (factor_sediment)
 
-    t_half_deg_free = 66000  # in days (10 times slower than the rate of degradation (to form dissolved organics) shown in Pfohl et al. 2023 for TPU-arom)
+    t_half_deg_free = float(mpp_input.get("discorporation_timescale"))  # 66000  # in days (10 times slower than the rate of degradation (to form dissolved organics) shown in Pfohl et al. 2023 for TPU-arom)
     heter_deg_factor = 10
     biof_deg_factor = 1 / 2
 
@@ -221,7 +220,7 @@ def execute_utopia_model(input_obj):
 
     # In UTOPIA we include fragmentation of the heteroaggregated MPs as being 100 slower than fragmentation of the Free MPs and breackup of biofouled and heteroaggregated will be two times slowed of those only heteroaggregated, following the same assumption as for free and biofouled. These values are used in the Domercq et al. 2021 paper and they are asumptions made from lack of current knowlegde
 
-    t_frag_gen_FreeSurfaceWater = 36.5  # in days
+    t_frag_gen_FreeSurfaceWater = float(mpp_input.get("fragmentation_timescale"))  # 36.5  # in days
     biof_frag_factor = 2
     heter_frag_factor = 100
 
@@ -311,16 +310,14 @@ def execute_utopia_model(input_obj):
     # q_mass_g_s_dict=input_flows_df.set_index('compartment')['q_mass_g_s'].to_dict()
 
     saveName = (
-
-            MP_composition
-            + "_MP_Emissions_"
-            + MP_form
-            + "_"
-            + str(size_dict[size_bin])
-            + "_nm_"
-            + "_FI:"
-            + str(FI)
-
+        MP_composition
+        + "_MP_Emissions_"
+        + MP_form
+        + "_"
+        + str(size_dict[size_bin])
+        + "_nm_"
+        + "_FI:"
+        + str(FI)
     )
 
     # Print model run summary
@@ -405,6 +402,9 @@ def execute_utopia_model(input_obj):
             "concentration_num_m3",
         ]
     ]
+
+    # Solve mass balance and print result
+    massBalance(R, system_particle_object_list, q_mass_g_s)
 
     # Test that there are no negative results
     for i, idx in zip(R["mass_g"], R.index):
@@ -509,6 +509,51 @@ def execute_utopia_model(input_obj):
         Results_extended, flows_dict_mass, flows_dict_num
     )
 
+    # Correct input flows to include also the transformation processess (e.g.heteroaggregation)
+    # Only working for mass at the moment, need to estimate steady state particle numbers
+
+    # This is all in mass units
+    interactions_pp_df = fillInteractions_fun_OOP_dict(
+        system_particle_object_list, SpeciesList, surfComp_list
+    )
+
+    # Create a dictionary of recieving inflows per particle taking the values from the interactions matrix
+    particle_inflows_dict_mass = {}
+    particle_inflows_dict_number = {}
+    for p in system_particle_object_list:
+        inflows_p_mass = []
+        # inflows_p_num=[]
+        for p2 in system_particle_object_list:
+            interaction_rate = interactions_pp_df[p2.Pcode][p.Pcode]
+            if type(interaction_rate) == dict:
+                inflow = {k: v * p2.Pmass_g_SS for k, v in interaction_rate.items()}
+                inflows_p_mass.append(inflow)
+                # inflows_p_num.append({k: v * p2.Pnum_g_SS for k, v in interaction_rate.items()})
+            else:
+                inflows_p_mass.append(interaction_rate)
+                # inflows_p_num.append(interaction_rate)
+        dict_list = [item for item in inflows_p_mass if isinstance(item, dict)]
+        # dict_list_num=[item for item in inflows_p_num if isinstance(item, dict)]
+        merged_dict = {}
+        # merged_dict_num={}
+        for d in dict_list:
+            for k, v in d.items():
+                if k in merged_dict:
+                    merged_dict[k] += v
+                    # merged_dict_num[k] += v
+                else:
+                    merged_dict[k] = v
+                    # merged_dict_num[k] = v
+
+        particle_inflows_dict_mass[p.Pcode] = merged_dict
+        # particle_inflows_dict_number[p.Pcode]=merged_dict_num
+
+    # Substitute the inputflow values in the results_extended dataframe:
+
+    for ele in particle_inflows_dict_mass:
+        Results_extended.at[ele, "inflows_g_s"] = particle_inflows_dict_mass[ele]
+        # Results_extended.at[ele, "inflows_num_s"] = particle_inflows_dict_number[ele]
+
     Results_extended["Total_inflows_g_s"] = [
         sum(Results_extended.iloc[i].inflows_g_s.values())
         for i in range(len(Results_extended))
@@ -551,7 +596,7 @@ def execute_utopia_model(input_obj):
                 / sum(Results_extended["mass_g"])
                 * 100,
                 2,
-                )
+            )
         )
         Pnumber.append(
             round(
@@ -563,15 +608,15 @@ def execute_utopia_model(input_obj):
                 / sum(Results_extended["number_of_particles"])
                 * 100,
                 2,
-                )
+            )
         )
 
-    # TODO this is the data for overall % in table
+    # This is the data for overall % in table
     size_distribution_df = pd.DataFrame(
         {
-            "Size_Fraction_um": size_distr,
-            "% of total mass": Pmass,
-            "% of total particle number": Pnumber,
+            "size_fraction_um": size_distr,
+            "percent_of_total_mass": Pmass,
+            "percent_of_total_number": Pnumber,
         }
     )
 
@@ -603,7 +648,7 @@ def execute_utopia_model(input_obj):
     )
 
     # Solve mass balance and print result
-    global_difference_inf_outf = global_massBalance(q_mass_g_s, tables_outputFlows)
+    global_difference_inf_outf = massBalance(R, system_particle_object_list, q_mass_g_s)
     # Caracteristic travel distance (CDT) (m):
 
     # To calculate CTD we need to estimate it by emitting into the especific mobile compartment. We will calculate CTD
@@ -705,9 +750,7 @@ def execute_utopia_model(input_obj):
     results_by_comp["Persistence_time_num_years"] = Pov_Tov_comp_df[
         "Pov_years(particle_number)"
     ]
-    results_by_comp["Residence_time_mass_years"] = Pov_Tov_comp_df[
-        "Tov_years(mass_g)"
-    ]
+    results_by_comp["Residence_time_mass_years"] = Pov_Tov_comp_df["Tov_years(mass_g)"]
     results_by_comp["Residence_time_num_years"] = Pov_Tov_comp_df[
         "Tov_years(particle_number)"
     ]
@@ -747,6 +790,13 @@ def execute_utopia_model(input_obj):
     # Table of Overall residence time (Tov) and persistence (Pov) by size fraction: Tov_size_dict_years and Pov_size_dict_years
     # Characteristic travel distance (CTD): CTD_df["CTD_mass_km"].max() or CTD_df["CTD_particle_number_km"].max()
 
+    # Creating dictionaries for mass and particle number % of total _ for the overview table
+    percent_mass = {}
+    percent_number = {}
+    for _, row in size_distribution_df.iterrows():
+        percent_mass[str(row["size_fraction_um"])] = row["percent_of_total_mass"]
+        percent_number[str(row["size_fraction_um"])] = row["percent_of_total_number"]
+
     ## Global information
     # Creating a dictionary with the variables
     global_info_dict = {
@@ -755,13 +805,17 @@ def execute_utopia_model(input_obj):
         "Pov_num_years": Pov_num_years,
         "Tov_mass_years": Tov_mass_years,
         "Tov_num_years": Tov_num_years,
-        "Tov_size_dict_years": {str(key): value for key, value in Tov_size_dict_years.items()},
-        "Pov_size_dict_years": {str(key): value for key, value in Pov_size_dict_years.items()},
+        "Tov_size_dict_years": {
+            str(key): value for key, value in Tov_size_dict_years.items()
+        },
+        "Pov_size_dict_years": {
+            str(key): value for key, value in Pov_size_dict_years.items()
+        },
         "CTD_mass": CTD_df["CTD_mass_km"].max(),
         "CTD_num": CTD_df["CTD_particle_number_km"].max(),
+        "percent_total_mass": percent_mass,
+        "percent_total_number": percent_number,
     }
-
-    print(global_info_dict.items())
 
     # The information table for the VIEW 1 is compiled in size_distribution_df:
 
@@ -799,7 +853,6 @@ def execute_utopia_model(input_obj):
         heatmap_number_fraction_df,
         Results_extended,
         global_info_dict,
-        # results_by_comp,
-
-        Results_extended_comp
+        results_by_comp,
+        # Results_extended_comp,
     )

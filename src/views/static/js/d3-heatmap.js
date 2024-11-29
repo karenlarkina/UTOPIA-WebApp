@@ -12,16 +12,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 MP_composition: document.getElementById('mpp_composition').value,
                 shape: "sphere", //default  
                 N_sizeBins: 5, //default
-                big_bin_diameter_um: document.getElementById('bbdiameter').value,  
+                fragmentation_style: document.getElementById('fragmentation_style').value,
+                fragmentation_timescale: document.getElementById('t_frag_gen_FreeSurfaceWater').value,
+                discorporation_timescale: document.getElementById('t_half_deg_free').value,
                 runName: document.getElementById('mpp_composition').value,
             }, 
-            EnvCharacteristics: { // Currently just commented out
-                // spm_diameter_um: document.getElementById('spmDiameter').value,
-                // spm_density_kg_m3: document.getElementById('spmDensity').value
-            },
-            MicroWeatProperties:{
-                fragmentation_style: document.getElementById('fragmentation_style').value
-                // fragmentation_range: document.getElementById('customFragmentationRange').value;
+            EnvCharacteristics: { // TODO implement download and upload
             },
             EmScenario:{
                 MPform: document.getElementById('mp_form').value,
@@ -219,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         const mousemove = function(event, d) {
-            if (d[fraction] !== "" && d[fraction] !== 0 && d[fraction] !== "0" && !Number.isNaN(d[fraction])) { // <--adjusted for extended data
+            if (d[fraction] !== "" && d[fraction] !== 0 && d[fraction] !== "0" && !Number.isNaN(d[fraction])) {
                 // Calculate the position of the tooltip relative to the mouse pointer
                 const tooltipLeft = event.pageX + 10;
                 const tooltipTop = event.pageY - 50;
@@ -228,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Update the position of the tooltip
                 tooltip
-                    .html(`Log ${mode} fraction: ${Number(d[fraction]).toFixed(2)}<br>% of total ${mode} = ${totPercentage}%`) // <--------------- with extended data
+                    .html(`Log ${mode} fraction: ${Number(d[fraction]).toFixed(2)}<br>% of total ${mode} = ${totPercentage}%`)
                     .style("left", tooltipLeft + "px")
                     .style("top", tooltipTop + "px")
                     .style("display", "block");
@@ -335,9 +331,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 d3.select(`#total-percent`)
                     .html(`% of total ${mode} = ${totalPercentage}%`);
                 d3.select(`#residence-value`)
-                    .html(`Residence time = ${Math.round(selection.attr('residence'))} (years)`);
+                    .html(`Residence time = ${Math.round(selection.attr('residence'))} years`);
                 d3.select(`#persistence-value`)
-                    .html(`Persistence = ${Math.round(selection.attr('persistance'))} (years)`);
+                    .html(`Persistence = ${Math.round(selection.attr('persistance'))} years`);
 
                 // populating total inflows and outflows
                 let totalInflow = Number(selection.attr('total-inflow')).toFixed(4);
@@ -476,8 +472,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     .attr("height", singleCellSize - singleCellGap)
                     .attr("fill", d => getColor(parseFloat(d[fraction])))
                     .attr("total-percent", d => (Number(d[originFraction] * 100)))
-                    .attr("residence", d => parseFloat(d[cellResidence]))
-                    .attr("persistance", d => parseFloat(d[cellPersistence]))
+                    .attr("residence", d => Number(parseFloat(d[cellResidence])).toFixed(3))
+                    .attr("persistance", d => Number(parseFloat(d[cellPersistence])).toFixed(3))
                     .attr("total-inflow",  d => parseFloat(d[totalInflow]))
                     .attr("total-outflow",  d => parseFloat(d[totalOutflow]))
                     .attr("inflows",  d => d[inflows])
@@ -848,6 +844,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let pov = null;
         let tov = null;
         let ctd = null;
+        let percent_total = null
         let povDict = 'Pov_size_dict_years';
         let tovDict = 'Tov_size_dict_years';
         // Getting the values depending on mode and storing appropriate column labels
@@ -855,10 +852,12 @@ document.addEventListener('DOMContentLoaded', function () {
             pov = 'Pov_mass_years';
             tov = 'Tov_mass_years';
             ctd = 'CTD_mass';
+            percent_total = 'percent_total_mass';
         } else {
             pov = 'Pov_num_years';
             tov = 'Tov_num_years';
             ctd = 'CTD_num';
+            percent_total = 'percent_total_number';
         }
 
         // * * * * * * * * * * * * * * * * Compartment data * * * * * * * * * * * * * * * * * *
@@ -959,16 +958,18 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Function to add the %, pov, and tov to global table
-        function addFlowToGlobalTable(tableRow, flowName, tovValue, povValue) {
+        function addFlowToGlobalTable(tableRow, flowName, tovValue, povValue, percent) {
 
             if (tovValue === "NaN") {
                 tableRow.append("td").text(`${flowName}`);
                 tableRow.append("td").text(`-`);
+                // tableRow.append("td").text(`-`);
                 tableRow.append("td").text(`-`);
                 tableRow.append("td").text(`-`);
             } else {
                 tableRow.append("td").text(`${flowName}`);
-                tableRow.append("td").text(`-`);
+                // tableRow.append("td").text(`-`);
+                tableRow.append("td").text(`${percent}`);
                 tableRow.append("td").text(`${povValue}`);
                 tableRow.append("td").text(`${tovValue}`);
             }
@@ -1273,19 +1274,22 @@ document.addEventListener('DOMContentLoaded', function () {
         d3.select('#difference')
             .html(`Difference inflow-outflow = ${Number(parseFloat(differenceParts[0])).toFixed(2)}e${differenceParts[1]} (g)`);
         d3.select('#global-persistence')
-            .html(`Overall persistence (Pov): ${Math.round(globalMap.get(pov))} years`);
+            .html(`Overall persistence (Pov): ${Number(globalMap.get(pov)).toFixed(3)} years`);
         d3.select('#global-residence')
-            .html(`Overall residence time (Tov): ${Math.round(globalMap.get(tov))} years`);
+            .html(`Overall residence time (Tov): ${Number(globalMap.get(tov)).toFixed(3)} years`);
         d3.select('#global-travel')
-            .html(`Characteristic travel distance (CTD): ${Math.round(globalMap.get(ctd))} years`);
+            .html(`Characteristic travel distance (CTD): ${Number(globalMap.get(ctd)).toFixed(3)} years`);
 
         // getting the inflows and outflows and converting them into Maps
         let povBySizeString = (globalMap.get(povDict)).replace(/'/g, '"');
         let tovBySizeString = (globalMap.get(tovDict)).replace(/'/g, '"');
+        let percentBySizeString = (globalMap.get(percent_total)).replace(/'/g, '"');
         let povBySizeObj = JSON.parse(povBySizeString);
         let tovBySizeObj = JSON.parse(tovBySizeString);
+        let percentBySizeObj = JSON.parse(percentBySizeString);
         let povBySizeMap = new Map(Object.entries(povBySizeObj));
         let tovBySizeMap = new Map(Object.entries(tovBySizeObj));
+        let percentBySizeMap = new Map(Object.entries(percentBySizeObj));
 
         // populating the %, pov, and tov table
         const povBySizeContainer = d3.select('#global-table');
@@ -1293,9 +1297,11 @@ document.addEventListener('DOMContentLoaded', function () {
         povBySizeBody.selectAll('*').remove();
 
         d3.select('#global-number').html(`% ${mode}`)
+        // d3.select('#global-total').html(`Total ${mode}`)
         // getting the pov, and tov per fraction size for the table
         povBySizeMap.forEach((value, key) => {
             let  povValue;
+            console.log(key);
             if (value > 10) {
                 povValue = Math.round(value);
             } else {
@@ -1307,9 +1313,10 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 tovValue = Number(tovBySizeMap.get(key)).toFixed(2);
             }
+            let percent_of_total = percentBySizeMap.get(key);
             let globalTableRow = povBySizeBody.append("tr"); // creating the row entry per inflow item
             // populating the elements in the table
-            addFlowToGlobalTable(globalTableRow, key, tovValue, povValue);
+            addFlowToGlobalTable(globalTableRow, key, tovValue, povValue, percent_of_total);
         });
     }
 
@@ -1366,7 +1373,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('loading-spinner').style.display = 'none';
                 document.getElementById('main-content').classList.remove('blur');
                 let inputs = getModelRunInfo(inputData); // getting input information as an array
-                let modelRunText = `Input of ${inputs[0]}g/s of ${inputs[1]} ${inputs[2]} spherical microplastics particles of ${inputs[3]}kg/m3 density into the ${inputs[4]} compartment. Selected fragmentation style: ${inputs[5]}.`
+                let modelRunText = `Input of ${inputs[0]}g/s of ${inputs[1]} ${inputs[2]} spherical microplastics particles of ${inputs[3]}kg/m\u00B3 density into the ${inputs[4]} compartment. Selected fragmentation pattern: ${inputs[5]}.`
                 let runModelContainer = document.getElementById("model-run-input");
                 runModelContainer.textContent = modelRunText; // assigning the text with model input to Model Run
             });
@@ -1375,7 +1382,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Getting the input information
     function getModelRunInfo(inputJsonData) {
         let parsedInput = JSON.parse(inputJsonData); // parsing the JSON object
-        let indexes = [3, 3, 3, 0, 3, 2]; // listing the input parameter field indexes in the correct order
+        let indexes = [2, 2, 2, 0, 2, 0]; // listing the input parameter field indexes in the correct order
         // Listing the input elements with the correct names in model
         let fieldNameArray = ["input_flow_g_s", "MPform", "size_bin", "MPdensity_kg_m3", "emiss_comp", "fragmentation_style"];
         let fieldValueArray = []; // array for storing the actual presentable elements
