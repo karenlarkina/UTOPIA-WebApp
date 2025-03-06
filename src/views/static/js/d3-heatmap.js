@@ -16,8 +16,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 fragmentation_timescale: document.getElementById('t_frag_gen_FreeSurfaceWater').value,
                 discorporation_timescale: document.getElementById('t_half_deg_free').value,
                 runName: document.getElementById('mpp_composition').value,
-            }, 
-            EnvCharacteristics: { // TODO implement download and upload
+            // },
+            // EnvCharacteristics: { // TODO implement download and upload
             },
             EmScenario:{
                 MPform: document.getElementById('mp_form').value,
