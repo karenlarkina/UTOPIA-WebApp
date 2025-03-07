@@ -258,6 +258,20 @@ h3 {
     padding-top: 1px;
 }
 
+.white-filter { /* TODO work in progress: filter for the heatmaps to show overall percentage */
+    background-color: white;
+    align-items: center;
+    display: inline-block;
+    /*gap: 2px;*/
+    /*padding-bottom: 1px;*/
+    /*padding-top: 1px;*/
+    z-index: 20;
+    filter: blur(3px);
+    opacity: 0.8 !important;
+    width: 100%;
+    /*height: 100%;*/
+}
+
 .compartment {
     border: solid 1px #000;
     border-radius: 3px;

@@ -246,6 +246,19 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
 
+        // TODO Three functions for the cellls filter to apperar and disappear to show the overall percentage or show cells
+        const mouseoverFilter = function(event, d) {
+
+        };
+
+        const mousemoveFilter = function(event, d) {
+
+        };
+
+        const mouseleaveFilter = function(event, d) {
+
+        };
+
         // Function to get the long name of the MP form to present in the cell selection title
         function getMPForm(shortForm) {
             let formLabels = ["biofouled and heteoaggregated", "biofouled", "heteoaggregated", "free microplastic"]
@@ -426,7 +439,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (compartmentType !== "compartment empty" && compartmentType !== "new-legend-container" && compartmentType !== "nothing") {
 
                 const svgWrapper = container.append("div")
-                    .attr("class", "white-background");
+                    .attr("class", "white-background")
+                    .style("position", "relative");
 
                 let svg = svgWrapper.append("svg")
                     .attr("width", (singleCellSize + singleCellGap) * 5.83)
@@ -491,6 +505,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     .attr('data-compartment', compartmentType)
                     .attr('size-bin', d => parseGroup(d.group).size)
                     .attr('part-type', d => parseGroup(d.group).type);
+
+                // TODO work in progress
+                svgWrapper.append("div")
+                    .attr("class", "white-filter")
+                    .style("width", svg.style("width"))
+                    .style("height", svg.style("height"))
+                    .style("position", "relative")
+                    .style("top", svg.style("top"))
+                    .style("left", svg.style("left"))
+                    .on("mouseover", mouseoverFilter)
+                    .on("mousemove", mousemoveFilter)
+                    .on("mouseleave", mouseleaveFilter);
             }
         }
 
@@ -1101,7 +1127,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     .text(`${roundDynamiucFloat(collections[currentCompartment][0][compPercent])} %`);
                 compartmentContainer.append("div")
                     .attr("class", "compartment-field")
-                    .text(`Persistance = ${Math.round(parseFloat(collections[currentCompartment][0][compPersistence]))}`);
+                    .text(`Persistence = ${Math.round(parseFloat(collections[currentCompartment][0][compPersistence]))}`);
                 compartmentContainer.append("div")
                     .attr("class", "compartment-field")
                     .text(`Residence = ${Math.round(parseFloat(collections[currentCompartment][0][compResidence]))}`);
@@ -1253,7 +1279,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             .text(`${roundDynamiucFloat(collections[currentCompartment][0][compPercent])} %`);
                         compartmentContainer.append("div")
                             .attr("class", "compartment-field")
-                            .text(`Persistance = ${Math.round(parseFloat(collections[currentCompartment][0][compPersistence]))}`);
+                            .text(`Persistence = ${Math.round(parseFloat(collections[currentCompartment][0][compPersistence]))}`);
                         compartmentContainer.append("div")
                             .attr("class", "compartment-field")
                             .text(`Residence = ${Math.round(parseFloat(collections[currentCompartment][0][compResidence]))}`);
@@ -1278,7 +1304,7 @@ document.addEventListener('DOMContentLoaded', function () {
         d3.select('#global-residence')
             .html(`Overall residence time (Tov): ${Number(globalMap.get(tov)).toFixed(3)} years`);
         d3.select('#global-travel')
-            .html(`Characteristic travel distance (CTD): ${Number(globalMap.get(ctd)).toFixed(3)} years`);
+            .html(`Characteristic travel distance (CTD): ${Number(globalMap.get(ctd)).toFixed(3)} km`);
 
         // getting the inflows and outflows and converting them into Maps
         let povBySizeString = (globalMap.get(povDict)).replace(/'/g, '"');
@@ -1382,7 +1408,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Getting the input information
     function getModelRunInfo(inputJsonData) {
         let parsedInput = JSON.parse(inputJsonData); // parsing the JSON object
-        let indexes = [2, 2, 2, 0, 2, 0]; // listing the input parameter field indexes in the correct order
+        let indexes = [1, 1, 1, 0, 1, 0]; // listing the input parameter field indexes in the correct order
         // Listing the input elements with the correct names in model
         let fieldNameArray = ["input_flow_g_s", "MPform", "size_bin", "MPdensity_kg_m3", "emiss_comp", "fragmentation_style"];
         let fieldValueArray = []; // array for storing the actual presentable elements
@@ -1428,6 +1454,19 @@ document.addEventListener('DOMContentLoaded', function () {
                             numValue = "5mm";
                     }
                     fieldValueArray.push(numValue);
+                } else if (i === 5) {
+                    let cleanName = "";
+                    switch (element) {
+                        case "0":
+                            cleanName = "Sequential"; // sequential fragmentation
+                            break
+                        case "1":
+                            cleanName = "Erosive"; // erosive fragmentation
+                            break
+                        default:
+                            cleanName = "Mixed"; // mixed fragmentation
+                        }
+                    fieldValueArray.push(cleanName);
                 } else { // adding the element name, replacing _ with spaces where needed
                     fieldValueArray.push(element.toString().replaceAll("_", " "));
                 }
@@ -1504,10 +1543,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const rangeInput = document.getElementById('fragmentation_style');
     const rangeValue = document.getElementById('selectedFragmentationRange');
+    const fragmentationName = document.getElementById('fragmentation-name');
     rangeInput.addEventListener('click', function () {
         // Update span value whenever the slider changes
         rangeInput.addEventListener('input', function() {
             rangeValue.textContent = rangeInput.value;
+            if (rangeInput.value === "0") {
+                fragmentationName.textContent = "Sequential";
+            } else if (rangeInput.value === "1") {
+                fragmentationName.textContent = "Erosive";
+            } else {
+                fragmentationName.textContent = "Mixed";
+            }
         });
     });
 });
