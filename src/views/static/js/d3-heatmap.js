@@ -16,8 +16,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 fragmentation_timescale: document.getElementById('t_frag_gen_FreeSurfaceWater').value,
                 discorporation_timescale: document.getElementById('t_half_deg_free').value,
                 runName: document.getElementById('mpp_composition').value,
-            // },
-            // EnvCharacteristics: { // TODO implement download and upload
+                // },
+                // EnvCharacteristics: { // TODO implement download and upload
             },
             EmScenario:{
                 MPform: document.getElementById('mp_form').value,
@@ -946,10 +946,16 @@ document.addEventListener('DOMContentLoaded', function () {
             // Calculate the position of the tooltip relative to the mouse pointer
             const tooltipLeft = event.pageX + 10;
             const tooltipTop = event.pageY - 50;
+            let unit = "";
+            if (mode === "mass") {
+                unit = "g";
+            } else {
+                unit = "#";
+            }
 
             // Update the position of the tooltip
             tooltip
-                .html(`Concentration (in g/m\u00B3) = ${d3.select(this).attr('comp-concentration')} <br>% of total ${mode} = ${roundDynamiucFloat(d3.select(this).attr('comp-percent'))} % <br> Persistence = ${d3.select(this).attr('comp-persistence')} years<br>Residence time = ${d3.select(this).attr('comp-residence')} years`)
+                .html(`Concentration (in ${unit}/m\u00B3) = ${d3.select(this).attr('comp-concentration')} <br>% of total ${mode} = ${roundDynamiucFloat(d3.select(this).attr('comp-percent'))} % <br> Persistence = ${d3.select(this).attr('comp-persistence')} years<br>Residence time = ${d3.select(this).attr('comp-residence')} years`)
                 .style("left", tooltipLeft + "px")
                 .style("top", tooltipTop + "px")
                 .style("display", "block");
@@ -1433,7 +1439,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             break
                         default:
                             cleanName = "HeterBiof"; // heteroaggregted and biofouled
-                        }
+                    }
                     fieldValueArray.push(cleanName);
                 } else if (i === 2) { // check to make Emission Scenario size bin field presentable
                     let numValue = 0;
@@ -1457,15 +1463,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else if (i === 5) {
                     let cleanName = "";
                     switch (element) {
-                        case "0":
+                        case "1":
                             cleanName = "Sequential"; // sequential fragmentation
                             break
-                        case "1":
+                        case "0":
                             cleanName = "Erosive"; // erosive fragmentation
                             break
                         default:
                             cleanName = "Mixed"; // mixed fragmentation
-                        }
+                    }
                     fieldValueArray.push(cleanName);
                 } else { // adding the element name, replacing _ with spaces where needed
                     fieldValueArray.push(element.toString().replaceAll("_", " "));
@@ -1548,9 +1554,9 @@ document.addEventListener('DOMContentLoaded', function () {
         // Update span value whenever the slider changes
         rangeInput.addEventListener('input', function() {
             rangeValue.textContent = rangeInput.value;
-            if (rangeInput.value === "0") {
+            if (rangeInput.value === "1") {
                 fragmentationName.textContent = "Sequential";
-            } else if (rangeInput.value === "1") {
+            } else if (rangeInput.value === "0") {
                 fragmentationName.textContent = "Erosive";
             } else {
                 fragmentationName.textContent = "Mixed";
