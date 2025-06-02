@@ -16,9 +16,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 fragmentation_timescale: document.getElementById('t_frag_gen_FreeSurfaceWater').value,
                 discorporation_timescale: document.getElementById('t_half_deg_free').value,
                 runName: document.getElementById('mpp_composition').value,
-                // },
-                // EnvCharacteristics: { // TODO implement download and upload
-            },
+            }, 
+            // EnvCharacteristics: { // TODO implement download and upload
+            // },
             EmScenario:{
                 MPform: document.getElementById('mp_form').value,
                 size_bin: document.getElementById('es_bin_size').value,
@@ -29,10 +29,118 @@ document.addEventListener('DOMContentLoaded', function () {
         return JSON.stringify(utopiaObject)
     }
 
+    // Helper: flatten object to key-value pairs
+    function flattenObject(obj, prefix = '', res = {}) {
+        for (let key in obj) {
+            if (typeof obj[key] === 'object' && obj[key] !== null) {
+                flattenObject(obj[key], prefix + key + '.', res);
+            } else {
+                res[prefix + key] = obj[key];
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Function to export the current parameters from client side as a CSV file.
+     * */
+    document.getElementById('export-inputs').addEventListener('click', function() {
+        const jsonStr = extractVariablesFromClientSide();
+        const obj = JSON.parse(jsonStr);
+        const flat = flattenObject(obj);
+        const headers = Object.keys(flat).join(',');
+        const values = Object.values(flat).join(',');
+        const csvContent = headers + '\n' + values;
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'utopia_parameters.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    });
+
+
+    // - - Import related variables and functions - -
+    const importBtn = d3.select("#import-inputs");
+    const deleteBtn = document.getElementById("delete-import-file");
+    const importFileInput = document.getElementById("import-file");
+
+    importBtn.on('click', () => importFileInput.click());
+    importFileInput.addEventListener('change', handleImportFileChange);
+    deleteBtn.addEventListener('click', deleteImportFile);
+
+    function handleImportFileChange(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const [headerLine, valueLine] = text.trim().split('\n');
+                const headers = headerLine.split(',');
+                const values = valueLine.split(',');
+                const jsonStr = extractVariablesFromClientSide();
+                const obj = JSON.parse(jsonStr);
+                const flat = flattenObject(obj);
+                const expectedHeaders = Object.keys(flat);
+                const isValid = headers.length === expectedHeaders.length &&
+                    headers.every((h, i) => h === expectedHeaders[i]);
+                if (!isValid) {
+                    alert("Invalid file: headers do not match expected parameters.");
+                    resetImport();
+                    return;
+                }
+                headers.forEach((key, i) => {
+                    const fieldId = key.split('.').pop();
+                    const el = document.getElementById(fieldId);
+                    if (el) el.value = values[i];
+                });
+                alert("Parameters imported successfully.");
+            };
+            reader.readAsText(file);
+            importBtn.html("Edit File");
+            deleteBtn.style.display = "inline-block";
+        } else {
+            resetImport();
+        }
+    }
+
+    function resetImport() {
+        importBtn.html("Add File");
+        deleteBtn.style.display = "none";
+    }
+
+    function deleteImportFile() {
+        importFileInput.value = "";
+        resetImport();
+    }
+
+    // /**
+    //  * Image creation and download using html2canvas.
+    //  * */
+    // const visualizationToPng = document.getElementById("export-png");
+    // visualizationToPng.addEventListener("click", function() {
+    //     const heatmap = document.getElementById("heatmap-container");
+    //     html2canvas(heatmap).then(canvas => {
+    //         // Create a link and trigger download
+    //         const link = document.createElement('a');
+    //         const fileName = (d3.select("#heatmap-container").select("#main-title").text()).replaceAll(" ", "_");
+    //         console.log(fileName);
+    //         link.download = `Utopia_${fileName}.png`;
+    //         link.href = canvas.toDataURL("image/png");
+    //         link.click();
+    //     });
+    // });
+
     // Function to unselect all selected elements (cell/compartment), hide selection info and unblur all
     function unselectEverything() {
-        document.getElementById(`detailed-view-cell`).style.display = 'none';
-        document.getElementById(`detailed-view-compartment`).style.display = 'none';
+        document.getElementById(`detailed-view-cell`).style.display = "none";
+        document.getElementById(`detailed-view-compartment`).style.display = "none";
+        document.getElementById(`about-page`).style.display = "none";
+        d3.select("#master-column").style("display", "flex");
+
         if (selectedCell !== null || selectedCompartment !== null) {
             unblurCompartments();
             if (selectedCompartment) { // unselecting previously selected compartment
@@ -47,12 +155,21 @@ document.addEventListener('DOMContentLoaded', function () {
                     .style("opacity", 0.7); // reset the cell color
             }
         }
+        // d3.select(".info-containers").style("display", "flex");
     }
 
     // Function to unselect selections and display the global overview info on right
     function unselectWithGlobal() {
         unselectEverything();
         d3.select("#global-view").style("display", "flex");
+        d3.selectAll(".additional-info").style("display", "none");
+        d3.selectAll(".compartment-percent-big").style("display", "block");
+    }
+
+    // Function to unselect selections and display the global overview info on right
+    function unselectForAbout() {
+        unselectEverything();
+        d3.select("#master-column").style("display", "none");
     }
 
     // Function to unblur all compartments
@@ -61,28 +178,52 @@ document.addEventListener('DOMContentLoaded', function () {
             .classed('blurry', false);
     }
 
-    // Function to round large floats to give a more precise and visually appealing number.
-    function roundDynamiucFloat(value) {
+    // // Function to round large floats to give a more precise and visually appealing number.
+    // function roundDynamiucFloat(value) {
+    //     let num = Number(value).toFixed(10);
+    //
+    //     if (num < 0.00000005) {
+    //         return Number(num).toFixed(8);
+    //     } else if (num < 0.0000005) {
+    //         return Number(num).toFixed(7);
+    //     } else if (num < 0.000005) {
+    //         return Number(num).toFixed(6);
+    //     } else if (num < 0.00005) {
+    //         return Number(num).toFixed(5);
+    //     } else if (num < 0.0005) {
+    //         return Number(num).toFixed(4);
+    //     } else if (num < 0.005) {
+    //         return Number(num).toFixed(3);
+    //     } else {
+    //         return Number(num).toFixed(2);
+    //     }
+    //
+    //
+    // }
+
+    /**
+     * New dynamic round with the upper and lower bounds.
+     * */
+    function roundDynamicFloat(type, value) {
         let num = Number(value).toFixed(10);
 
-        if (num < 0.0000000005) {
-            return "< 0.0000000005";
-        } else if (num < 0.000000005) {
-            return Number(num).toFixed(9);
-        } else if (num < 0.00000005) {
-            return Number(num).toFixed(8);
-        } else if (num < 0.0000005) {
-            return Number(num).toFixed(7);
-        } else if (num < 0.000005) {
-            return Number(num).toFixed(6);
-        } else if (num < 0.00005) {
-            return Number(num).toFixed(5);
-        } else if (num < 0.0005) {
-            return Number(num).toFixed(4);
-        } else if (num < 0.005) {
-            return Number(num).toFixed(3);
-        } else {
+        if (type === "percent" && num < 0.0009) {
+                return '< 0.0001';
+        } else if (type === "concentration" && num < 0.0000009) {
+                return '< 1e-6';
+        }
+        if (num > 10000) {
+            return Number.parseFloat(num).toExponential(2);
+        } else if (num > 100) {
+            return Number(num).toFixed();
+        } else if (num > 0 || num > 0.01 || num < 0 && num > -2) {
             return Number(num).toFixed(2);
+        } else if (num > 0.001) {
+            return Number(num).toFixed(3);
+        } else if (num > 0.00001) {
+            return Number(num).toFixed(4);
+        } else {
+            return Number.parseFloat(num).toExponential(2);
         }
     }
 
@@ -90,6 +231,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let assembleHeatMap = function(title, csvText, mode, csvExtended) {
         // remove any existing heatmap
         d3.select('#heatmap-container').selectAll('*').remove();
+        // document.getElementsByClassName(`info-containers`).style.display = 'flex';
         // set the dimensions and margins of the graph
         const margin = {top: 50, right: 5, bottom: 150, left: 150},
             viewportWidth = 810,
@@ -220,7 +362,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const tooltipLeft = event.pageX + 10;
                 const tooltipTop = event.pageY - 50;
 
-                let totPercentage = roundDynamiucFloat((d[originFraction] * 100));
+                let totPercentage = roundDynamicFloat("percent", (d[originFraction] * 100));
 
                 // Update the position of the tooltip
                 tooltip
@@ -244,19 +386,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     .style("stroke-width", "0.8px")
                     .style("opacity", 0.7); // reset the cell color
             }
-        };
-
-        // TODO Three functions for the cellls filter to apperar and disappear to show the overall percentage or show cells
-        const mouseoverFilter = function(event, d) {
-
-        };
-
-        const mousemoveFilter = function(event, d) {
-
-        };
-
-        const mouseleaveFilter = function(event, d) {
-
         };
 
         // Function to get the long name of the MP form to present in the cell selection title
@@ -299,8 +428,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Function to add flows information to given d3 flow element
         function addFlowToTable(tableRow, flowName, value, flowPercentage) {
-            let flowValue = roundDynamiucFloat(value);
-            let percentage = roundDynamiucFloat(flowPercentage);
+            let flowValue = roundDynamicFloat("", value);
+            let percentage = roundDynamicFloat("", flowPercentage);
 
             tableRow.append("td")
                 .text(`${flowName.charAt(0).toUpperCase()}${flowName.slice(1)}`);
@@ -336,7 +465,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     .html(`${selection.attr('size-bin')} µm ${getMPForm(cellMPForm)} particles in the ${cellCompartment}`);
 
                 // populating the detailed information fields
-                let totalPercentage = roundDynamiucFloat(selection.attr('total-percent'));
+                let totalPercentage = roundDynamicFloat("percent", selection.attr('total-percent'));
 
                 // updating cell information in detailed view
                 d3.select(`#cell-info-percentage`)
@@ -439,8 +568,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (compartmentType !== "compartment empty" && compartmentType !== "new-legend-container" && compartmentType !== "nothing") {
 
                 const svgWrapper = container.append("div")
-                    .attr("class", "white-background")
-                    .style("position", "relative");
+                    .attr("class", "white-background");
 
                 let svg = svgWrapper.append("svg")
                     .attr("width", (singleCellSize + singleCellGap) * 5.83)
@@ -505,18 +633,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     .attr('data-compartment', compartmentType)
                     .attr('size-bin', d => parseGroup(d.group).size)
                     .attr('part-type', d => parseGroup(d.group).type);
-
-                // TODO work in progress
-                svgWrapper.append("div")
-                    .attr("class", "white-filter")
-                    .style("width", svg.style("width"))
-                    .style("height", svg.style("height"))
-                    .style("position", "relative")
-                    .style("top", svg.style("top"))
-                    .style("left", svg.style("left"))
-                    .on("mouseover", mouseoverFilter)
-                    .on("mousemove", mousemoveFilter)
-                    .on("mouseleave", mouseleaveFilter);
             }
         }
 
@@ -670,7 +786,9 @@ document.addEventListener('DOMContentLoaded', function () {
         // Append the new legend container
         const cont13 = d3.select("#compartment-13");
         const newLegendContainer = cont13.append("div")
-            .attr("class", "new-legend-container");
+            .style("grid-column", "Create new scratch file from selection").style("border", "solid 2px white").style("border-radius", "3px")
+            .style("width", "353px").style("height", "240px").style("text-align", "left").style("align-items", "start").style("z-index", "10").style("margin-left", "-15px");
+            // .attr("class", "new-legend-container");
 
         newLegendContainer.append("h6")
             .text(`Fraction of total plastic`)
@@ -834,6 +952,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Remove any existing heatmap
         d3.select('#heatmap-container').selectAll('*').remove();
         d3.select('#global-exposure').html(`Overall exposure indicators ${mode}`);
+        // document.getElementsByClassName(`info-containers`).style.display = 'flex';
         // Set the dimensions and margins of the graph
         const margin = {top: 50, right: 5, bottom: 150, left: 150},
             viewportWidth = 810,
@@ -873,6 +992,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let percent_total = null
         let povDict = 'Pov_size_dict_years';
         let tovDict = 'Tov_size_dict_years';
+        let outflows = null;
         // Getting the values depending on mode and storing appropriate column labels
         if (mode === "mass") {
             pov = 'Pov_mass_years';
@@ -946,16 +1066,11 @@ document.addEventListener('DOMContentLoaded', function () {
             // Calculate the position of the tooltip relative to the mouse pointer
             const tooltipLeft = event.pageX + 10;
             const tooltipTop = event.pageY - 50;
-            let unit = "";
-            if (mode === "mass") {
-                unit = "g";
-            } else {
-                unit = "#";
-            }
 
             // Update the position of the tooltip
             tooltip
-                .html(`Concentration (in ${unit}/m\u00B3) = ${d3.select(this).attr('comp-concentration')} <br>% of total ${mode} = ${roundDynamiucFloat(d3.select(this).attr('comp-percent'))} % <br> Persistence = ${d3.select(this).attr('comp-persistence')} years<br>Residence time = ${d3.select(this).attr('comp-residence')} years`)
+                .html(`Concentration (in g/m\u00B3) = ${d3.select(this).attr('comp-concentration')} <br>% of total ${mode} = ${roundDynamicFloat("concentration", d3.select(this).attr('comp-percent'))} %
+                                                                            <br> Persistence = ${d3.select(this).attr('comp-persistence')} years<br>Residence time = ${d3.select(this).attr('comp-residence')} years`)
                 .style("left", tooltipLeft + "px")
                 .style("top", tooltipTop + "px")
                 .style("display", "block");
@@ -1009,7 +1124,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Function to add flows information to given d3 flow element
         function addFlowToTable(tableRow, flowName, value) {
-            let flowValue = roundDynamiucFloat(value);
+            let flowValue = roundDynamicFloat("", value);
 
             tableRow.append("td")
                 .text(`${flowName.charAt(0).toUpperCase()}${flowName.slice(1)}`);
@@ -1022,12 +1137,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const compartmentClick = function(event) {
             event.stopPropagation();
             unselectEverything();
+
             d3.select("#global-view").style("display", "none");
             const clickedClass = d3.select(this).attr("class");
 
             selectedCompartment = this; // update selected compartment
             let selection = d3.select(selectedCompartment);
             blurCompartments(selection);
+
+            selection.select(".additional-info")
+                .style("display", "block"); // show the additional info container
+            selection.select(".compartment-percent-big")
+                .style("display", "none"); // hide the big percentage
+
             selection.style("border", "solid 3px #000"); // change the border to appear selected
             d3.select('#compartment-title')
                 .html(`${d3.select(selectedCompartment).attr('comp-title')} Compartment`);
@@ -1035,7 +1157,7 @@ document.addEventListener('DOMContentLoaded', function () {
             d3.select(`#comp-concentration`)
                 .html(`Concentration (in g/m\u00B3) = ${d3.select(selectedCompartment).attr('comp-concentration')}`);
             d3.select(`#comp-total-percent`)
-                .html(`% of the total ${mode} = ${roundDynamiucFloat(d3.select(selectedCompartment).attr('comp-percent'))}`);
+                .html(`% of the total ${mode} = ${roundDynamicFloat("percent", d3.select(selectedCompartment).attr('comp-percent'))}`);
             d3.select(`#comp-persistence`)
                 .html(`Persistence = ${d3.select(selectedCompartment).attr('comp-persistence')} years`);
             d3.select(`#comp-residence`)
@@ -1066,7 +1188,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Listing the elements in the table
                 addFlowToTable(inflowsTableRow, inflowName, value);
             });
-            d3.select('#comp-total-inflow').text(roundDynamiucFloat(totalCompInflow));
+            d3.select('#comp-total-inflow').text(roundDynamicFloat("", totalCompInflow));
 
             const outflowContainer = d3.select('#comp-outflows-table');
             const outflowsBody = d3.select("#comp-outflows");
@@ -1085,7 +1207,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 addFlowToTable(outflowsTableRow, outflowName, value);
             });
-            d3.select('#comp-total-outflow').text(roundDynamiucFloat(totalCompOutflow));
+            d3.select('#comp-total-outflow').text(roundDynamicFloat("", totalCompOutflow));
 
             // Display current view container
             document.getElementById(`detailed-view-compartment`).style.display = 'flex';
@@ -1111,7 +1233,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     .attr("current-compartment", currentCompartment)
                     .attr("comp-size", parseFloat(collections[currentCompartment][0][compSize]))
                     .attr("comp-percent", (collections[currentCompartment][0][compPercent]))
-                    .attr("comp-concentration", roundDynamiucFloat(parseFloat(collections[currentCompartment][0][compConcentration])))
+                    .attr("comp-concentration", roundDynamicFloat("concentration", parseFloat(collections[currentCompartment][0][compConcentration])))
                     .attr("comp-residence", Math.round(parseFloat(collections[currentCompartment][0][compResidence])))
                     .attr("comp-persistence", Math.round(parseFloat(collections[currentCompartment][0][compPersistence])))
                     .attr("comp-inflows", collections[currentCompartment][0][compInflows])
@@ -1125,18 +1247,29 @@ document.addEventListener('DOMContentLoaded', function () {
                     .style("text-align", "center")
                     .style("margin-bottom", "8px")
                     .text(`${currentCompartment}`);
+
                 compartmentContainer.append("div")
+                    .attr("class", "compartment-percent-big")
+                    .text(`${roundDynamicFloat("percent", collections[currentCompartment][0][compPercent])} %`);
+
+                // Append additional information (hidden by default)
+                const additionalInfo = compartmentContainer.append("div")
+                    .attr("class", "additional-info")
+                    .style("display", "none");
+
+                additionalInfo.append("div")
                     .attr("class", "compartment-field")
-                    .text(`C = ${roundDynamiucFloat(parseFloat(collections[currentCompartment][0][compConcentration]))}`);
-                compartmentContainer.append("div")
+                    .style("margin-top", "8px")
+                    .text(`C = ${roundDynamicFloat("concentration", parseFloat(collections[currentCompartment][0][compConcentration]))}`);
+                additionalInfo.append("div")
                     .attr("class", "compartment-field")
-                    .text(`${roundDynamiucFloat(collections[currentCompartment][0][compPercent])} %`);
-                compartmentContainer.append("div")
+                    .text(`${roundDynamicFloat("percent", collections[currentCompartment][0][compPercent])} %`);
+                additionalInfo.append("div")
                     .attr("class", "compartment-field")
-                    .text(`Persistence = ${Math.round(parseFloat(collections[currentCompartment][0][compPersistence]))}`);
-                compartmentContainer.append("div")
+                    .text(`Persistence = ${roundDynamicFloat("", collections[currentCompartment][0][compPersistence])}`);
+                additionalInfo.append("div")
                     .attr("class", "compartment-field")
-                    .text(`Residence = ${Math.round(parseFloat(collections[currentCompartment][0][compResidence]))}`);
+                    .text(`Residence = ${roundDynamicFloat("", collections[currentCompartment][0][compResidence])}`);
 
             } else {
                 // Creating columns within each row
@@ -1266,7 +1399,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             .attr("current-compartment", currentCompartment)
                             .attr("comp-size", parseFloat(collections[currentCompartment][0][compSize]))
                             .attr("comp-percent", (collections[currentCompartment][0][compPercent]))
-                            .attr("comp-concentration", roundDynamiucFloat(parseFloat(collections[currentCompartment][0][compConcentration])))
+                            .attr("comp-concentration", roundDynamicFloat("concentration", parseFloat(collections[currentCompartment][0][compConcentration])))
                             .attr("comp-residence", Math.round(parseFloat(collections[currentCompartment][0][compResidence])))
                             .attr("comp-persistence", Math.round(parseFloat(collections[currentCompartment][0][compPersistence])))
                             .attr("comp-inflows", collections[currentCompartment][0][compInflows])
@@ -1277,18 +1410,27 @@ document.addEventListener('DOMContentLoaded', function () {
                             .on("mouseleave", mouseleave);
 
                         compartmentContainer.append("div")
+                            .attr("class", "compartment-percent-big")
+                            .text(`${roundDynamicFloat("percent", collections[currentCompartment][0][compPercent])} %`);
+
+                        // Append additional information (hidden by default)
+                        const additionalInfo = compartmentContainer.append("div")
+                            .attr("class", "additional-info")
+                            .style("display", "none"); // Hidden initially
+
+                        additionalInfo.append("div")
                             .attr("class", "compartment-field")
                             .style("margin-top", "8px")
-                            .text(`C = ${roundDynamiucFloat(parseFloat(collections[currentCompartment][0][compConcentration]))}`);
-                        compartmentContainer.append("div")
+                            .text(`C = ${roundDynamicFloat("concentration", collections[currentCompartment][0][compConcentration])}`);
+                        additionalInfo.append("div")
                             .attr("class", "compartment-field")
-                            .text(`${roundDynamiucFloat(collections[currentCompartment][0][compPercent])} %`);
-                        compartmentContainer.append("div")
+                            .text(`${roundDynamicFloat("percent", collections[currentCompartment][0][compPercent])} %`);
+                        additionalInfo.append("div")
                             .attr("class", "compartment-field")
-                            .text(`Persistence = ${Math.round(parseFloat(collections[currentCompartment][0][compPersistence]))}`);
-                        compartmentContainer.append("div")
+                            .text(`Persistence = ${roundDynamicFloat("", collections[currentCompartment][0][compPersistence])}`);
+                        additionalInfo.append("div")
                             .attr("class", "compartment-field")
-                            .text(`Residence = ${Math.round(parseFloat(collections[currentCompartment][0][compResidence]))}`);
+                            .text(`Residence = ${roundDynamicFloat("", collections[currentCompartment][0][compResidence])}`);
                     }
                 }
             }
@@ -1304,13 +1446,11 @@ document.addEventListener('DOMContentLoaded', function () {
         let differenceParts = differenceString.split("e");
         // Populating the global information fields
         d3.select('#difference')
-            .html(`Difference inflow-outflow = ${Number(parseFloat(differenceParts[0])).toFixed(2)}e${differenceParts[1]} (g)`);
+            .html(`Difference inflow-outflow = ${roundDynamicFloat("", differenceParts[0])} (g)`);
         d3.select('#global-persistence')
-            .html(`Overall persistence (Pov): ${Number(globalMap.get(pov)).toFixed(3)} years`);
+            .html(`Overall persistence (Pov): ${roundDynamicFloat("", globalMap.get(pov))} years`);
         d3.select('#global-residence')
-            .html(`Overall residence time (Tov): ${Number(globalMap.get(tov)).toFixed(3)} years`);
-        d3.select('#global-travel')
-            .html(`Characteristic travel distance (CTD): ${Number(globalMap.get(ctd)).toFixed(3)} km`);
+            .html(`Overall residence time (Tov): ${roundDynamicFloat("", globalMap.get(tov))} years`);
 
         // getting the inflows and outflows and converting them into Maps
         let povBySizeString = (globalMap.get(povDict)).replace(/'/g, '"');
@@ -1333,7 +1473,6 @@ document.addEventListener('DOMContentLoaded', function () {
         // getting the pov, and tov per fraction size for the table
         povBySizeMap.forEach((value, key) => {
             let  povValue;
-            console.log(key);
             if (value > 10) {
                 povValue = Math.round(value);
             } else {
@@ -1352,14 +1491,445 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+
+    let createFlowsGraph = function(title, mode, csvExtendedComp) {
+        // Remove any existing heatmap
+        d3.select('#heatmap-container').selectAll('*').remove();
+        // Hide the global info field on right
+        document.getElementById(`global-view`).style.display = 'none';
+        // Set the dimensions and margins of the graph
+        const margin = {top: 50, right: 5, bottom: 150, left: 150},
+            viewportWidth = window.innerWidth,
+            viewportHeight = window.innerHeight,
+            width = viewportWidth - margin.left - margin.right,
+            height = viewportHeight - margin.top - margin.bottom;
+        const heatmapContainerHeight = height + margin.top + margin.bottom * 2 + 30;
+        // Append the SVG element to the body of the page
+        const svg = d3.select("#heatmap-container")
+            .attr("width", width * 0.8)
+            .attr("height", heatmapContainerHeight + 200)
+            .on("click", unselectEverything)
+            .style("padding", "2px")
+            .append("g")
+            .attr("transform", `translate(0, ${margin.top})`);
+
+        // A row for log scale swithc and title
+        const headerContainer = svg.append("g")
+            .attr("class", "header-container")
+            .attr("transform", `translate(10, 10)`);
+
+        // Group for the log switch and its label
+        const switchGroup = headerContainer.append("g")
+            .style("align-items", "start")
+            .style("display", "flex");
+        switchGroup.append("text")
+            .attr("x", 50) // Adjust position relative to the toggle switch
+            .attr("y", 20)
+            .style("font-size", "14px")
+            .style("font-weight", "bold")
+            .style("margin-right", "10px")
+            .text("Log scale: ");
+        const toggleSwitch = switchGroup.append("foreignObject")
+            .attr("width", 100)
+            .attr("height", 30)
+            .append("xhtml:div")
+            .style("display", "flex")
+            .style("align-items", "center")
+            .html(`
+        <label class="switch">
+            <input type="checkbox" id="log-scale-switch" unchecked>
+            <span class="slider round"></span>
+        </label>`);
+
+        headerContainer.append("text")
+            .attr("id", "main-title")
+            .attr("x", 255)
+            .attr("y", -20)
+            .attr("text-anchor", "middle")
+            .style("grid-template-columns", "repeat(6, 1fr)")
+            .style("margin-bottom", "30px")
+            .text(title);
+
+        // Getting the data
+        const data = d3.csvParse(csvExtendedComp);
+        let indexMap = new Map(data.map((entry, index) => [index, entry.Compartments]));
+        console.log("data", data);
+
+        let connectionsMode = null;
+        if (mode === "mass") {
+            connectionsMode = 'outflow_conexions_g_s';
+        } else {
+            connectionsMode = 'outflow_conexions_num_s';
+        }
+
+        let compartmentNodes = []
+        let compartmentLinks = []
+
+        // Initial hardcoded positions and colors for compartments
+        data.forEach((entry, index) => {
+            let cssClass = "";
+            let initialX = 0;
+            let initialY = 0;
+            const comWidth = 150 / 2;
+            const comHeight = 60;
+            const comDistance = width * 0.8 / 6;
+
+            const name = entry.Compartments.toLowerCase();
+            if (name.includes("air")) {
+                cssClass = "air-color";
+                initialX = (width * 0.8) / 2 - comWidth;
+                initialY = 5;
+            } else if (name.includes("impacted")) {
+                cssClass = "impacted";
+                initialX = 0;
+                if (name.includes("surface")) {
+                    initialY = 120;
+                } else {
+                    initialX = 40;
+                    initialY = 210;
+                }
+            } else if (name.includes("background")) {
+                cssClass = "background";
+                initialX = comDistance - comWidth + 10;
+                if (name.includes("surface")) {
+                    initialY = 220;
+                } else {
+                    initialY = 310;
+                }
+            } else if (name.includes("freshwater")) {
+                cssClass = "freshwater";
+                initialX = comDistance * 2 - comWidth;
+                if (name.includes("surface")) {
+                    initialY = 150;
+                } else if (name.includes("sediment")) {
+                    initialY = 370;
+                    cssClass += " sediment";
+                } else {
+                    initialY = 260;
+                }
+            } else if (name.includes("beach")) {
+                cssClass = "beach";
+                initialX = comDistance * 3 - comWidth;
+                if (name.includes("surface")) {
+                    initialY = 150;
+                } else {
+                    initialY = 260;
+                }
+            } else if (name.includes("coast")) {
+                cssClass = "coastal";
+                initialX = comDistance * 4 - comWidth;
+                if (name.includes("surface")) {
+                    initialY = 150;
+                } else if (name.includes("sediment")) {
+                    initialY = 370;
+                    cssClass += " sediment";
+                } else {
+                    initialY = 260;
+                }
+            } else if (name.includes("ocean")) {
+                cssClass = "ocean";
+                initialX = comDistance * 5 - comWidth;
+                if (name.includes("surface")) {
+                    initialY = 120;
+                } else if (name.includes("mixed")) {
+                    initialX += 70;
+                    initialY = 240;
+                } else if (name.includes("sediment")) {
+                    initialX += 50;
+                    initialY = 470;
+                    cssClass += " sediment";
+                } else {
+                    initialX += 40;
+                    initialY = 360;
+                }
+            }
+
+            compartmentNodes.push({
+                id: index,
+                name: entry.Compartments,
+                width: 150,
+                height: 60,
+                className: cssClass,
+                initialX: initialX,
+                initialY: initialY
+            });
+
+            // Parse the outflows field to extract links
+            if (entry[connectionsMode]) {
+                try {
+                    const outflows = JSON.parse(entry[connectionsMode].replace(/'/g, '"'));
+                    for (const [targetName, relations] of Object.entries(outflows)) {
+                        const targetNode = compartmentNodes.find(node => node.name === targetName);
+                        if (targetNode) {
+                            // create relationArray (types of flows) from key-value pairs
+                            const relationArray = Object.entries(relations).map(([type, value]) => ({ type, value }));
+
+                            // getting actualWeight as the sum of all relation values
+                            const actualWeight = Object.values(relations).reduce((sum, value) => sum + value, 0);
+                            const logWeight = Math.log10(Object.values(relations).reduce((sum, value) => sum + value, 0));
+
+                            compartmentLinks.push({
+                                source: compartmentNodes[index],
+                                target: targetNode,
+                                linkWeight: relationArray.length, // the number of flows in flow map in origin. data as weight
+                                relations: relationArray,
+                                actualWeight: actualWeight,
+                                logWeight: logWeight
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error parsing outflows:", error);
+                }
+            }
+        });
+        // Saving a copy of the original compartment links (used when redrawing the graph)
+        const initialCompartmentLinks = JSON.parse(JSON.stringify(compartmentLinks));
+
+        compartmentNodes.forEach(node => {
+            node.x = node.initialX;
+            node.y = node.initialY;
+        });
+
+        console.log("Compartment Nodes:", compartmentNodes);
+        console.log("Compartment Links:", compartmentLinks);
+
+        const newSvg = svg.append("svg")
+            .attr("width", width * 0.8)
+            .attr("height", heatmapContainerHeight * 0.8)
+            .style("padding", "2px");
+
+        // Create a tooltip
+        const tooltip = d3.select("#heatmap-container")
+            .append("div")
+            .style("opacity", 0)
+            .attr("class", "tooltip");
+
+
+        // Create a force simulation
+        const simulation = d3.forceSimulation(compartmentNodes)
+            .force("link", d3.forceLink(compartmentLinks)
+                .id(d => d.id)
+                .distance(d => Math.max(100, d.source.width + d.target.width)))
+            .force("charge", d3.forceManyBody().strength(-150))
+            .force("center", d3.forceCenter(width / 2.75, height / 2.25))
+            .force("position", d3.forceX().x(d => d.initialX).strength(1))
+            .force("positionY", d3.forceY().y(d => d.initialY).strength(1));
+
+
+        // Draw links with tooltips
+        const link = newSvg.selectAll(".link")
+            .data(compartmentLinks)
+            .enter()
+            .append("line")
+            .attr("class", "link")
+            .style("stroke", "#999")
+            .style("stroke-width", d => d.normalizedWeight * 30 + 3) // max nice = 30px
+            .style("opacity", 0.8)
+            .attr("flowsAsString", d => d.relations.map(r => `${r.type}: ${r.value}`).join(", "))
+            .attr("actualWeight", d => d.actualWeight)
+            .on("mouseover", function (event, d) {
+                const sourceNode = d.source;
+                const targetNode = d.target;
+                let scaleValue = '';
+                if (usedWeight === "logWeight") {
+                    scaleValue = 'log10 ';
+                }
+                if (!sourceNode || !targetNode) {
+                    console.error("Source or target node not found for link:", d);
+                    return;
+                }
+                // Create tooltip content
+                const tooltipContent = `
+            <b>${sourceNode.name.replaceAll("_", " ")} -> ${targetNode.name.replaceAll("_", " ")}</b><br>
+            ${d.relations.map(r => `${r.type.replaceAll("_", " ")}: ${roundDynamicFloat("", r.value)}`).join("<br>")}<br>
+            <b>Total ${scaleValue}value:</b> ${roundDynamicFloat("", d[usedWeight])}<br>
+        `;
+
+                // Show tooltip
+                d3.select(".tooltip")
+                    .html(tooltipContent)
+                    .style("opacity", 1)
+                    .style("left", `${event.pageX + 10}px`)
+                    .style("top", `${event.pageY + 10}px`);
+            })
+            .on("mousemove", function (event) {
+                // Update tooltip position as the mouse moves
+                d3.select(".tooltip")
+                    .style("left", `${event.pageX + 10}px`)
+                    .style("top", `${event.pageY + 10}px`);
+            })
+            .on("mouseout", function () {
+                // Hide tooltip
+                d3.select(".tooltip")
+                    .html('')
+                    .style("opacity", 0);
+            });
+
+        // Drag event handlers
+        function dragStarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+        function dragEnded(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+        
+        // Draw nodes
+        const node = newSvg.selectAll(".node")
+            .data(compartmentNodes)
+            .enter()
+            .append("g")
+            .attr("class", d => `node ${d.className}`)
+            .attr("transform", d => `translate(${d.x}, ${d.y})`)
+            .call(d3.drag()
+                .on("start", dragStarted)
+                .on("drag", dragged)
+                .on("end", dragEnded)
+            )
+
+        node.append("rect")
+            .attr("width", 150)
+            .attr("height", 60)
+            .attr("rx", 5)
+            .attr("ry", 5)
+            .style("fill", d => {
+                switch (d.className) {
+                    case "air-color": return "#D8F1F1";
+                    case "impacted": return "#DCD4C9";
+                    case "beach": return "#F3EF92";
+                    case "background": return "#BDDBBD";
+                    case "freshwater": return "#BDD4E3";
+                    case "coastal": return "#9DD9DF";
+                    case "ocean": return "#989EEC";
+                    case "sediment": return "#D8C4A5";
+                    default: return "lightgray";
+                }
+            })
+            .style("stroke", "black");
+
+        node.append("text")
+            .attr("x", 75)
+            .attr("y", 25)
+            .attr("text-anchor", "middle")
+            .attr("dy", ".35em")
+            .text(d => d.name.replaceAll("_", " "))
+            .style("font-size", "12px")
+            .style("font-family", "Arial");
+
+        node.append("text")
+            .attr("x", 75)
+            .attr("y", 47)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "11px")
+            .attr("font-weight", "normal")
+            .style("font-family", "Arial");
+            // .text("E = ...");
+
+        // Add event listener to the log-scale-switch
+        let usedWeight = 'actualWeight';
+        document.getElementById("log-scale-switch").addEventListener("change", function () {
+            if (this.checked) {
+                usedWeight = "logWeight"; // Switch to log scale
+            } else {
+                usedWeight = "actualWeight"; // Switch back to linear scale
+            }
+            console.log("Used weight:", usedWeight);
+            // Redraw the flows with the updated weight mode
+            redrawFlows();
+        });
+
+        /**
+         * Function to draw/redraw the links with selected weight scale
+         */
+        function redrawFlows() {
+            // Normalize the weights based on the selected scale
+            let minWeight = d3.min(initialCompartmentLinks, d => d[usedWeight]);
+            let maxWeight = d3.max(initialCompartmentLinks, d => d[usedWeight]);
+            compartmentLinks.forEach(link => {
+                link.normalizedWeight = (link[usedWeight] - minWeight) / (maxWeight - minWeight);
+            });
+
+            // Update the links
+            newSvg.selectAll(".link")
+                .data(compartmentLinks)
+                .join("line")
+                .attr("class", "link")
+                .attr("x1", d => d.source.x + d.source.width / 2)
+                .attr("y1", d => d.source.y + d.source.height / 2)
+                .attr("x2", d => d.target.x + d.target.width / 2)
+                .attr("y2", d => d.target.y + d.target.height / 2)
+                .style("stroke-width", d => d.normalizedWeight * 30 + 3)
+                .style("stroke", "#999")
+                .style("opacity", 0.8);
+
+            // midpoints and target arrows
+            const midpoints = newSvg.selectAll(".midpoint-arrow")
+                .data(compartmentLinks);
+            midpoints.enter()
+                .append("path")
+                .attr("class", "midpoint-arrow")
+                .style("fill", "black")
+                .merge(midpoints)
+                .attr("d", d => {
+                    const midX = (d.source.x + d.source.width / 2 + d.target.x + d.target.width / 2) / 2;
+                    const midY = (d.source.y + d.source.height / 2 + d.target.y + d.target.height / 2) / 2;
+                    const targetX = d.target.x + d.target.width / 2;
+                    const targetY = d.target.y + d.target.height / 2;
+
+                    // calculate direction vector
+                    const dx = targetX - midX;
+                    const dy = targetY - midY;
+                    const length = Math.sqrt(dx * dx + dy * dy);
+                    const unitX = dx / length;
+                    const unitY = dy / length;
+
+                    const arrowLength = 18;
+                    const arrowWidth = 8;
+
+                    // calculate arrowhead points
+                    const arrowTipX = midX + unitX * arrowLength;
+                    const arrowTipY = midY + unitY * arrowLength;
+                    const arrowLeftX = midX - unitY * arrowWidth;
+                    const arrowLeftY = midY + unitX * arrowWidth;
+                    const arrowRightX = midX + unitY * arrowWidth;
+                    const arrowRightY = midY - unitX * arrowWidth;
+
+                    // path for the arrow
+                    return `M${arrowLeftX},${arrowLeftY} L${arrowTipX},${arrowTipY} L${arrowRightX},${arrowRightY} Z`;
+                });
+            midpoints.exit().remove();
+        }
+
+        redrawFlows();
+
+        // Update positions on tick
+        simulation.on("tick", () => {
+            redrawFlows();
+
+            // update node positions
+            newSvg.selectAll(".node")
+                .attr("transform", d => `translate(${d.x}, ${d.y})`)
+                .raise();
+        });
+    }
+
+
+    let modelHasRun = false;
     // Add event listener for button click
     runButton.addEventListener('click', function() {
+
         document.getElementById('loading-spinner').style.display = 'block'; // loading animation
         document.getElementById('main-content').classList.add('blur'); // blurring the background
         // Ensure the selected fragmentation value in WP is displayed correctly
         document.getElementById('selectedFragmentationRange').textContent = document.getElementById('fragmentation_style').value;
-        // Hide all information containers besides the global
-        unselectWithGlobal();
         // Collect all variable values to be sent to the backend
         let inputData = extractVariablesFromClientSide();
         // Make HTTP post and get result
@@ -1396,6 +1966,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 comp_mass_fraction_distribution_btn.classList.remove('active');
                 comp_number_fraction_distribution_btn.classList.remove('active');
                 number_fraction_overview_btn.classList.remove('active');
+                mass_flow_btn.classList.remove('active');
+                number_flow_btn.classList.remove('active');
                 mass_fraction_overview_btn.classList.add('active');
             })
             .catch(error => {
@@ -1405,9 +1977,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('loading-spinner').style.display = 'none';
                 document.getElementById('main-content').classList.remove('blur');
                 let inputs = getModelRunInfo(inputData); // getting input information as an array
-                let modelRunText = `Input of ${inputs[0]}g/s of ${inputs[1]} ${inputs[2]} spherical microplastics particles of ${inputs[3]}kg/m\u00B3 density into the ${inputs[4]} compartment. Selected fragmentation pattern: ${inputs[5]}.`
+                let modelRunText = `Input of ${inputs[0]} g/s of ${inputs[1]} ${inputs[2]} spherical microplastics particles of ${inputs[3]} kg/m\u00B3 density into the ${inputs[4]} compartment. Selected fragmentation pattern: ${inputs[5]}.`
                 let runModelContainer = document.getElementById("model-run-input");
                 runModelContainer.textContent = modelRunText; // assigning the text with model input to Model Run
+                d3.select("#visualization-menu").style("display", "flex"); // showing the visualization menu
+                // Hide all information containers besides the global
+                unselectWithGlobal();
             });
     });
 
@@ -1439,25 +2014,25 @@ document.addEventListener('DOMContentLoaded', function () {
                             break
                         default:
                             cleanName = "HeterBiof"; // heteroaggregted and biofouled
-                    }
+                        }
                     fieldValueArray.push(cleanName);
                 } else if (i === 2) { // check to make Emission Scenario size bin field presentable
                     let numValue = 0;
                     switch (element) {
                         case "a":
-                            numValue = "0.5μm";
+                            numValue = "0.5 μm";
                             break
                         case "b":
-                            numValue = "5μm";
+                            numValue = "5 μm";
                             break
                         case "c":
-                            numValue = "50μm";
+                            numValue = "50 μm";
                             break
                         case "d":
-                            numValue = "500μm";
+                            numValue = "500 μm";
                             break
                         default:
-                            numValue = "5mm";
+                            numValue = "5 mm";
                     }
                     fieldValueArray.push(numValue);
                 } else if (i === 5) {
@@ -1489,6 +2064,8 @@ document.addEventListener('DOMContentLoaded', function () {
     let comp_number_fraction_distribution_btn = document.getElementById('comp_number_fraction_distribution_btn')
     let mass_fraction_overview_btn = document.getElementById('mass_fraction_overview_btn')
     let number_fraction_overview_btn = document.getElementById('number_fraction_overview_btn')
+    let mass_flow_btn = document.getElementById('comp_mass_flows_btn')
+    let number_flow_btn = document.getElementById('comp_number_flows_btn')
 
     comp_mass_fraction_distribution_btn.addEventListener('click', function() {
         if(utopia_model_results !== null){
@@ -1498,6 +2075,8 @@ document.addEventListener('DOMContentLoaded', function () {
             comp_number_fraction_distribution_btn.classList.remove('active');
             mass_fraction_overview_btn.classList.remove('active');
             number_fraction_overview_btn.classList.remove('active');
+            mass_flow_btn.classList.remove('active');
+            number_flow_btn.classList.remove('active');
             // Highlighting selection on the navbar
             comp_mass_fraction_distribution_btn.classList.add('active');
             d3.select("#global-view").style("display", "none");
@@ -1512,6 +2091,8 @@ document.addEventListener('DOMContentLoaded', function () {
             comp_mass_fraction_distribution_btn.classList.remove('active');
             mass_fraction_overview_btn.classList.remove('active');
             number_fraction_overview_btn.classList.remove('active');
+            mass_flow_btn.classList.remove('active');
+            number_flow_btn.classList.remove('active');
             // Highlighting selection on the navbar
             comp_number_fraction_distribution_btn.classList.add('active');
             d3.select("#global-view").style("display", "none");
@@ -1526,6 +2107,8 @@ document.addEventListener('DOMContentLoaded', function () {
             comp_mass_fraction_distribution_btn.classList.remove('active');
             comp_number_fraction_distribution_btn.classList.remove('active');
             number_fraction_overview_btn.classList.remove('active');
+            mass_flow_btn.classList.remove('active');
+            number_flow_btn.classList.remove('active');
             // Highlighting selection on the navbar
             mass_fraction_overview_btn.classList.add('active');
             d3.select("#global-view").style("display", "flex");
@@ -1540,6 +2123,8 @@ document.addEventListener('DOMContentLoaded', function () {
             comp_mass_fraction_distribution_btn.classList.remove('active');
             comp_number_fraction_distribution_btn.classList.remove('active');
             mass_fraction_overview_btn.classList.remove('active');
+            mass_flow_btn.classList.remove('active');
+            number_flow_btn.classList.remove('active');
             // Highlighting selection on the navbar
             number_fraction_overview_btn.classList.add('active');
             d3.select("#global-view").style("display", "flex");
@@ -1547,20 +2132,48 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    mass_flow_btn.addEventListener('click', function() { // mass flows
+        if(utopia_model_results !== null){
+            // Hide all information containers
+            unselectEverything();
+            // Removing selection from the other
+            comp_mass_fraction_distribution_btn.classList.remove('active');
+            comp_number_fraction_distribution_btn.classList.remove('active');
+            mass_fraction_overview_btn.classList.remove('active');
+            number_flow_btn.classList.remove('active');
+            number_fraction_overview_btn.classList.remove('active');
+            // Highlighting selection on the navbar
+            mass_flow_btn.classList.add('active');
+            createFlowsGraph("Mass Balance Flows", "mass", utopia_model_results.extended_comp);
+        }
+    });
+
+    number_flow_btn.addEventListener('click', function() { // particle number flows
+        if(utopia_model_results !== null){
+            // Hide all information containers
+            unselectEverything();
+            // Removing selection from the other
+            comp_mass_fraction_distribution_btn.classList.remove('active');
+            comp_number_fraction_distribution_btn.classList.remove('active');
+            mass_fraction_overview_btn.classList.remove('active');
+            mass_flow_btn.classList.remove('active');
+            number_fraction_overview_btn.classList.remove('active');
+            // Highlighting selection on the navbar
+            number_flow_btn.classList.add('active');
+            createFlowsGraph("Particle Number Flows", "particle number", utopia_model_results.extended_comp);
+        }
+    });
+
+    let about_page_btn = document.getElementById('about_page_btn')
+    about_page_btn.addEventListener( 'click', function () {
+        unselectForAbout();
+        d3.select('#about-page').style("display", "flex"); // show the about page
+    });
+    
     const rangeInput = document.getElementById('fragmentation_style');
     const rangeValue = document.getElementById('selectedFragmentationRange');
-    const fragmentationName = document.getElementById('fragmentation-name');
-    rangeInput.addEventListener('click', function () {
-        // Update span value whenever the slider changes
-        rangeInput.addEventListener('input', function() {
-            rangeValue.textContent = rangeInput.value;
-            if (rangeInput.value === "1") {
-                fragmentationName.textContent = "Sequential";
-            } else if (rangeInput.value === "0") {
-                fragmentationName.textContent = "Erosive";
-            } else {
-                fragmentationName.textContent = "Mixed";
-            }
-        });
+    rangeInput.addEventListener('input', function() {
+        rangeValue.textContent = rangeInput.value;
     });
+    rangeValue.textContent = rangeInput.value;
 });

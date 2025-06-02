@@ -6,7 +6,7 @@
     <title>UTOPIA WebApp</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/libs/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/libs/all.min.css') }}">
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -22,13 +22,15 @@
                     <li class="nav-item">
                         <a class="nav-link" id="mpp_btn" href="#" onclick="toggleOptions('mpp_container', this)">Microplastic Properties</a>
                     </li>
-<!--                    <li class="nav-item">-->
-<!--                        <a class="nav-link" id="ec_btn" href="#" onclick="toggleOptions('ec_container', this)">Environmental Characteristics</a>-->
-<!--                    </li>-->
 
                     <li class="nav-item">
                         <a class="nav-link" id="es_btn" href="#" onclick="toggleOptions('es_container', this)">Emission Scenario</a>
                     </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" id="ec_btn" href="#" onclick="toggleOptions('import-export', this)">Import/Export</a>
+                    </li>
+
                     <li class="nav-item">
                         <button id="run-model" class="btn btn-success">Run Model</button>
                     </li>
@@ -41,7 +43,7 @@
                 <div id="mpp_container" class="toggle_container">
                     <div class="col-md-8 d-flex justify-content-between align-items-center">
                         <h3>Microplastic Properties</h3>
-                        <i class="fas fa-info-circle info-icon" data-toggle="tooltip" data-placement="right" title="..."></i>
+                        <img src="/static/img/info-icon2.png" alt="Info" class="info-icon" data-toggle="tooltip" data-placement="right" title="..." style="width:20px; height:20px; vertical-align:middle;">
                     </div>
                     <div class="row">
                         <label for="mpp_composition" class="col-md-4">Microplastic Type:</label>
@@ -55,10 +57,19 @@
                     <!-- will be dynamically generated -->
                     </div>
                     <div class="row">
-                        <label for="fragmentation_style" class="form-label col-md-4">Fragmentation Pattern</label>
-                        <input type="range" class="form-range col-md-3" min="0" max="1" step="0.1" id="fragmentation_style" style="width: 25%" value="0">
-                        <span id="selectedFragmentationRange" class="col-md-1" style="font-weight: bold; margin-top: 1.5rem; margin-left: -15rem;">0</span>
-                        <text id="fragmentation-name" class="form-label col-md-4"  style="font-weight: bold; margin-top: 1.5rem; margin-left: -2rem;">Sequential</text>
+                        <label for="fragmentation_style" class="form-label col-md-4">Fragmentation Pattern:</label>
+
+                        <div class="slider-container" style="position: relative; width: 25%; align-content: center">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span style="font-weight: bold;">Erosive</span>
+                                <span style="font-weight: bold;">Mixed</span>
+                                <span style="font-weight: bold;">Sequential</span>
+                            </div>
+                            <input type="range" class="form-range col-md-3" min="0" max="1" step="0.1" id="fragmentation_style" style="width: 100%; margin-bottom: 1rem;" value="0">
+                            <div style="display: flex; justify-content: center;">
+                                <span id="selectedFragmentationRange" style="font-weight: bold;">0</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="row">
                         <label class="col-md-4" for="t_frag_gen_FreeSurfaceWater">Fragmentation timescale (days):</label>
@@ -69,20 +80,11 @@
                         <input class="col-md-3" type="number" id="t_half_deg_free" value="66000" minlength="1">
                     </div>
                 </div>
-<!--                <div id="ec_container" class="toggle_container">-->
-<!--                    <div class="col-md-8 d-flex justify-content-between align-items-center">-->
-<!--                        <h3>Environmental Characteristics</h3>-->
-<!--                        <i class="fas fa-info-circle info-icon" data-toggle="tooltip" data-placement="right" title="..."></i>-->
-<!--                    </div>-->
-<!--                        <div class="row">-->
-<!--                            <label class="col-md-4">Compartments Properties:</label>-->
-<!--                            <button class="col-md-3">Edit File</button>-->
-<!--                        </div>-->
-<!--                </div>-->
+
                 <div id="es_container" class="toggle_container">
                     <div class="col-md-8 d-flex justify-content-between align-items-center">
                         <h3>Emission Scenario</h3>
-                        <i class="fas fa-info-circle info-icon" data-toggle="tooltip" data-placement="right" title="..."></i>
+                        <img src="/static/img/info-icon2.png" alt="Info" class="info-icon" data-toggle="tooltip" data-placement="right" title="..." style="width:20px; height:20px; vertical-align:middle;">
                     </div>
                     <div class="row">
                         <label class="col-md-4" for="mp_form">MP Form:</label>
@@ -130,6 +132,26 @@
                         </select>
                     </div>
                 </div>
+                <div id="import-export" class="toggle_container">
+                    <div class="col-md-8 d-flex justify-content-between align-items-center">
+                        <h3>Import/Export</h3>
+                        <img src="/static/img/info-icon2.png" alt="Info" class="info-icon" data-toggle="tooltip" data-placement="right" title="..." style="width:20px; height:20px; vertical-align:middle;">
+                    </div>
+                    <div class="row">
+                        <label class="col-md-4">Import CSV file:</label>
+                            <g class="col-md-3" style="align-items: start; display: flex; padding-left: 0">
+                                <button  id="import-inputs" style="margin-right: 10px">Add File</button>
+                                <input type="file" id="import-file" accept=".csv" style="display:none;">
+                                <button id="delete-import-file" class="btn btn-link p-0" style="display:none;vertical-align:middle;" title="Remove file">
+                                    <img src="/static/img/delete-icon2.png" alt="Delete" style="width:18px;height:18px;">
+                                </button>
+                            </g>
+                    </div>
+                    <div class="row">
+                        <label class="col-md-4">Export CSV file:</label>
+                        <button class="col-md-3" id="export-inputs">Export File</button>
+                    </div>
+                </div>
             </div>
     <div id="loading-spinner" class="spinner" style="display: none;">
         <!-- You can use any loading spinner markup here. -->
@@ -138,12 +160,13 @@
         <!--Visualizations container-->
             <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
                 <div class="container-fluid">
+                    <a class="navbar-brand button" id="about_page_btn" href="#" onclick="">About</a>
                     <a class="navbar-brand">Visualizations</a>
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavVisualizations" aria-controls="navbarNavVisualizations" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
-                    <div class="collapse navbar-collapse" id="navbarNav">
-                        <ul class="navbar-nav w-100">
+                    <div class="collapse navbar-collapse" id="navbarNavVisualizations">
+                        <ul id="visualization-menu" class="navbar-nav w-100" style="display: none">
                             <li class="nav-item">
                             <!--TODO: work in progress, commented out from main-->
                                 <a class="nav-link" id="mass_fraction_overview_btn" href="#" onclick="">Mass Overview</a>
@@ -152,11 +175,20 @@
                                 <a class="nav-link" id="comp_mass_fraction_distribution_btn" href="#" onclick="">Heatmap of Mass</a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link" id="comp_mass_flows_btn" href="#" onclick="">Flows of Mass</a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" id="number_fraction_overview_btn" href="#" onclick="">Particle Overview</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="comp_number_fraction_distribution_btn" href="#" onclick="">Heatmap of Particle</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="comp_number_flows_btn" href="#" onclick="">Flows of Particle</a>
+                            </li>
+<!--                            <li class="nav-item">-->
+<!--                                <button id="export-png" class="btn btn-secondary">Export Visualization</button>-->
+<!--                            </li>-->
                         </ul>
                     </div>
                 </div>
@@ -164,6 +196,19 @@
 
         <!-- Heatmap container -->
             <div class="mt-5" id="main-content">
+                <div id="about-page" style="display: flex;">
+                    <div class="container-fluid min-vh-100 d-flex flex-column">
+                        <div class="about-content">
+                            <iframe src="/static/about.html" width="100%" height="800rem" style="margin-top: -15px;"></iframe>
+                        </div>
+                        <footer class="footer mt-auto" style="align-content: center">
+                            <div class="container">
+                                <span>&copy; 2025 Utopia WebApp. All rights reserved.</span>
+                            </div>
+                        </footer>
+                    </div>
+                </div>
+
                 <div class="col" id="master-column">
                     <div class="">
                         <div id="heatmap-container" class="text-center">
@@ -173,6 +218,7 @@
                     <div id="legend-container">
                         <!-- Heatmap legend container -->
                     </div>
+<!--                    <div class="split__bar"></div> &lt;!&ndash; Implemented later perhaps &ndash;&gt;-->
                     <div class="info-containers">
                         <div id="model-run-container" class="card" style="width: 100%;">
                             <div class="detailed-info-column" >
@@ -313,7 +359,7 @@
                                         <td>
                                             <div id="global-persistence">Overall persistence (Pov): _ years</div>
                                             <div id="global-residence">Overall residence time (Tov): _ years</div>
-                                            <div id="global-travel">Characteristic travel distance (CTD): _ km</div>
+<!--                                            <div id="global-travel">Characteristic travel distance (CTD): _ km</div>-->
                                         </td>
                                     </tr>
 
@@ -347,6 +393,8 @@
     <script src="{{ url_for('static', filename='js/libs/d3.v7.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main-elements.js') }}"></script>
     <script src="{{ url_for('static', filename='js/d3-heatmap.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/libs/html2canvas.min.js') }}"></script>
+
 
 </body>
 

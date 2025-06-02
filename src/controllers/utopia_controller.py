@@ -131,15 +131,20 @@ def convert_compdf_to_d3_format(compartment_df):
 
     # results_by_comp column names: ['Compartments', 'mass_g', 'number_of_particles', '%_mass', '%_number',
     # 'Concentration_g_m3', 'Concentration_num_m3', 'inflows_g_s', 'inflows_num_s', 'outflows_g_s', 'outflows_num_s',
-    # 'Residence_time_mass_years', 'Residence_time_num_years', 'Persistence_time_mass_years', 'Persistence_time_num_years']
+    # 'Residence_time_mass_years', 'Residence_time_num_years', 'Persistence_time_mass_years', 'Persistence_time_num_years,
+    # 'outflow_conexions_num_s','outflow_conexions_g_s']
     
     # Melt the DataFrame
     melted_df = compartment_df.melt(id_vars=['Compartments', 'mass_g', 'number_of_particles', 'percent_mass', 'percent_number',
                                              'Concentration_g_m3', 'Concentration_num_m3', 'inflows_g_s',
                                              'inflows_num_s', 'outflows_g_s', 'outflows_num_s',
                                              'Residence_time_mass_years', 'Residence_time_num_years',
-                                             'Persistence_time_mass_years', 'Persistence_time_num_years'],
+                                             'Persistence_time_mass_years', 'Persistence_time_num_years', 'outflow_conexions_num_s',
+                                             'outflow_conexions_g_s'],
                                     var_name='variable', value_name='value')
+
+    # Removing duplicates
+    melted_df = melted_df.drop_duplicates(subset="Compartments")
 
     melted_df['variable'] = melted_df['Compartments'].astype(str)
 

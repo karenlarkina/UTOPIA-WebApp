@@ -56,6 +56,22 @@ h3 {
     padding: 10px;
 }
 
+/* For future for the divider to adjust the size of compartments */
+.split__left {
+    width: 50%;
+}
+
+.split__right {
+    flex: 1;
+}
+
+.split__bar {
+    background-color: black;
+    width: 15px;
+    height: 100%;
+    cursor: col-resize;
+}
+
 .info-containers { /* Vertical container holding the information fields. */
     display: flex;
     flex-direction: column;
@@ -63,11 +79,20 @@ h3 {
     align-items: flex-start;
     width: 52rem;
     margin-top: 59px;
+    margin-right: 20px;
 }
 
 .nav-item {
     margin-right: 2rem;
 }
+
+#import-inputs,
+#export-inputs {
+    width: 160px;
+    min-width: 160px;
+    max-width: 160px;
+}
+
 /*#model-run-container {*/
 /*    display: flex;*/
 /*    width: 100%;*/
@@ -248,6 +273,13 @@ h3 {
     gap: 10px;
 }
 
+.horiz-area-comp { /* rows where compartments are placed */
+    display: flex;
+    width: 1000px;
+    margin-bottom: 42px;
+    gap: 35px;
+}
+
 .white-background { /* background for the heatmaps so cell colors stand out */
     background-color: white;
     align-items: center;
@@ -256,20 +288,6 @@ h3 {
     gap: 2px;
     padding-bottom: 1px;
     padding-top: 1px;
-}
-
-.white-filter { /* TODO work in progress: filter for the heatmaps to show overall percentage */
-    background-color: white;
-    align-items: center;
-    display: inline-block;
-    /*gap: 2px;*/
-    /*padding-bottom: 1px;*/
-    /*padding-top: 1px;*/
-    z-index: 20;
-    filter: blur(3px);
-    opacity: 0.8 !important;
-    width: 100%;
-    /*height: 100%;*/
 }
 
 .compartment {
@@ -284,14 +302,36 @@ h3 {
     font-family: "Times New Roman";
 }
 
-.compartment-title {
+.flow-comp {
+    display: flex;
+    border: solid 1px #000;
+    border-radius: 10px;
+    height: 120px;
+    width: 70%;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
     font-size: small;
+    font-weight: normal;
+    font-family: "Times New Roman";
+    padding: 5px;
+}
+
+.compartment-title {
+    /*font-size: small;*/
+    font-size: 13px;
     font-weight: bold;
 }
 
 .compartment-field {
     font-size: small;
     font-weight: normal;
+}
+
+.compartment-percent-big {
+    margin-top: 19px;
+    font-size: 30px;
+    font-weight: bold;
 }
 
 .blurry { /* Blur effect for the background when loading */
@@ -312,6 +352,11 @@ h3 {
 }
 
 .air {
+    width: 100%;
+    margin-top: 20px;
+    background-color: #D8F1F1;
+}
+.air-color {
     width: 100%;
     margin-top: 20px;
     background-color: #D8F1F1;
@@ -351,13 +396,98 @@ h3 {
     z-index: 10;
     margin-left: -15px;
 }
-legend-text {
-    font-size: medium;
+
+.new-legend-container-flow {
+    grid-column: span 2;
+    border: solid 2px white;
+    border-radius: 3px;
+    width: 400px;
+    height: 240px;
+    text-align: left;
+    align-items: start;
+    z-index: 10;
+    margin-left: -15px;
 }
 
 #compartment-ocean-sediment { /* special case for ocean sediment position */
     position: relative;
+    top: -110px;
+    left: 0px;
+    margin-left: 50px;
+}
+
+#Sediment_Ocean { /* special case for ocean sediment position */
+    position: relative;
     top: -115px;
     left: 0px;
     margin-left: 50px;
+}
+
+/* - - - Stuff for the graph - - - */
+/*@keyframes move-dash {*/
+/*    from {*/
+/*        stroke-dashoffset: 10;*/
+/*    }*/
+/*    to {*/
+/*        stroke-dashoffset: 0;*/
+/*    }*/
+/*}*/
+
+/* tired but wasn't as good but might try again later */
+/*.link {*/
+/*    stroke-dasharray: 5, 5; !* Dash pattern *!*/
+/*    animation: move-dash 2s linear infinite; !* Animation for motion *!*/
+/*}*/
+
+.nodeTitle {
+    font: 8px sans-serif;
+    font-weight: bold;
+}
+.nodeText {
+    font: 8px sans-serif;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 34px;
+    height: 20px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 20px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+    transform: translateX(14px);
 }

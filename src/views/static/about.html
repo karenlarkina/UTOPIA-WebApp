@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      min-height: 100vh;
+      background-color: #f8f9fa;
+    }
+    /* Sidebar styles */
+    .sidebar {
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      padding-top: 2rem;
+      background-color: #343a40;
+    }
+    .sidebar a {
+      color: #adb5bd;
+      text-decoration: none;
+      display: block;
+      padding: 0.75rem 1rem;
+      border-radius: 0.375rem;
+    }
+    .sidebar a:hover,
+    .sidebar a.active {
+      color: #fff;
+      background-color: #495057;
+      text-decoration: none;
+    }
+    main section {
+      padding-top: 3rem;
+      padding-bottom: 3rem;
+      border-bottom: 1px solid #dee2e6;
+    }
+    main section:last-child {
+      border-bottom: none;
+    }
+    main section h2 {
+      margin-bottom: 1rem;
+      color: #212529;
+    }
+    /* Responsive adjustments */
+    @media (max-width: 991.98px) {
+      .sidebar {
+        height: auto;
+        position: relative;
+        padding-top: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container-fluid">
+  <div class="row">
+
+    <!-- Sidebar -->
+    <nav class="col-lg-3 col-xl-2 d-none d-lg-block sidebar">
+      <nav class="nav flex-column">
+        <a class="nav-link active" href="#about-project">About the Project</a>
+        <a class="nav-link" href="#about-model">About the Model</a>
+        <a class="nav-link" href="#about-researchers">About the Researchers</a>
+        <a class="nav-link" href="#development-team">Development Team</a>
+        <a class="nav-link" href="#funding-infrastructure">Funding & Research Infrastructure</a>
+      </nav>
+    </nav>
+
+    <!-- Main content -->
+    <main class="col-12 col-lg-9 col-xl-10 px-4 py-4">
+      <section id="about-project" tabindex="-1">
+        <h2>About the Project</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi condimentum, nunc sit amet commodo tincidunt, nisl urna cursus augue, et congue eros mauris eget quam.</p>
+        <img src="https://via.placeholder.com/800x400?text=Project+Overview" alt="Project overview" class="img-fluid rounded mb-4" />
+      </section>
+
+      <section id="about-model" tabindex="-1">
+        <h2>About Utopia Model</h2>
+        <p>Donec dapibus magna in lorem convallis, vitae luctus arcu faucibus. Phasellus semper justo nec suscipit cursus. Praesent rutrum, justo at lobortis feugiat, eros velit dignissim est, id dignissim orci augue sed augue.</p>
+        <img src="https://via.placeholder.com/800x400?text=Model+Diagram" alt="Model diagram" class="img-fluid rounded mb-4" />
+      </section>
+
+      <section id="about-researchers" tabindex="-1">
+        <h2>About the Researchers</h2>
+        <p>Curabitur aliquet, ipsum a dapibus tincidunt, justo eros viverra quam, sed pulvinar ex erat id velit. Nulla facilisi. Nullam non orci nec nulla pulvinar rutrum.</p>
+        <img src="https://via.placeholder.com/800x300?text=Research+Team" alt="Research team" class="img-fluid rounded mb-4" />
+      </section>
+
+      <section id="development-team" tabindex="-1">
+        <h2>Development Team</h2>
+        <p>Sed condimentum, sapien a finibus vehicula, est libero congue urna, non aliquet libero elit in ex. Aliquam erat volutpat. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae.</p>
+        <img src="https://via.placeholder.com/800x300?text=Development+Team" alt="Development team" class="img-fluid rounded mb-4" />
+      </section>
+
+      <section id="funding-infrastructure" tabindex="-1">
+        <h2>Funding & Research Infrastructure</h2>
+        <p>Praesent ut neque at enim gravida aliquam. Phasellus sit amet nisl rutrum, dapibus orci nec, placerat nisl. Integer eu faucibus eros, at euismod urna.</p>
+        <img src="https://via.placeholder.com/800x400?text=Funding+and+Infrastructure" alt="Funding and infrastructure" class="img-fluid rounded mb-4" />
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- Bootstrap JS Bundle with Popper (optional for dropdowns etc.) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Highlight active sidebar link on scroll
+  document.addEventListener('DOMContentLoaded', () => {
+    const sections = document.querySelectorAll('main section');
+    const navLinks = document.querySelectorAll('.sidebar .nav-link');
+
+    function onScroll() {
+      let scrollPos = window.scrollY + 150; // offset for easier viewing
+
+      sections.forEach((section) => {
+        if (
+                scrollPos >= section.offsetTop &&
+                scrollPos < section.offsetTop + section.offsetHeight
+        ) {
+          navLinks.forEach((link) => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${section.id}`) {
+              link.classList.add('active');
+            }
+          });
+        }
+      });
+    }
+
+    window.addEventListener('scroll', onScroll);
+  });
+</script>
+
+</body>
+</html>

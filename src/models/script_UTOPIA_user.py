@@ -103,7 +103,6 @@ def execute_utopia_model(input_obj):
 
     ## Microplastics weathering properties
 
-
     ## Select fragmentation style
     """estimate fragmentation relation between size bins using fragment size distribution matrix
      (https://microplastics-cluster.github.io/fragment-mnp/advanced-usage/fragment-size-distribution.html).
@@ -111,16 +110,12 @@ def execute_utopia_model(input_obj):
        distribution matrix fsd. # In this matrix the smallest size fraction is in the first possition and we consider
         no fragmentation for this size class """
 
-    ##################
-    # To be implemented #
-    ##################
-
-    # We provide a slider (to be done) where the user can select a fragmentation style by means of choosing a value
+    # We provide a slider where the user can select a fragmentation style by means of choosing a value
     # of FI (fragmentation index) between 0 and 1 that describes two scenarios :
 
     #     - Erosive fragmentation (FI=0): In this scenario the particles are being eroded on their surface and
-    #     therefore most of their mass remain in their same size fraction and samall fraction in going to the
-    #     samllest size bins. Its representative fsd is:
+    #     therefore most of their mass remain in their same size fraction and small fraction in going to the
+    #     smalest size bins. Its representative fsd is:
 
     #         [[0, 0, 0, 0, 0],
     #         [1, 0, 0, 0, 0],
@@ -178,7 +173,9 @@ def execute_utopia_model(input_obj):
     #       both degradation and fragmentation are fastest, in soil surface and deeper water compartments both rates are 10 times slower
     #       (factor_deepWater_soilSurface) and in sediments and deeper soil compartments they both are 100 times slower (factor_sediment)
 
-    t_half_deg_free = float(mpp_input.get("discorporation_timescale"))  # 66000  # in days (10 times slower than the rate of degradation (to form dissolved organics) shown in Pfohl et al. 2023 for TPU-arom)
+    t_half_deg_free = float(
+        mpp_input.get("discorporation_timescale")
+    )  # 66000  # in days (10 times slower than the rate of degradation (to form dissolved organics) shown in Pfohl et al. 2023 for TPU-arom)
     heter_deg_factor = 10
     biof_deg_factor = 1 / 2
 
@@ -196,19 +193,6 @@ def execute_utopia_model(input_obj):
     factor_deepWater_soilSurface = 10
     factor_sediment = 100
 
-    # t_half_deg_filename = os.path.join(inputs_path, "t_half_deg.csv")
-    # t_half_deg_df = pd.DataFrame(list(thalf_deg_d_dict.items()), columns=['MP_form', 'thalf_deg_d'])
-    # t_half_deg_df.to_csv(t_half_deg_filename,index=False)
-
-    # If user wants to modify the default thalf_deg_d_dict, they can do so here or through the csv file and upload it
-
-    # Read the CSV file into a DataFrame
-    # t_half_deg_filename = os.path.join(inputs_path, "t_half_deg.csv")
-    # t_half_deg_df = pd.read_csv(t_half_deg_filename)
-
-    # Convert the DataFrame to a dictionary
-    # thalf_deg_d_dict = t_half_deg_df.set_index("MP_form")["thalf_deg_d"].to_dict()
-
     # Heteroaggregation attachment efficiency: alpha_heter.
     alpha_heter_filename = os.path.join(inputs_path, "alpha_heter.csv")
     alpha_heter_df = pd.read_csv(alpha_heter_filename)
@@ -220,7 +204,9 @@ def execute_utopia_model(input_obj):
 
     # In UTOPIA we include fragmentation of the heteroaggregated MPs as being 100 slower than fragmentation of the Free MPs and breackup of biofouled and heteroaggregated will be two times slowed of those only heteroaggregated, following the same assumption as for free and biofouled. These values are used in the Domercq et al. 2021 paper and they are asumptions made from lack of current knowlegde
 
-    t_frag_gen_FreeSurfaceWater = float(mpp_input.get("fragmentation_timescale"))  # 36.5  # in days
+    t_frag_gen_FreeSurfaceWater = float(
+        mpp_input.get("fragmentation_timescale")
+    )  # 36.5  # in days
     biof_frag_factor = 2
     heter_frag_factor = 100
 
@@ -236,8 +222,6 @@ def execute_utopia_model(input_obj):
         factor_sediment,
         save_op="save",
     )
-
-    """Revisit create inputs table function...assumptions to be discussed and parameters to be added"""
 
     ## Emission Scenario
 
@@ -413,8 +397,7 @@ def execute_utopia_model(input_obj):
         else:
             pass
 
-    # Estimate mass and number fractions and extract ranking tables of the species with higest fractions to understand
-    # the distribution of the particles in the system by mass and number of particles
+    # Estimate mass and number fractions and extract ranking tables of the species with higest fractions to understand the distribution of the particles in the system by mass and number of particles
 
     Results_extended, mf_shorted, nf_shorted = estimate_fractions(Results)
 
@@ -423,7 +406,6 @@ def execute_utopia_model(input_obj):
     Results_comp_dict = extract_by_comp(
         Results_extended.reset_index(), particle_compartmentCoding
     )
-    Results_comp_organiced = extract_by_aggSt(Results_comp_dict, particle_forms_coding)
 
     # Mass distribution by compartment
 
@@ -509,10 +491,7 @@ def execute_utopia_model(input_obj):
         Results_extended, flows_dict_mass, flows_dict_num
     )
 
-    # Correct input flows to include also the transformation processess (e.g.heteroaggregation)
-    # Only working for mass at the moment, need to estimate steady state particle numbers
-
-    # This is all in mass units
+    """ Estimate interactions between particles"""
     interactions_pp_df = fillInteractions_fun_OOP_dict(
         system_particle_object_list, SpeciesList, surfComp_list
     )
@@ -578,8 +557,23 @@ def execute_utopia_model(input_obj):
         results_by_comp, flows_dict_mass, flows_dict_num
     )
 
-    # TODO double chech if works
-    Results_extended_comp = calculate_persistence_residence_time_comp(results_by_comp)
+    """ Add dictionaries of output flow connexions for each compartment """
+    add_output_flow_conexions(
+        results_by_comp,
+        dict_comp,
+        outputflow_type="outflows_g_s",
+        inputflow_type="inflows_g_s",
+    )
+
+    add_output_flow_conexions(
+        results_by_comp,
+        dict_comp,
+        outputflow_type="outflows_num_s",
+        inputflow_type="inflows_num_s",
+    )
+
+    # Add persistence and residence time to compartment results dataframe (results_by_comp). TO DO double check values
+    # calculate_persistence_residence_time_comp(results_by_comp) #####
 
     ## Mass and particle number distribution by size fraction
     size_distr = [0.5, 5, 50, 500, 5000]
@@ -821,7 +815,7 @@ def execute_utopia_model(input_obj):
 
     # VIEW 2: mass/particle flow diagram ###TO BE reviewed by Prado
 
-    # The flows needed for the mass/particle flow diagram come from the results_by_comp data frame where for each compartment we have a dictionary of inflows and outflows that should correspond to the flow diagram. If we only use the inflows it should be enough as they represent all the exchanges between compartmentsts.
+    # The flows needed for the mass/particle flow diagram come from the results_by_comp data frame where for each compartment we have a dictionary of outflows that should correspond to the flow diagram. If we only use the inflows and outflows for each compartments it should be enough as they represent all the exchanges between compartmentsts.
 
     # Now the Results_extended dataframe contains all the information needed for the output heatmap visualization: (for the cell selection) VIEW 3
 
@@ -842,8 +836,11 @@ def execute_utopia_model(input_obj):
     # 'Total_outflows_num_s',
     # 'Residence_time_mass_years',
     # 'Residence_time_num_years',
-    # 'Persistence_time_mass_years',
-    # 'Persistence_time_num_years']
+    # 'Persistence_time_m ass_years',
+    # 'Persistence_time_num_years',
+    # 'outflow_conexions_num_s',
+    # 'outflow_conexions_g_s']
+
 
     # % of the inflows and outflows can be obtained by dividing the input froms from the
     # inputflows dictionaries by the total inputflow column. ## I can add as an extra column in form of a dictionary of needed
