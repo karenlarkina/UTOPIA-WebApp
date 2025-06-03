@@ -1446,7 +1446,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let differenceParts = differenceString.split("e");
         // Populating the global information fields
         d3.select('#difference')
-            .html(`Difference inflow-outflow = ${roundDynamicFloat("", differenceParts[0])} (g)`);
+            .html(`Difference inflow-outflow = ${Number(parseFloat(differenceParts[0])).toFixed(2)}e${differenceParts[1]} (g)`);
         d3.select('#global-persistence')
             .html(`Overall persistence (Pov): ${roundDynamicFloat("", globalMap.get(pov))} years`);
         d3.select('#global-residence')
