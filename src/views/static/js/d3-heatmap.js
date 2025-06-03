@@ -1069,7 +1069,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Update the position of the tooltip
             tooltip
-                .html(`Concentration (in g/m\u00B3) = ${d3.select(this).attr('comp-concentration')} <br>% of total ${mode} = ${roundDynamicFloat("concentration", d3.select(this).attr('comp-percent'))} %
+                .html(`Concentration (in ${mode}/m\u00B3) = ${d3.select(this).attr('comp-concentration')} <br>% of total ${mode} = ${roundDynamicFloat("concentration", d3.select(this).attr('comp-percent'))} %
                                                                             <br> Persistence = ${d3.select(this).attr('comp-persistence')} years<br>Residence time = ${d3.select(this).attr('comp-residence')} years`)
                 .style("left", tooltipLeft + "px")
                 .style("top", tooltipTop + "px")
