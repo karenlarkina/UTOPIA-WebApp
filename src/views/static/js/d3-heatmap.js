@@ -255,6 +255,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr("text-anchor", "middle")
             .style("grid-template-columns", "repeat(6, 1fr)")
             .style("margin-bottom", "30px")
+            .style("margin-top", "20px !important")
             .text(title);
 
         let data = d3.csvParse(csvExtended);
@@ -976,6 +977,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr("text-anchor", "middle")
             .style("grid-template-columns", "repeat(6, 1fr)")
             .style("margin-bottom", "30px")
+            .style("margin-top", "20px !important")
             .text(title);
 
         // * * * * * * * * * * * * * * * * Global data * * * * * * * * * * * * * * * * * *
@@ -1069,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Update the position of the tooltip
             tooltip
-                .html(`Concentration (in ${mode}/m\u00B3) = ${d3.select(this).attr('comp-concentration')} <br>% of total ${mode} = ${roundDynamicFloat("concentration", d3.select(this).attr('comp-percent'))} %
+                .html(`Concentration (in g/m\u00B3) = ${d3.select(this).attr('comp-concentration')} <br>% of total ${mode} = ${roundDynamicFloat("concentration", d3.select(this).attr('comp-percent'))} %
                                                                             <br> Persistence = ${d3.select(this).attr('comp-persistence')} years<br>Residence time = ${d3.select(this).attr('comp-residence')} years`)
                 .style("left", tooltipLeft + "px")
                 .style("top", tooltipTop + "px")
@@ -1446,7 +1448,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let differenceParts = differenceString.split("e");
         // Populating the global information fields
         d3.select('#difference')
-            .html(`Difference inflow-outflow = ${Number(parseFloat(differenceParts[0])).toFixed(2)}e${differenceParts[1]} (g)`);
+            .html(`Difference inflow-outflow = ${roundDynamicFloat("", differenceParts[0])} (g)`);
         d3.select('#global-persistence')
             .html(`Overall persistence (Pov): ${roundDynamicFloat("", globalMap.get(pov))} years`);
         d3.select('#global-residence')
@@ -1492,31 +1494,64 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
+    // Building the flows graph view
     let createFlowsGraph = function(title, mode, csvExtendedComp) {
         // Remove any existing heatmap
         d3.select('#heatmap-container').selectAll('*').remove();
         // Hide the global info field on right
         document.getElementById(`global-view`).style.display = 'none';
-        // Set the dimensions and margins of the graph
-        const margin = {top: 50, right: 5, bottom: 150, left: 150},
-            viewportWidth = window.innerWidth,
-            viewportHeight = window.innerHeight,
-            width = viewportWidth - margin.left - margin.right,
-            height = viewportHeight - margin.top - margin.bottom;
-        const heatmapContainerHeight = height + margin.top + margin.bottom * 2 + 30;
+        
+        const heatmapContainer = document.getElementById('heatmap-container');
+        const containerRect = heatmapContainer.getBoundingClientRect();
+        
+        // Use actual available space, accounting for info panel on right
+        const infoPanel = document.getElementById('master-column').querySelector('.info-containers');
+        const infoPanelWidth = infoPanel ? infoPanel.offsetWidth : 520;
+        
+        // Calculate available width (viewport minus info panel and margins)
+        const availableWidth = window.innerWidth - infoPanelWidth;
+        const availableHeight = window.innerHeight - 200;
+        
+        // SVG dimensions based on available space
+        const svgWidth = Math.max(1000, availableWidth); // Minimum 1000px
+        const svgHeight = Math.max(600, availableHeight); // Minimum 600px
+        
+        // Define boundaries for nodes
+        const nodeWidth = 150;
+        const nodeHeight = 60;
+        const padding = 10; // Padding from edges
+        const topPadding = 10;
+        
+        const bounds = {
+            minX: padding,
+            maxX: svgWidth - nodeWidth - padding,
+            minY: topPadding,
+            maxY: svgHeight - nodeHeight - padding
+        };
+        
+        // Calculate grid from available space
+        const containerWidth = bounds.maxX - bounds.minX;
+        const containerHeight = bounds.maxY - bounds.minY;
+        
+        // Horizontal: 6 columns
+        const colWidth = containerWidth / 6;
+        
+        // Vertical: 5 layers
+        const layerHeight = containerHeight / 5;
+
         // Append the SVG element to the body of the page
         const svg = d3.select("#heatmap-container")
-            .attr("width", width * 0.8)
-            .attr("height", heatmapContainerHeight + 200)
+            .attr("width", svgWidth)
+            .attr("height", svgHeight)
             .on("click", unselectEverything)
             .style("padding", "2px")
             .append("g")
-            .attr("transform", `translate(0, ${margin.top})`);
+            .attr("transform", `translate(0, 0)`);
 
         // A row for log scale swithc and title
         const headerContainer = svg.append("g")
             .attr("class", "header-container")
-            .attr("transform", `translate(10, 10)`);
+            .attr("transform", `translate(0, 30)`);
 
         // Group for the log switch and its label
         const switchGroup = headerContainer.append("g")
@@ -1543,17 +1578,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         headerContainer.append("text")
             .attr("id", "main-title")
-            .attr("x", 255)
-            .attr("y", -20)
-            .attr("text-anchor", "middle")
-            .style("grid-template-columns", "repeat(6, 1fr)")
-            .style("margin-bottom", "30px")
+            .attr("x", svgWidth / 2)
             .text(title);
 
         // Getting the data
         const data = d3.csvParse(csvExtendedComp);
-        let indexMap = new Map(data.map((entry, index) => [index, entry.Compartments]));
-        console.log("data", data);
 
         let connectionsMode = null;
         if (mode === "mass") {
@@ -1565,84 +1594,97 @@ document.addEventListener('DOMContentLoaded', function () {
         let compartmentNodes = []
         let compartmentLinks = []
 
-        // Initial hardcoded positions and colors for compartments
+        // Grid positioning helpers
+        function getColX(col) {
+            return bounds.minX + col * colWidth + (colWidth - nodeWidth) / 2;
+        }
+        
+        function getLayerY(layer) {
+            return bounds.minY + layer * layerHeight + (layerHeight - nodeHeight) / 2;
+        }
+
+        // Creating compartment nodes with initial positions
         data.forEach((entry, index) => {
             let cssClass = "";
             let initialX = 0;
             let initialY = 0;
-            const comWidth = 150 / 2;
-            const comHeight = 60;
-            const comDistance = width * 0.8 / 6;
 
             const name = entry.Compartments.toLowerCase();
+            
             if (name.includes("air")) {
                 cssClass = "air-color";
-                initialX = (width * 0.8) / 2 - comWidth;
-                initialY = 5;
+                initialX = bounds.minX + containerWidth / 2 - nodeWidth / 2;
+                initialY = getLayerY(0);
+                
             } else if (name.includes("impacted")) {
                 cssClass = "impacted";
-                initialX = 0;
+                initialX = getColX(0);
                 if (name.includes("surface")) {
-                    initialY = 120;
+                    initialY = getLayerY(1);
                 } else {
-                    initialX = 40;
-                    initialY = 210;
+                    initialY = getLayerY(1.8);
                 }
+                
             } else if (name.includes("background")) {
                 cssClass = "background";
-                initialX = comDistance - comWidth + 10;
+                initialX = getColX(1);
                 if (name.includes("surface")) {
-                    initialY = 220;
+                    initialY = getLayerY(1.8);
                 } else {
-                    initialY = 310;
+                    initialY = getLayerY(2.4);
                 }
+                
             } else if (name.includes("freshwater")) {
                 cssClass = "freshwater";
-                initialX = comDistance * 2 - comWidth;
+                initialX = getColX(2);
                 if (name.includes("surface")) {
-                    initialY = 150;
+                    initialY = getLayerY(1);
                 } else if (name.includes("sediment")) {
-                    initialY = 370;
+                    initialY = getLayerY(4);
                     cssClass += " sediment";
                 } else {
-                    initialY = 260;
+                    initialY = getLayerY(2.2);
                 }
+                
             } else if (name.includes("beach")) {
                 cssClass = "beach";
-                initialX = comDistance * 3 - comWidth;
+                initialX = getColX(3);
                 if (name.includes("surface")) {
-                    initialY = 150;
+                    initialY = getLayerY(1);
                 } else {
-                    initialY = 260;
+                    initialY = getLayerY(2.2);
                 }
+                
             } else if (name.includes("coast")) {
                 cssClass = "coastal";
-                initialX = comDistance * 4 - comWidth;
+                initialX = getColX(4);
                 if (name.includes("surface")) {
-                    initialY = 150;
+                    initialY = getLayerY(1);
                 } else if (name.includes("sediment")) {
-                    initialY = 370;
+                    initialY = getLayerY(4);
                     cssClass += " sediment";
                 } else {
-                    initialY = 260;
+                    initialY = getLayerY(2.2);
                 }
+                
             } else if (name.includes("ocean")) {
                 cssClass = "ocean";
-                initialX = comDistance * 5 - comWidth;
+                initialX = getColX(5);
                 if (name.includes("surface")) {
-                    initialY = 120;
+                    initialY = getLayerY(1);
                 } else if (name.includes("mixed")) {
-                    initialX += 70;
-                    initialY = 240;
+                    initialY = getLayerY(2);
                 } else if (name.includes("sediment")) {
-                    initialX += 50;
-                    initialY = 470;
+                    initialY = getLayerY(4);
                     cssClass += " sediment";
                 } else {
-                    initialX += 40;
-                    initialY = 360;
+                    initialY = getLayerY(3);
                 }
             }
+
+            // Ensure within bounds
+            initialX = Math.max(bounds.minX, Math.min(bounds.maxX, initialX));
+            initialY = Math.max(bounds.minY, Math.min(bounds.maxY, initialY));
 
             compartmentNodes.push({
                 id: index,
@@ -1653,8 +1695,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 initialX: initialX,
                 initialY: initialY
             });
+        });
 
-            // Parse the outflows field to extract links
+
+        // Parse the outflows field to extract links
+        data.forEach((entry, index) => {
             if (entry[connectionsMode]) {
                 try {
                     const outflows = JSON.parse(entry[connectionsMode].replace(/'/g, '"'));
@@ -1666,7 +1711,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                             // getting actualWeight as the sum of all relation values
                             const actualWeight = Object.values(relations).reduce((sum, value) => sum + value, 0);
-                            const logWeight = Math.log10(Object.values(relations).reduce((sum, value) => sum + value, 0));
+                            const logWeight = Math.log10(actualWeight);
 
                             compartmentLinks.push({
                                 source: compartmentNodes[index],
@@ -1683,20 +1728,36 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         });
-        // Saving a copy of the original compartment links (used when redrawing the graph)
-        const initialCompartmentLinks = JSON.parse(JSON.stringify(compartmentLinks));
 
+
+        // Finding bidirectional links between compartments
+        const bidirectionalPairs = new Set();
+        
+        for (let i = 0; i < compartmentLinks.length; i++) {
+            for (let j = i + 1; j < compartmentLinks.length; j++) {
+                const link1 = compartmentLinks[i];
+                const link2 = compartmentLinks[j];
+                
+                if (link1.source.id === link2.target.id && 
+                    link1.target.id === link2.source.id) {
+                    
+                    const pairKey = `${Math.min(link1.source.id, link1.target.id)}-${Math.max(link1.source.id, link1.target.id)}`;
+                    bidirectionalPairs.add(pairKey);
+                }
+            }
+        }
+        
+
+        // Store initial positions
         compartmentNodes.forEach(node => {
             node.x = node.initialX;
             node.y = node.initialY;
         });
 
-        console.log("Compartment Nodes:", compartmentNodes);
-        console.log("Compartment Links:", compartmentLinks);
-
+        // Working area SVG
         const newSvg = svg.append("svg")
-            .attr("width", width * 0.8)
-            .attr("height", heatmapContainerHeight * 0.8)
+            .attr("width", svgWidth)
+            .attr("height", svgHeight)
             .style("padding", "2px");
 
         // Create a tooltip
@@ -1705,45 +1766,57 @@ document.addEventListener('DOMContentLoaded', function () {
             .style("opacity", 0)
             .attr("class", "tooltip");
 
+        // Boundary collision force
+        function boundaryForce() {
+            compartmentNodes.forEach(node => {
+                node.x = Math.max(bounds.minX, Math.min(bounds.maxX, node.x));
+                node.y = Math.max(bounds.minY, Math.min(bounds.maxY, node.y));
+                
+                if (node.fx !== null && node.fx !== undefined) {
+                    node.fx = Math.max(bounds.minX, Math.min(bounds.maxX, node.fx));
+                }
+                if (node.fy !== null && node.fy !== undefined) {
+                    node.fy = Math.max(bounds.minY, Math.min(bounds.maxY, node.fy));
+                }
+            });
+        }
 
         // Create a force simulation
         const simulation = d3.forceSimulation(compartmentNodes)
             .force("link", d3.forceLink(compartmentLinks)
                 .id(d => d.id)
                 .distance(d => Math.max(100, d.source.width + d.target.width)))
-            .force("charge", d3.forceManyBody().strength(-150))
-            .force("center", d3.forceCenter(width / 2.75, height / 2.25))
-            .force("position", d3.forceX().x(d => d.initialX).strength(1))
-            .force("positionY", d3.forceY().y(d => d.initialY).strength(1));
+            .force("charge", d3.forceManyBody().strength(-100))
+            .force("center", d3.forceCenter(svgWidth / 2, svgHeight / 2))
+            .force("position", d3.forceX().x(d => d.initialX).strength(0.5))
+            .force("positionY", d3.forceY().y(d => d.initialY).strength(0.5))
+            .force("boundary", boundaryForce);
 
-
-        // Draw links with tooltips
+        // Draw links with tooltips as paths
         const link = newSvg.selectAll(".link")
             .data(compartmentLinks)
             .enter()
-            .append("line")
+            .append("path")
             .attr("class", "link")
             .style("stroke", "#999")
-            .style("stroke-width", d => d.normalizedWeight * 30 + 3) // max nice = 30px
+            .style("fill", "none")
             .style("opacity", 0.8)
-            .attr("flowsAsString", d => d.relations.map(r => `${r.type}: ${r.value}`).join(", "))
-            .attr("actualWeight", d => d.actualWeight)
             .on("mouseover", function (event, d) {
                 const sourceNode = d.source;
                 const targetNode = d.target;
                 let scaleValue = '';
-                if (usedWeight === "logWeight") {
+                if (typeof usedWeight !== 'undefined' && usedWeight === "logWeight") {
                     scaleValue = 'log10 ';
                 }
-                if (!sourceNode || !targetNode) {
-                    console.error("Source or target node not found for link:", d);
-                    return;
-                }
+                if (!sourceNode || !targetNode) return;
+                
+                const pairKey = `${Math.min(d.source.id, d.target.id)}-${Math.max(d.source.id, d.target.id)}`;
+                const isBi = bidirectionalPairs.has(pairKey);
                 // Create tooltip content
                 const tooltipContent = `
             <b>${sourceNode.name.replaceAll("_", " ")} -> ${targetNode.name.replaceAll("_", " ")}</b><br>
             ${d.relations.map(r => `${r.type.replaceAll("_", " ")}: ${roundDynamicFloat("", r.value)}`).join("<br>")}<br>
-            <b>Total ${scaleValue}value:</b> ${roundDynamicFloat("", d[usedWeight])}<br>
+            <b>Total ${scaleValue}value:</b> ${roundDynamicFloat("", d[typeof usedWeight !== 'undefined' ? usedWeight : 'actualWeight'])}<br>
         `;
 
                 // Show tooltip
@@ -1760,10 +1833,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     .style("top", `${event.pageY + 10}px`);
             })
             .on("mouseout", function () {
-                // Hide tooltip
-                d3.select(".tooltip")
-                    .html('')
-                    .style("opacity", 0);
+                d3.select(".tooltip").html('').style("opacity", 0);
             });
 
         // Drag event handlers
@@ -1771,15 +1841,15 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!event.active) simulation.alphaTarget(0.3).restart();
             d.fx = d.x;
             d.fy = d.y;
-        }
+        } 
         function dragged(event, d) {
-            d.fx = event.x;
-            d.fy = event.y;
+            d.fx = Math.max(bounds.minX, Math.min(bounds.maxX, event.x));
+            d.fy = Math.max(bounds.minY, Math.min(bounds.maxY, event.y));
         }
         function dragEnded(event, d) {
             if (!event.active) simulation.alphaTarget(0);
-            d.fx = d.x;
-            d.fy = d.y;
+            d.fx = Math.max(bounds.minX, Math.min(bounds.maxX, d.x));
+            d.fy = Math.max(bounds.minY, Math.min(bounds.maxY, d.y));
         }
         
         // Draw nodes
@@ -1836,12 +1906,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // Add event listener to the log-scale-switch
         let usedWeight = 'actualWeight';
         document.getElementById("log-scale-switch").addEventListener("change", function () {
-            if (this.checked) {
-                usedWeight = "logWeight"; // Switch to log scale
-            } else {
-                usedWeight = "actualWeight"; // Switch back to linear scale
-            }
-            console.log("Used weight:", usedWeight);
+            // Update the usedWeight variable based on the checkbox state
+            usedWeight = this.checked ? "logWeight" : "actualWeight";
             // Redraw the flows with the updated weight mode
             redrawFlows();
         });
@@ -1851,61 +1917,117 @@ document.addEventListener('DOMContentLoaded', function () {
          */
         function redrawFlows() {
             // Normalize the weights based on the selected scale
-            let minWeight = d3.min(initialCompartmentLinks, d => d[usedWeight]);
-            let maxWeight = d3.max(initialCompartmentLinks, d => d[usedWeight]);
-            compartmentLinks.forEach(link => {
-                link.normalizedWeight = (link[usedWeight] - minWeight) / (maxWeight - minWeight);
-            });
-
+            let minWeight = d3.min(compartmentLinks, d => d[usedWeight]);
+            let maxWeight = d3.max(compartmentLinks, d => d[usedWeight]);
+            
             // Update the links
             newSvg.selectAll(".link")
-                .data(compartmentLinks)
-                .join("line")
-                .attr("class", "link")
-                .attr("x1", d => d.source.x + d.source.width / 2)
-                .attr("y1", d => d.source.y + d.source.height / 2)
-                .attr("x2", d => d.target.x + d.target.width / 2)
-                .attr("y2", d => d.target.y + d.target.height / 2)
-                .style("stroke-width", d => d.normalizedWeight * 30 + 3)
-                .style("stroke", "#999")
-                .style("opacity", 0.8);
+                .attr("d", d => {
+                    const sourceX = d.source.x + d.source.width / 2;
+                    const sourceY = d.source.y + d.source.height / 2;
+                    const targetX = d.target.x + d.target.width / 2;
+                    const targetY = d.target.y + d.target.height / 2;
+                    
+                    const pairKey = `${Math.min(d.source.id, d.target.id)}-${Math.max(d.source.id, d.target.id)}`;
+                    const isBidirectional = bidirectionalPairs.has(pairKey);
+                    
+                    if (isBidirectional) {
+                        const dx = targetX - sourceX;
+                        const dy = targetY - sourceY;
+                        const dr = Math.sqrt(dx * dx + dy * dy);
+                        const curveOffset = dr * 0.2;
+                        
+                        const midX = (sourceX + targetX) / 2;
+                        const midY = (sourceY + targetY) / 2;
+                        
+                        const perpX = -dy / dr * curveOffset;
+                        const perpY = dx / dr * curveOffset;
+                        
+                        const controlX = midX + perpX;
+                        const controlY = midY + perpY;
+                        
+                        return `M${sourceX},${sourceY} Q${controlX},${controlY} ${targetX},${targetY}`;
+                    } else {
+                        return `M${sourceX},${sourceY} L${targetX},${targetY}`;
+                    }
+                })
+                .style("stroke-width", d => {
+                    const normalized = (d[usedWeight] - minWeight) / (maxWeight - minWeight);
+                    return normalized * 30 + 3;
+                })
+                .style("stroke", d => {
+                    const pairKey = `${Math.min(d.source.id, d.target.id)}-${Math.max(d.source.id, d.target.id)}`;
+                    return bidirectionalPairs.has(pairKey);
+                });
 
             // midpoints and target arrows
-            const midpoints = newSvg.selectAll(".midpoint-arrow")
+            const arrows = newSvg.selectAll(".midpoint-arrow")
                 .data(compartmentLinks);
-            midpoints.enter()
+            
+            arrows.enter()
                 .append("path")
                 .attr("class", "midpoint-arrow")
                 .style("fill", "black")
-                .merge(midpoints)
+                .merge(arrows)
                 .attr("d", d => {
-                    const midX = (d.source.x + d.source.width / 2 + d.target.x + d.target.width / 2) / 2;
-                    const midY = (d.source.y + d.source.height / 2 + d.target.y + d.target.height / 2) / 2;
+                    const sourceX = d.source.x + d.source.width / 2;
+                    const sourceY = d.source.y + d.source.height / 2;
                     const targetX = d.target.x + d.target.width / 2;
                     const targetY = d.target.y + d.target.height / 2;
-
-                    // calculate direction vector
-                    const dx = targetX - midX;
-                    const dy = targetY - midY;
-                    const length = Math.sqrt(dx * dx + dy * dy);
-                    const unitX = dx / length;
-                    const unitY = dy / length;
-
+                    
+                    const pairKey = `${Math.min(d.source.id, d.target.id)}-${Math.max(d.source.id, d.target.id)}`;
+                    const isBidirectional = bidirectionalPairs.has(pairKey);
+                    
+                    let midX, midY, dirX, dirY;
+                    
+                    if (isBidirectional) {
+                        const dx = targetX - sourceX;
+                        const dy = targetY - sourceY;
+                        const dr = Math.sqrt(dx * dx + dy * dy);
+                        const curveOffset = dr * 0.2;
+                        
+                        const midXStraight = (sourceX + targetX) / 2;
+                        const midYStraight = (sourceY + targetY) / 2;
+                        const perpX = -dy / dr * curveOffset;
+                        const perpY = dx / dr * curveOffset;
+                        const controlX = midXStraight + perpX;
+                        const controlY = midYStraight + perpY;
+                        
+                        const t = 0.5;
+                        midX = (1-t)*(1-t)*sourceX + 2*(1-t)*t*controlX + t*t*targetX;
+                        midY = (1-t)*(1-t)*sourceY + 2*(1-t)*t*controlY + t*t*targetY;
+                        
+                        const tangentX = 2*(1-t)*(controlX - sourceX) + 2*t*(targetX - controlX);
+                        const tangentY = 2*(1-t)*(controlY - sourceY) + 2*t*(targetY - controlY);
+                        const tangentLength = Math.sqrt(tangentX * tangentX + tangentY * tangentY);
+                        
+                        dirX = tangentX / tangentLength;
+                        dirY = tangentY / tangentLength;
+                    } else {
+                        midX = (sourceX + targetX) / 2;
+                        midY = (sourceY + targetY) / 2;
+                        const dx = targetX - sourceX;
+                        const dy = targetY - sourceY;
+                        const length = Math.sqrt(dx * dx + dy * dy);
+                        dirX = dx / length;
+                        dirY = dy / length;
+                    }
+                    
                     const arrowLength = 18;
                     const arrowWidth = 8;
-
                     // calculate arrowhead points
-                    const arrowTipX = midX + unitX * arrowLength;
-                    const arrowTipY = midY + unitY * arrowLength;
-                    const arrowLeftX = midX - unitY * arrowWidth;
-                    const arrowLeftY = midY + unitX * arrowWidth;
-                    const arrowRightX = midX + unitY * arrowWidth;
-                    const arrowRightY = midY - unitX * arrowWidth;
-
+                    const arrowTipX = midX + dirX * arrowLength;
+                    const arrowTipY = midY + dirY * arrowLength;
+                    const arrowLeftX = midX - dirY * arrowWidth;
+                    const arrowLeftY = midY + dirX * arrowWidth;
+                    const arrowRightX = midX + dirY * arrowWidth;
+                    const arrowRightY = midY - dirX * arrowWidth;
+                    
                     // path for the arrow
                     return `M${arrowLeftX},${arrowLeftY} L${arrowTipX},${arrowTipY} L${arrowRightX},${arrowRightY} Z`;
                 });
-            midpoints.exit().remove();
+            
+            arrows.exit().remove();
         }
 
         redrawFlows();

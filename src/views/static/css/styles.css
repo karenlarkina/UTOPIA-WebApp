@@ -42,13 +42,13 @@ h3 {
     color: #acacb0;
 }
 #main-content {
-    margin-top: -10px;
+    margin-top: 25px !important;
 }
 #master-column { /* Container holding the heatmap, legend, information container. */
     display: none;
     align-items: flex-start;
-    gap: 10px;
-    margin-top: -25px;
+    gap: 5px;
+    margin-top: -20px;
     margin-bottom: 50px;
 }
 #heatmap-container {
@@ -78,8 +78,8 @@ h3 {
     gap: 10px;
     align-items: flex-start;
     width: 52rem;
-    margin-top: 59px;
-    margin-right: 20px;
+    margin-top: 15px;
+    margin-right: 15px;
 }
 
 .nav-item {
@@ -411,7 +411,7 @@ h3 {
 
 #compartment-ocean-sediment { /* special case for ocean sediment position */
     position: relative;
-    top: -110px;
+    top: -115px;
     left: 0px;
     margin-left: 50px;
 }
