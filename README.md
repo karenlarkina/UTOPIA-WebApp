@@ -1,6 +1,6 @@
 # UTOPIA-WebApp
 
-The UTOPIA web app is an interactive tool that enables users to explore the fate of microplastics across environmental compartments interactively within a unit world framework.
+The UTOPIA web app is an interactive tool that enables users to explore the fate of microplastics across environmental compartments interactively within the UTOPIA unit world framework. The model code used in the web-app matches the UTOPIA model release: [v1.0-webapp](https://github.com/microplastics-cluster/UTOPIA_model/releases/tag/v1.0-webapp).
 
 The User can select Microplastic properties as well and design emission scenarios via selection of the receiving compartment of emissions, selecting a flow of emissions, and the size and microplastic aggregation state for emission.
 
