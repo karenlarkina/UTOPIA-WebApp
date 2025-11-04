@@ -117,22 +117,56 @@ document.addEventListener('DOMContentLoaded', function () {
         resetImport();
     }
 
-    // /**
-    //  * Image creation and download using html2canvas.
-    //  * */
-    // const visualizationToPng = document.getElementById("export-png");
-    // visualizationToPng.addEventListener("click", function() {
-    //     const heatmap = document.getElementById("heatmap-container");
-    //     html2canvas(heatmap).then(canvas => {
-    //         // Create a link and trigger download
-    //         const link = document.createElement('a');
-    //         const fileName = (d3.select("#heatmap-container").select("#main-title").text()).replaceAll(" ", "_");
-    //         console.log(fileName);
-    //         link.download = `Utopia_${fileName}.png`;
-    //         link.href = canvas.toDataURL("image/png");
-    //         link.click();
-    //     });
-    // });
+    /**
+     * Image creation and download using domtoimage.
+     * */
+    const visualizationToPng = document.getElementById("export-png");
+    visualizationToPng.addEventListener("click", function() {
+        const heatmapContainer = document.getElementById("master-column");
+        document.body.style.cursor = 'wait';
+        
+        // detecting the current view type
+        const title = document.querySelector("#main-title")?.textContent || "";
+        const isFlowView = title.toLowerCase().includes("flow");
+        const rect = heatmapContainer.getBoundingClientRect();
+        
+        // cropping the visaulization for global and heatmaps because of the legend
+        const cropBottom = isFlowView ? 0 : 110;
+        const scale = 3;
+        
+        const options = {
+            quality: 1,
+            bgcolor: '#ffffff',
+            
+            // adjust height to crop bottom
+            width: rect.width * scale,
+            height: (rect.height - cropBottom) * scale,
+            
+            style: {
+                transform: `scale(${scale})`,
+                transformOrigin: 'top left',
+                width: rect.width + 'px',
+                height: (rect.height - cropBottom) + 'px'
+            },
+            
+            cacheBust: true
+        };
+        
+        domtoimage.toPng(heatmapContainer, options)
+            .then(function(dataUrl) {
+                document.body.style.cursor = 'default';
+                
+                const link = document.createElement('a');
+                const fileName = title.replaceAll(" ", "_");
+                
+                link.download = `Utopia_${fileName}.png`;
+                link.href = dataUrl;
+                link.click();
+            })
+            .catch(function(error) {
+                document.body.style.cursor = 'default';
+            });
+    });
 
     // Function to unselect all selected elements (cell/compartment), hide selection info and unblur all
     function unselectEverything() {
