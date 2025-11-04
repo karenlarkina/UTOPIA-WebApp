@@ -84,14 +84,14 @@ function toggleOptions(container_id, element) {
         // Show elements for the selected container
         selectedContainer.style.display = "flex"; // Show the selected container
     }
-    if (container_id === 'mpp_container'){
-        // Select the first option by default
-        var mppCompositionSelect = document.getElementById("mpp_composition");
-        mppCompositionSelect.selectedIndex = 0;
+    // if (container_id === 'mpp_container'){
+    //     // Select the first option by default
+    //     var mppCompositionSelect = document.getElementById("mpp_composition");
+    //     mppCompositionSelect.selectedIndex = 0;
 
-        // Trigger the onchange event manually
-        mppCompositionSelect.dispatchEvent(new Event('change'));
-    }
+    //     // Trigger the onchange event manually
+    //     mppCompositionSelect.dispatchEvent(new Event('change'));
+    // }
     // Highlighting selection on the navbar
     var navLinks = document.querySelectorAll('.nav-link');
     navLinks.forEach(function(link) {
