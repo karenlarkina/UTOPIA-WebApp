@@ -1904,6 +1904,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr("height", 60)
             .attr("rx", 5)
             .attr("ry", 5)
+            .style("cursor", "pointer")
             .style("fill", d => {
                 switch (d.className) {
                     case "air-color": return "#D8F1F1";
