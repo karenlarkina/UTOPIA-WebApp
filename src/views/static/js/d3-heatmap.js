@@ -72,32 +72,119 @@ document.addEventListener('DOMContentLoaded', function () {
     importFileInput.addEventListener('change', handleImportFileChange);
     deleteBtn.addEventListener('click', deleteImportFile);
 
+    /**
+     * Function to handle the import file gotten from the user
+     * and checking its validity before applying the parameters.
+     * @param {*} event change event from the file input
+     */
     function handleImportFileChange(event) {
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                const text = e.target.result;
-                const [headerLine, valueLine] = text.trim().split('\n');
-                const headers = headerLine.split(',');
-                const values = valueLine.split(',');
+                let text = e.target.result;
+                
+                // depending on text erditor, some special charecters might be added
+                // remove such characters (BOM) if present
+                if (text.charCodeAt(0) === 0xFEFF) {
+                    text = text.slice(1);
+                }
+                
+                // splitting headers and values
+                const lines = text.trim().split(/\r?\n/);
+                const headerLine = lines[0].trim();
+                const valueLine = lines[1].trim();
+                const headers = headerLine.split(',').map(h => h.trim());
+                const values = valueLine.split(',').map(v => v.trim());
+                
                 const jsonStr = extractVariablesFromClientSide();
                 const obj = JSON.parse(jsonStr);
                 const flat = flattenObject(obj);
+                // checking the given headers
                 const expectedHeaders = Object.keys(flat);
                 const isValid = headers.length === expectedHeaders.length &&
                     headers.every((h, i) => h === expectedHeaders[i]);
                 if (!isValid) {
-                    alert("Invalid file: headers do not match expected parameters.");
+                    let errorMsg = 'Invalid file: headers do not match expected parameters.\n\n';
+                    
+                    // finding the differences the help the user
+                    const maxLen = Math.max(headers.length, expectedHeaders.length);
+                    let differences = [];
+                    
+                    for (let i = 0; i < maxLen; i++) {
+                        const expected = expectedHeaders[i] || '(missing)';
+                        const received = headers[i] || '(missing)';
+                        
+                        if (expected !== received) {
+                            differences.push({
+                                position: i + 1,
+                                expected: expected,
+                                received: received
+                            });
+                        }
+                    }
+                    if (differences.length > 0) {
+                        errorMsg += 'Differences found:\n';
+                        differences.forEach(diff => {
+                            errorMsg += `  Column ${diff.position}:\n`;
+                            errorMsg += `    Expected:  "${diff.expected}"\n`;
+                            errorMsg += `    Received:  "${diff.received}"\n`;
+                        });
+                        errorMsg += '\n';
+                    }
+                    
+                    errorMsg += `Total columns - Expected: ${expectedHeaders.length}, Received: ${headers.length}\n\n`;
+                    errorMsg += 'Full comparison:\n\n';
+                    errorMsg += 'Expected headers:\n' + expectedHeaders.join(',') + '\n\n';
+                    errorMsg += 'Received headers:\n' + headers.join(',');
+                    
+                    alert(errorMsg);
                     resetImport();
                     return;
                 }
+                
+                // a mapping from CSV keys to field IDs ion HTML
+                const keyToFieldId = {
+                    'MPdensity_kg_m3': 'density',
+                    'MP_composition': 'mpp_composition',
+                    'shape': 'shape',
+                    'N_sizeBins': 'N_sizeBins',
+                    'fragmentation_style': 'fragmentation_style',
+                    'fragmentation_timescale': 't_frag_gen_FreeSurfaceWater',
+                    'discorporation_timescale': 't_half_deg_free',
+                    'runName': 'runName',
+                    'MPform': 'mp_form',
+                    'size_bin': 'es_bin_size',
+                    'input_flow_g_s': 'input_flow_g_s',
+                    'emiss_comp': 'emiss_comp'
+                };
+                
+                // mapping values to each field
                 headers.forEach((key, i) => {
-                    const fieldId = key.split('.').pop();
+                    const fieldKey = key.split('.').pop();
+                    const fieldId = keyToFieldId[fieldKey] || fieldKey;
                     const el = document.getElementById(fieldId);
-                    if (el) el.value = values[i];
+                    
+                    if (el) {
+                        el.value = values[i];
+                        const changeEvent = new Event('change', { bubbles: true });
+                        el.dispatchEvent(changeEvent);
+                    } else {
+                        console.warn(`Field not found: ${fieldId} (from key: ${fieldKey})`);
+                    }
                 });
-                alert("Parameters imported successfully.");
+                
+                // updating special case fields
+                const compositionField = document.getElementById('mpp_composition');
+                if (compositionField) {
+                    generateMaterialProperties();
+                }
+                const fragField = document.getElementById('fragmentation_style');
+                if (fragField) {
+                    document.getElementById('selectedFragmentationRange').textContent = fragField.value;
+                }
+                
+                alert('Parameters imported successfully.');
             };
             reader.readAsText(file);
             importBtn.html("Edit File");
@@ -212,54 +299,52 @@ document.addEventListener('DOMContentLoaded', function () {
             .classed('blurry', false);
     }
 
-    // // Function to round large floats to give a more precise and visually appealing number.
-    // function roundDynamiucFloat(value) {
-    //     let num = Number(value).toFixed(10);
-    //
-    //     if (num < 0.00000005) {
-    //         return Number(num).toFixed(8);
-    //     } else if (num < 0.0000005) {
-    //         return Number(num).toFixed(7);
-    //     } else if (num < 0.000005) {
-    //         return Number(num).toFixed(6);
-    //     } else if (num < 0.00005) {
-    //         return Number(num).toFixed(5);
-    //     } else if (num < 0.0005) {
-    //         return Number(num).toFixed(4);
-    //     } else if (num < 0.005) {
-    //         return Number(num).toFixed(3);
-    //     } else {
-    //         return Number(num).toFixed(2);
-    //     }
-    //
-    //
-    // }
 
-    /**
-     * New dynamic round with the upper and lower bounds.
-     * */
-    function roundDynamicFloat(type, value) {
-        let num = Number(value).toFixed(10);
-
-        if (type === "percent" && num < 0.0009) {
-                return '< 0.0001';
-        } else if (type === "concentration" && num < 0.0000009) {
-                return '< 1e-6';
+/**
+ * Dynamic float rounding with proper handling of very large/small numbers.
+ * @param {string} type special cases
+ * @param {number|string} value the value to format
+ * @returns {string} formatted number string
+ */
+function roundDynamicFloat(type, value) {
+    if (value === null || value === undefined || value === '' || isNaN(value)) {
+        return '0.00';
+    }
+    let num = Number(value);
+    if (num === 0) {
+        return '0.00';
+    }
+    const absNum = Math.abs(num);
+    if (type === "percent") {
+        if (absNum < 0.0001) {
+            return '< 0.0001';
         }
-        if (num > 10000) {
-            return Number.parseFloat(num).toExponential(2);
-        } else if (num > 100) {
-            return Number(num).toFixed();
-        } else if (num > 0 || num > 0.01 || num < 0 && num > -2) {
-            return Number(num).toFixed(2);
-        } else if (num > 0.001) {
-            return Number(num).toFixed(3);
-        } else if (num > 0.00001) {
-            return Number(num).toFixed(4);
-        } else {
-            return Number.parseFloat(num).toExponential(2);
+    } else if (type === "concentration") {
+        if (absNum < 0.000001) {
+            return '< 1e-6';
         }
     }
+    if (absNum >= 10000) {
+        return num.toExponential(2);
+    }
+    if (absNum >= 100) {
+        return num.toFixed(0);
+    }
+    if (absNum >= 1) {
+        return num.toFixed(2);
+    }
+    if (absNum >= 0.01) {
+        return num.toFixed(2);
+    }
+    if (absNum >= 0.001) {
+        return num.toFixed(3);
+    }
+    if (absNum >= 0.0001) {
+        return num.toFixed(4);
+    }
+    // extremely small numbers
+    return num.toExponential(2);
+}
 
     // Building the new heatmaps with respect to compartments
     let assembleHeatMap = function(title, csvText, mode, csvExtended) {
@@ -1482,7 +1567,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let differenceParts = differenceString.split("e");
         // Populating the global information fields
         d3.select('#difference')
-            .html(`Difference inflow-outflow = ${roundDynamicFloat("", differenceParts[0])}e${differenceParts[1]} (g)`);
+            .html(`Difference inflow-outflow = ${Number.parseFloat(differenceParts[0]).toFixed(2)}e${differenceParts[1]} (g)`);
         d3.select('#global-persistence')
             .html(`Overall persistence (Pov): ${roundDynamicFloat("", globalMap.get(pov))} years`);
         d3.select('#global-residence')
