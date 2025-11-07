@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UTOPIA WebApp</title>
+    <link rel="icon" href="../static/favicon.ico">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/libs/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/libs/all.min.css') }}">
@@ -107,7 +108,7 @@
                     </div>
                     <div class="row">
                         <label class="col-md-4" for="input_flow_g_s">Flow of MPs (g/s):</label>
-                        <input class="col-md-3" type="number" id="input_flow_g_s" value="1" minlength="1">
+                        <input class="col-md-3" type="number" id="input_flow_g_s" value="1" min="1" step="1">
                     </div>
                     <div class="row">
                         <label class="col-md-4" for="emiss_comp">Receiving Compartment:</label>
