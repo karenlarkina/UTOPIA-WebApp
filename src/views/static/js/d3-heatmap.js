@@ -1,11 +1,21 @@
 let utopia_model_results = null;
 let selectedCell = null;
 let selectedCompartment = null;
+let runInputFlow = null;
+let runEmissionComp = null;
+
 
 document.addEventListener('DOMContentLoaded', function () {
     // Select the "Run" button
     let runButton = document.getElementById('run-model');
     let extractVariablesFromClientSide = function(){
+        // validation and correction for input emissions flow
+        let inputFlow = document.getElementById('input_flow_g_s').value;
+        if (isNaN(inputFlow) || inputFlow < 1) {
+            inputFlow = 1;
+        } else {
+            inputFlow = Math.round(inputFlow); // Enforce integer
+        }
         let utopiaObject = {
             MicroPhysProperties: {
                 MPdensity_kg_m3: document.getElementById('density').value,
@@ -22,10 +32,12 @@ document.addEventListener('DOMContentLoaded', function () {
             EmScenario:{
                 MPform: document.getElementById('mp_form').value,
                 size_bin: document.getElementById('es_bin_size').value,
-                input_flow_g_s: document.getElementById('input_flow_g_s').value,
+                input_flow_g_s: inputFlow,
                 emiss_comp: document.getElementById('emiss_comp').value
             }
         }
+        runInputFlow = utopiaObject.EmScenario.input_flow_g_s;
+        runEmissionComp = utopiaObject.EmScenario.emiss_comp;
         return JSON.stringify(utopiaObject)
     }
 
@@ -1302,8 +1314,15 @@ function roundDynamicFloat(type, value) {
             inflowsMap = new Map(inflowsArray);
 
             let totalCompInflow = 0;
+            // checking if emissions need to be added
+            if (selection.attr('current-compartment') === runEmissionComp) {
+                totalCompInflow += Number(runInputFlow); // adding to total
+                let inflowName = "Emissions";
+                addFlowToTable(inflowsBody.append("tr"), inflowName, runInputFlow);
+            }
+            // add emissions for the input comaprtment
             inflowsMap.forEach((value, key) => {
-                totalCompInflow += value; // coputing total
+                totalCompInflow += value; // computing total
                 let inflowName = key.replaceAll("k_", "").replaceAll("_", " ");
                 let inflowsTableRow = inflowsBody.append("tr"); // creating the row entry per inflow item
                 // Listing the elements in the table
