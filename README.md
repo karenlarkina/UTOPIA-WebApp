@@ -6,6 +6,8 @@ The User can select Microplastic properties as well and design emission scenario
 
 The application is available on https://utopia-webapp.onrender.com/. 
 
+The **main** branch is hosted on Render, all pulled commits will automatically trigger the web app to deploy the newest version. 
+
 ## About UTOPIA model
 
 UTOPIA is an open-source evaluative unit world model that has been developed within the LRI ECO56 project UTOPIA: Development of a multimedia unit world Open-source model for microplastic. (link to the original project: https://cefic-lri.org/projects/eco-56-utopia-development-of-a-multimedia-unit-world-open-source-model-for-microplastic/).
