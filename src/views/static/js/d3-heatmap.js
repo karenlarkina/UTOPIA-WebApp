@@ -1177,6 +1177,8 @@ function roundDynamicFloat(type, value) {
             compOutflows = 'outflows_num_s';
         }
 
+        const concentrationUnit = /particle/i.test(title) ? "particles/m\u00B3" : "g/m\u00B3";
+
         // Create a tooltip
         const tooltip = d3.select("#heatmap-container")
             .append("div")
@@ -1202,7 +1204,7 @@ function roundDynamicFloat(type, value) {
 
             // Update the position of the tooltip
             tooltip
-                .html(`Concentration (in g/m\u00B3) = ${d3.select(this).attr('comp-concentration')} <br>% of total ${mode} = ${roundDynamicFloat("concentration", d3.select(this).attr('comp-percent'))} %
+                .html(`Concentration (in ${concentrationUnit}) = ${d3.select(this).attr('comp-concentration')} <br>% of total ${mode} = ${roundDynamicFloat("concentration", d3.select(this).attr('comp-percent'))} %
                                                                             <br> Persistence = ${d3.select(this).attr('comp-persistence')} years<br>Residence time = ${d3.select(this).attr('comp-residence')} years`)
                 .style("left", tooltipLeft + "px")
                 .style("top", tooltipTop + "px")
@@ -1288,7 +1290,7 @@ function roundDynamicFloat(type, value) {
                 .html(`${d3.select(selectedCompartment).attr('comp-title')} Compartment`);
             // adding general info about selected compartment
             d3.select(`#comp-concentration`)
-                .html(`Concentration (in g/m\u00B3) = ${d3.select(selectedCompartment).attr('comp-concentration')}`);
+                .html(`Concentration (in ${concentrationUnit}) = ${d3.select(selectedCompartment).attr('comp-concentration')}`);
             d3.select(`#comp-total-percent`)
                 .html(`% of the total ${mode} = ${roundDynamicFloat("percent", d3.select(selectedCompartment).attr('comp-percent'))}`);
             d3.select(`#comp-persistence`)
@@ -2405,7 +2407,7 @@ function roundDynamicFloat(type, value) {
             number_fraction_overview_btn.classList.remove('active');
             // Highlighting selection on the navbar
             mass_flow_btn.classList.add('active');
-            createFlowsGraph("Mass Balance Flows", "mass", utopia_model_results.extended_comp);
+            createFlowsGraph("Mass Flows (g/s)", "mass", utopia_model_results.extended_comp);
         }
     });
 
@@ -2421,7 +2423,7 @@ function roundDynamicFloat(type, value) {
             number_fraction_overview_btn.classList.remove('active');
             // Highlighting selection on the navbar
             number_flow_btn.classList.add('active');
-            createFlowsGraph("Particle Number Flows", "particle number", utopia_model_results.extended_comp);
+            createFlowsGraph("Particle Number Flows (particles/s)", "particle number", utopia_model_results.extended_comp);
         }
     });
 
