@@ -34,7 +34,10 @@ def execute_utopia_model(input_obj):
     """Define run parameters"""
 
     ## Define microplastics physical properties
-    input_obj = eval(input_obj)
+    if isinstance(input_obj, str):
+        input_obj = eval(input_obj)
+    # if it's already a dict (from Flask's request.get_json()), use it as-is
+
     # The user can also select a preloaded file instead of typing in the values. In this case the user wont need to run the code between lines 29 and 34 and neither the code between lines 42 and 50. The user will have to run line 56 with the selected input file
 
     mpp_input = input_obj.get("MicroPhysProperties")
