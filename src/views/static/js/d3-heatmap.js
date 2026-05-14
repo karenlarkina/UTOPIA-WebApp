@@ -2343,6 +2343,7 @@ function roundDynamicFloat(type, value) {
             // Highlighting selection on the navbar
             comp_mass_fraction_distribution_btn.classList.add('active');
             d3.select("#global-view").style("display", "none");
+            updateRateHeader('mass');
             assembleHeatMap('Heatmap of Mass', utopia_model_results.mass_fraction_distribution_heatmap, "mass", utopia_model_results.extended_csv_table);
         }
     });
@@ -2359,6 +2360,7 @@ function roundDynamicFloat(type, value) {
             // Highlighting selection on the navbar
             comp_number_fraction_distribution_btn.classList.add('active');
             d3.select("#global-view").style("display", "none");
+            updateRateHeader('particle');
             assembleHeatMap('Heatmap of Particle', utopia_model_results.number_fraction_distribution_heatmap, "particle number", utopia_model_results.extended_csv_table);
         }
     });
@@ -2375,6 +2377,7 @@ function roundDynamicFloat(type, value) {
             // Highlighting selection on the navbar
             mass_fraction_overview_btn.classList.add('active');
             d3.select("#global-view").style("display", "flex");
+            updateRateHeader('mass');
             assembleGlobalView('Mass Overview', "mass", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
         }
     });
@@ -2391,6 +2394,7 @@ function roundDynamicFloat(type, value) {
             // Highlighting selection on the navbar
             number_fraction_overview_btn.classList.add('active');
             d3.select("#global-view").style("display", "flex");
+            updateRateHeader('particle');
             assembleGlobalView('Particle Overview', "particle number", utopia_model_results.extended_comp, utopia_model_results.global_info_dict);
         }
     });
