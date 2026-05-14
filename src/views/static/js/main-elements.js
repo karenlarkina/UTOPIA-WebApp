@@ -122,3 +122,19 @@ function generateMaterialProperties() {
         materialPropertiesDiv.innerHTML = '<div class="row"><label class="col-md-4">No properties available for selected material</label></div>';
     }
 }
+
+function updateRateHeader(mode) {
+    let rateText, totalUnit;
+    if (mode === 'mass') {
+        rateText = 'Rate (g/s)';
+        // totalUnit = 'Total (g)';
+    } else { // particle
+        rateText = 'Rate (particles/s)';
+        // totalUnit = 'Total (particles)';
+    }
+
+    const rateHeaders = document.querySelectorAll('.rate-header');
+    rateHeaders.forEach(th => {
+        th.textContent = rateText;
+    });
+}
